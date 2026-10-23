@@ -15,4 +15,3 @@ if (!jiraKeyFrom(branch || '')) {
   console.error('Include a Jira key anywhere in the branch name, for example feature/SCRUM-14-add-quality-hooks.');
   process.exitCode = 1;
 }
-//RAndom Change
