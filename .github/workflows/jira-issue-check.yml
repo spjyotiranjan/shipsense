@@ -1,0 +1,49 @@
+name: Jira issue check
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  jira-issue-verified:
+    name: Jira issue verified
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR key against Jira
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+        run: |
+          node --input-type=module <<'NODE'
+          const title = process.env.PR_TITLE || '';
+          const match = /^SCRUM-(\d+)\b/.exec(title);
+          if (!match) {
+            console.error('PR title must start with a ShipSense Jira key, for example SCRUM-14.');
+            process.exit(1);
+          }
+          if (!process.env.JIRA_EMAIL || !process.env.JIRA_API_TOKEN) {
+            console.error('Configure JIRA_EMAIL and JIRA_API_TOKEN repository secrets.');
+            process.exit(1);
+          }
+          const key = `SCRUM-${match[1]}`;
+          const auth = Buffer.from(`${process.env.JIRA_EMAIL}:${process.env.JIRA_API_TOKEN}`).toString('base64');
+          const url = `https://spjyotiranjan.atlassian.net/rest/api/3/issue/${key}?fields=summary,status`;
+          const response = await fetch(url, {
+            headers: { Authorization: `Basic ${auth}`, Accept: 'application/json' },
+            signal: AbortSignal.timeout(15000),
+          });
+          if (!response.ok) {
+            console.error(`Jira issue ${key} could not be verified (HTTP ${response.status}).`);
+            process.exit(1);
+          }
+          const issue = await response.json();
+          if (issue.key !== key) {
+            console.error(`Jira returned ${issue.key || 'no issue key'} for ${key}.`);
+            process.exit(1);
+          }
+          console.log(`Verified ${key} in ShipSense Jira: ${issue.fields?.summary || ''}`);
+          NODE

@@ -32,6 +32,10 @@ The owner renamed the existing shared Jira space to ShipSense. Keep the `SCRUM` 
 
 ## Prepared P01 and P02 backlogs
 
-P01: SCRUM-13 through SCRUM-17, one task per P01.1–P01.5. P02: SCRUM-18 through SCRUM-22, one task per P02.1–P02.5. Their phase files are the source for expected results and acceptance criteria. Keep them in To Do with no parent epic and no sprint until the respective phase starts. Add phase labels `shipsense-p01` and `shipsense-p02` to make separate Jira filters. JQL: `project = SCRUM AND labels = shipsense-p01 ORDER BY key ASC` and `project = SCRUM AND labels = shipsense-p02 ORDER BY key ASC`. All ten tasks have descriptions, phase labels, and To Do status; verify these fields and move all five tasks into the phase epic and sprint when that phase starts.
+P01: SCRUM-13 through SCRUM-17, one task per P01.1–P01.5. P02: SCRUM-18 through SCRUM-22, one task per P02.1–P02.5. Their phase files are the source for expected results and acceptance criteria. Add phase labels `shipsense-p01` and `shipsense-p02` to make separate Jira filters. JQL: `project = SCRUM AND labels = shipsense-p01 ORDER BY key ASC` and `project = SCRUM AND labels = shipsense-p02 ORDER BY key ASC`. All ten tasks were initially prepared in To Do without an epic or sprint. SCRUM-14 now appears in `SCRUM Sprint 1` (ID 36) without a parent epic; reconcile this before the P01 phase sprint is created. Verify current fields and move all five tasks into the phase epic and sprint when that phase starts.
+
+## GitHub connection and merge checks
+
+`docs/GITHUB_JIRA_INTEGRATION.md` records the issue-key convention, connected GitHub for Atlassian organization, commit hooks, Jira automation, and the GitHub `Jira issue verified` workflow. The Jira flow is enabled, but its audit log has no PR-trigger run. GitHub's status check needs repository secrets and branch ruleset configuration before it can gate merges. Keep Jira issues In Review after PR merge until the subphase acceptance evidence passes.
 
 

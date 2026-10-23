@@ -10,5 +10,9 @@ P00 planning is complete. Work lives in ShipSense Jira space (`SCRUM`): P00 epic
 
 The existing Jira space was renamed from The Mentalists to **ShipSense**; its key remains `SCRUM` and its board remains `1`. P01 backlog: SCRUM-13–SCRUM-17 (P01.1–P01.5). P02 backlog: SCRUM-18–SCRUM-22 (P02.1–P02.5). Both phases remain Not started. No P01/P02 epic or sprint has been created.
 
-All ten P01/P02 tasks (SCRUM-13–SCRUM-22) now have descriptions with scope, prerequisites, acceptance criteria, and evidence requirements. Each is To Do, has its phase label (shipsense-p01 or shipsense-p02), and has no parent epic or sprint; this was verified in Jira on 23 October 2026. Keep them in Backlog until the respective phase starts. Leave owners, estimates, dates, and sprint start to the team.
+All ten P01/P02 tasks (SCRUM-13–SCRUM-22) have descriptions with scope, prerequisites, acceptance criteria, and evidence requirements. At initial verification on 23 October 2026, each was To Do, phase labelled, and outside an epic and sprint. Jira now shows SCRUM-14 in `SCRUM Sprint 1` (ID 36), without a parent epic; this change was not made as part of the integration work. Recheck current sprint membership before starting a phase, and leave owners, estimates, dates, and sprint start to the team.
+
+## GitHub and Jira integration (23 October 2026)
+
+`docs/GITHUB_JIRA_INTEGRATION.md` records the development-key rule and verification steps. Jira shows GitHub for Atlassian connected to `spjyotiranjan`; a temporary PR appeared in its Development list, and Atlassian's bot made a bracketed key clickable in a GitHub comment. The temporary PR and branch were removed after this test. The Jira flow `ShipSense: PR created -> In Review` is enabled for future qualifying PRs, with no trigger run yet. The GitHub `Jira issue verified` job needs repository secrets and a required-check ruleset before it can gate merges. Tracked Git hooks provide Markdown lint and commit-subject validation after `git config core.hooksPath .githooks` in each clone.
 

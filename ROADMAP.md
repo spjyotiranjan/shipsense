@@ -49,7 +49,7 @@ Detailed plans, expected results, and acceptance criteria for every phase and su
 - [x] P00.3 Write this roadmap, status method, and repository handoff.
 - [x] P00.4 Decide Release 1 integration order, demo service, identity model, provisional region, spending controls, and measurable exit thresholds.
 - [x] P00.5 Record the architecture baseline for Azure services, MongoDB hosting, queue/worker model, R2 retention, provider credentials, and model selection method.
-- [x] P00.6 Configure the Jira phase workflow in The Mentalists; create only P00 epic SCRUM-6 and unstarted sprint 35, containing all six subphase issues. Dates, team assignments, estimates, and sprint start are manual.
+- [x] P00.6 Configure the Jira phase workflow in ShipSense; create only P00 epic SCRUM-6 and unstarted sprint 35, containing all six subphase issues. Dates, team assignments, estimates, and sprint start are manual.
 
 ### P01 — Repository and developer foundation · Not started
 **Prerequisite:** P00 architecture decisions. **Exit:** reproducible local boot, automated checks, and a working web-to-API request.

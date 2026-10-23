@@ -1,11 +1,11 @@
 ﻿# ShipSense project status
 
-**As of:** 23 October 2026 (Asia/Kolkata). **Evidence basis:** the local phase/decision files and ShipSense Jira records. Product implementation has not started.
+**As of:** 23 October 2026 (Asia/Kolkata). **Evidence basis:** the local phase/decision files, ShipSense Jira records, and a temporary GitHub connection test. Product implementation has not started. Jira shows GitHub for Atlassian connected to `spjyotiranjan`; the temporary PR appeared in Jira's Development list, but not in the work item's Development panel. The temporary PR and branch were removed. The PR-created Jira flow is enabled but has no trigger run. GitHub has no successful Jira status check or required-check ruleset yet.
 
 | Phase | Status | Completion evidence / current gap |
 | --- | --- | --- |
 | P00 Scope and technical decisions | Complete | P00.1–P00.6 acceptance recorded in `Phases/P00-scope-and-technical-decisions.md`; accepted baseline in `docs/decisions/0001-release-1-scope.md` and `0002-architecture-baseline.md`. Jira: [SCRUM-6](https://spjyotiranjan.atlassian.net/browse/SCRUM-6) epic and [SCRUM-7](https://spjyotiranjan.atlassian.net/browse/SCRUM-7)–[SCRUM-12](https://spjyotiranjan.atlassian.net/browse/SCRUM-12) tasks are Done; sprint 35 remains unstarted and named `SCRUM Sprint 2` until manually renamed. P01 validates region and forecast before paid provisioning. |
-| P01 Repository foundation | Not started | Backlog SCRUM-13–SCRUM-17 is described, labelled, To Do, and outside any sprint/epic (verified 23 October 2026). No application source verified. |
+| P01 Repository foundation | Not started | Backlog SCRUM-13–SCRUM-17 is described and labelled. SCRUM-14 is To Do, has no parent epic, and currently appears in `SCRUM Sprint 1` (ID 36); reconcile sprint membership when P01 starts. No application source verified. |
 | P02 Identity, tenancy, permissions, audit | Not started | Backlog SCRUM-18–SCRUM-22 is described, labelled, To Do, and outside any sprint/epic (verified 23 October 2026). P01 required. |
 | P03 Data, events, evidence | Not started | P02 required |
 | P04 Catalog and web experience | Not started | P03 required |
