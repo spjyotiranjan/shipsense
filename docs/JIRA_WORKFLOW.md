@@ -34,4 +34,8 @@ The owner renamed the existing shared Jira space to ShipSense. Keep the `SCRUM` 
 
 P01: SCRUM-13 through SCRUM-17, one task per P01.1–P01.5. P02: SCRUM-18 through SCRUM-22, one task per P02.1–P02.5. Their phase files are the source for expected results and acceptance criteria. Keep them in To Do with no parent epic and no sprint until the respective phase starts. Add phase labels `shipsense-p01` and `shipsense-p02` to make separate Jira filters. JQL: `project = SCRUM AND labels = shipsense-p01 ORDER BY key ASC` and `project = SCRUM AND labels = shipsense-p02 ORDER BY key ASC`. All ten tasks have descriptions, phase labels, and To Do status; verify these fields and move all five tasks into the phase epic and sprint when that phase starts.
 
+## GitHub connection and merge rule
+
+`docs/GITHUB_JIRA_INTEGRATION.md` records the issue-key convention, connected GitHub for Atlassian organization, commit hooks, and Jira automation behavior. Keep Jira issues In Review after PR merge until the subphase acceptance evidence passes.
+
 

@@ -16,6 +16,7 @@ Use Next.js/TypeScript for the web and its web-facing backend layer, FastAPI/Pyt
 4. Verify the stated exit proof. Update the subphase and parent status with links to tests, screenshots, docs, or Jira issue. Mark a phase complete only after all required subphases and exit criteria pass.
 5. Preserve existing work and inspect repository state before editing. Never infer completion from a closed ticket or generated file alone.
 6. Follow `docs/JIRA_WORKFLOW.md` in ShipSense (`SCRUM`): create a phase epic and sprint when that phase starts, with every subphase in that sprint. Subphase backlog tasks may be prepared before a phase starts; do not pre-create its epic or sprint. P01 and P02 backlog task keys are in `HANDOFF.md`. Leave sprint dates, team assignment, estimates, start and close to the manual team workflow.
+7. Name every feature branch, commit, and pull request with the same `SCRUM-<number>` key. Start each commit subject and PR title with it. Install the tracked commit hooks with `git config core.hooksPath .githooks` and follow `docs/GITHUB_JIRA_INTEGRATION.md`. Check the linked development activity on the Jira work item; Jira linkage or a green Azure build never proves phase completion.
 
 ## Engineering boundaries
 

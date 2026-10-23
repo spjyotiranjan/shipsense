@@ -1,6 +1,6 @@
 ﻿# ShipSense project status
 
-**As of:** 23 October 2026 (Asia/Kolkata). **Evidence basis:** the local phase/decision files and ShipSense Jira records. Product implementation has not started.
+**As of:** 23 October 2026 (Asia/Kolkata). **Evidence basis:** the local phase/decision files and ShipSense Jira records. Product implementation has not started. Jira shows GitHub for Atlassian connected to `spjyotiranjan`; work-item development sync is pending a real keyed commit and PR.
 
 | Phase | Status | Completion evidence / current gap |
 | --- | --- | --- |

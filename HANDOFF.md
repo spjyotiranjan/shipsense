@@ -12,3 +12,7 @@ The existing Jira space was renamed from The Mentalists to **ShipSense**; its ke
 
 All ten P01/P02 tasks (SCRUM-13–SCRUM-22) now have descriptions with scope, prerequisites, acceptance criteria, and evidence requirements. Each is To Do, has its phase label (shipsense-p01 or shipsense-p02), and has no parent epic or sprint; this was verified in Jira on 23 October 2026. Keep them in Backlog until the respective phase starts. Leave owners, estimates, dates, and sprint start to the team.
 
+## GitHub and Jira integration (23 October 2026)
+
+`docs/GITHUB_JIRA_INTEGRATION.md` records the branch, commit, and PR key rule and the real sync verification steps. Jira shows GitHub for Atlassian connected to `spjyotiranjan`; no ShipSense branch, commit, or PR has yet been verified on a Jira issue. The local Jira API merge gate was removed. Tracked Git hooks provide Markdown lint and commit-subject validation after `git config core.hooksPath .githooks` in each clone. The Jira flow `ShipSense: PR created -> In Review` remains disabled until a real linked PR is observed. Do not call development sync complete until that evidence is present.
+
