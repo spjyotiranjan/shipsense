@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process';
+import { jiraKeyFrom } from './jira-key.mjs';
 
 let branch = process.argv[2];
 if (!branch) {
@@ -9,8 +10,8 @@ if (branch === 'main') {
   process.exit(0);
 }
 
-if (!/^SCRUM-[1-9]\d*-[a-z0-9]+(?:-[a-z0-9]+)*$/.test(branch || '')) {
+if (!jiraKeyFrom(branch || '')) {
   console.error(`Invalid branch name: ${branch || '(detached HEAD)'}`);
-  console.error('Use SCRUM-<issue number>-<lowercase-description>, for example SCRUM-14-add-quality-hooks.');
+  console.error('Include a Jira key anywhere in the branch name, for example feature/SCRUM-14-add-quality-hooks.');
   process.exitCode = 1;
 }

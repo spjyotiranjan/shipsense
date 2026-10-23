@@ -20,16 +20,16 @@ jobs:
         run: |
           node --input-type=module <<'NODE'
           const title = process.env.PR_TITLE || '';
-          const match = /^SCRUM-(\d+)\b/.exec(title);
+          const match = /(?:^|[^A-Za-z0-9])(SCRUM-[1-9]\d*)(?![A-Za-z0-9])/.exec(title);
           if (!match) {
-            console.error('PR title must start with a ShipSense Jira key, for example SCRUM-14.');
+            console.error('PR title must include a ShipSense Jira key, for example SCRUM-14.');
             process.exit(1);
           }
           if (!process.env.JIRA_EMAIL || !process.env.JIRA_API_TOKEN) {
             console.error('Configure JIRA_EMAIL and JIRA_API_TOKEN repository secrets.');
             process.exit(1);
           }
-          const key = `SCRUM-${match[1]}`;
+          const key = match[1];
           const auth = Buffer.from(`${process.env.JIRA_EMAIL}:${process.env.JIRA_API_TOKEN}`).toString('base64');
           const url = `https://spjyotiranjan.atlassian.net/rest/api/3/issue/${key}?fields=summary,status`;
           const response = await fetch(url, {

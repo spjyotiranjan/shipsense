@@ -20,15 +20,16 @@ jobs:
           node --input-type=module <<'NODE'
           const branch = process.env.BRANCH_NAME || '';
           const title = process.env.PR_TITLE || '';
-          const branchMatch = /^(SCRUM-[1-9]\d*)-[a-z0-9]+(?:-[a-z0-9]+)*$/.exec(branch);
-          const titleMatch = /^(SCRUM-[1-9]\d*)\b/.exec(title);
-          if (!branchMatch) {
-            console.error('Branch must be SCRUM-<issue number>-<lowercase-description>.');
+          const keyPattern = /(?:^|[^A-Za-z0-9])(SCRUM-[1-9]\d*)(?![A-Za-z0-9])/;
+          const branchKey = keyPattern.exec(branch)?.[1];
+          const titleKey = keyPattern.exec(title)?.[1];
+          if (!branchKey) {
+            console.error('Branch name must include a SCRUM-<issue number> key.');
             process.exit(1);
           }
-          if (!titleMatch || titleMatch[1] !== branchMatch[1]) {
-            console.error(`PR title must start with ${branchMatch[1]}.`);
+          if (titleKey !== branchKey) {
+            console.error(`PR title must include ${branchKey}.`);
             process.exit(1);
           }
-          console.log(`Branch and PR title both use ${branchMatch[1]}.`);
+          console.log(`Branch and PR title both use ${branchKey}.`);
           NODE
