@@ -1,6 +1,6 @@
 # GitHub and Jira development sync
 
-**Updated:** 23 October 2026. Jira's Development page shows GitHub for Atlassian connected to `spjyotiranjan` and lists `spjyotiranjan/shipsense`. The owner selected **All repositories** during authorization; that scope has not been independently inspected. A temporary PR appeared in Jira's Development pull-request list, and its branch and commit appeared on a Jira work item. That issue's Development panel did not show the PR. Atlassian's bot turned a bracketed issue key in a PR comment into a clickable Jira link. The temporary PR and branch were removed after this connection test. The Jira PR-created automation is enabled for future events; its audit log has no trigger run yet.
+**Updated:** 23 October 2026. GitHub for Atlassian is connected to `spjyotiranjan/shipsense`. [SCRUM-13](https://spjyotiranjan.atlassian.net/browse/SCRUM-13) shows one branch, three commits, and an open PR in Jira's Development panel. The open PR and source branch both link to GitHub from that panel. GitHub does not automatically turn an unbracketed issue key in every PR title or branch listing into a Jira hyperlink. A bracketed key in a GitHub comment, such as `[SCRUM-13]`, is expanded by the Atlassian app.
 
 ## Development rule
 
@@ -14,28 +14,22 @@ Use one Jira work item per pull request. Include the same `SCRUM-<positive issue
 
 The key belongs to the work item for the actual change. Do not use a convenient existing key or a phase epic key. The GitHub for Atlassian app uses these keys to link development events to Jira. Mentioning a sprint name alone does not create a development link. GitHub's `SCRUM-` numeric autolink points to this Jira site; plain keys in PR descriptions and commit entries are clickable. The Atlassian bot also makes a bracketed key in a GitHub comment clickable, for example `[SCRUM-14]`.
 
-## Commit-time checks
+## Local Markdown lint
 
-Run `git config core.hooksPath .githooks` once in each clone. The tracked hooks then run locally:
+Run `git config core.hooksPath .githooks` once in each clone. The remaining `pre-commit` hook checks staged Markdown for trailing whitespace and a final newline. The local branch and commit-key scripts and their hooks were removed; Jira owns the development-key validation described below. The PR template still repeats the shared-key rule.
 
-- `pre-commit` checks the current branch name and staged Markdown for trailing whitespace and a final newline.
-- `commit-msg` requires a `SCRUM-<number>` key anywhere in the message and checks that its key matches the feature branch.
-- `pre-push` checks every branch pushed to the remote. `main` is exempt from the feature-branch naming rule.
+## Jira-owned PR status
 
-These hooks do not call Jira and need no Jira API token. Git hooks are local safeguards; contributors can bypass them, so the team still reviews PR titles and checks that the development link appears in Jira. The PR template repeats the shared-key rule. `.github/workflows/branch-name-check.yml` runs independently on PRs and reports `Branch and PR key` after comparing the key found anywhere in the source branch with the key found anywhere in the PR title; it requires no Jira secrets. No branch ruleset currently requires this status check for merging.
+The enabled [Jira PR validation flow](https://spjyotiranjan.atlassian.net/jira/software/projects/SCRUM/settings/automation#/rule/01a1685b-482c-7d7b-b86e-eaa73a9a620e) listens for a connected PR creation event. It limits processing to `spjyotiranjan/shipsense`, requires the PR title and source branch to contain the linked Jira key, fetches the GitHub PR and up to 100 commits, requires the fetched count to equal the PR commit count, and compares every fetched commit message's issue key with that linked Jira key. Only after those guards does Jira post the `jira/shipsense-pr-link` success status to the PR head SHA. A PR with more than 100 commits cannot pass this flow until pagination is implemented.
 
-## GitHub merge check
-
-`.github/workflows/jira-issue-check.yml` runs on future PRs. Its `Jira issue verified` job finds a `SCRUM-<number>` key anywhere in the title and reads that work item from this Jira site's REST API. Success proves the key exists and the GitHub job reached Jira. It does not prove that the PR appears in the issue's Development panel or that Jira automation ran.
-
-The repository owner must add `JIRA_EMAIL` and `JIRA_API_TOKEN` as GitHub Actions repository secrets using an Atlassian account with Browse access to ShipSense. Keep the token out of commits and tickets. After the first successful run, add `Jira issue verified` as a required status check in the `main` branch ruleset alongside the Azure build job once it exists. Until the secrets and ruleset are configured, GitHub does not block merges on this check. Direct pushes to `main` do not run this PR workflow.
+The two GitHub Actions Jira/branch validation workflows were removed because Jira now owns those checks. `JIRA_EMAIL` and `JIRA_API_TOKEN` GitHub repository secrets are no longer used for them. The Jira automation has its own GitHub status credential, kept hidden in Jira; never copy that credential into this repository. The flow is triggered by PR creation, so a title edit without a new head SHA is not yet revalidated. A new push gets a new SHA with no inherited success, but this flow does not currently run on synchronize. **Do not make this Jira status a required merge check until a PR creation, title edit, and new-push test have each produced the expected status behavior.** No such end-to-end run was observed after adding the commit guards.
 
 ## Verify development sync
 
 1. Create a branch for an existing ShipSense subphase work item and make a commit with its key in the subject.
 2. Open a PR with the same key anywhere in its title. Check that Jira's Development page lists the PR and that the work item's Development panel shows its branch, commits, and PR.
-3. For a clickable Jira link inside a GitHub comment, use brackets such as `[SCRUM-14]`. A comment link alone does not prove issue-panel linkage.
-4. Check the [PR-created to In Review flow](https://spjyotiranjan.atlassian.net/jira/software/projects/SCRUM/settings/automation#/rule/01a16826-1bf3-7162-86a1-a7eed71250c8) audit log. It is enabled and applies only to P01/P02 labelled work items already **In Progress**. The temporary test PR predates activation and cannot demonstrate a trigger run. Do not move a backlog item to In Progress merely to test it.
-5. For the next qualifying PR, verify that only its linked issue moves to **In Review**. A merge or deployment does not mark acceptance complete or move an issue to Done.
+3. For a clickable Jira link inside GitHub, use a bracketed issue key in a PR comment, for example `[SCRUM-14]`, or put the full Jira issue URL in the PR body. The issue's Development panel is the evidence that the PR and branch are associated with it.
+4. Inspect the Jira PR validation flow's audit log and the `jira/shipsense-pr-link` commit status on a new PR. Verify a wrong branch key, a wrong commit key, and a missing key do not produce success. Check the count guard for a PR with more than 100 commits before relaxing that limit.
+5. Check the separate [PR-created to In Review flow](https://spjyotiranjan.atlassian.net/jira/software/projects/SCRUM/settings/automation#/rule/01a16826-1bf3-7162-86a1-a7eed71250c8). It applies only to P01/P02 labelled items already **In Progress**. A merge or deployment does not mark acceptance complete or move an issue to Done.
 
 GitHub Actions workflow and deployment events can also be linked by the app when their associated commits carry the key. Azure build and deployment checks will be configured separately in the deployment phase. This GitHub/Jira connection is distinct from the Release 1 customer-facing Jira connector planned for P05.

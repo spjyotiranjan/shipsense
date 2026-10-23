@@ -36,6 +36,6 @@ P01: SCRUM-13 through SCRUM-17, one task per P01.1–P01.5. P02: SCRUM-18 throug
 
 ## GitHub connection and merge checks
 
-`docs/GITHUB_JIRA_INTEGRATION.md` records the issue-key convention, connected GitHub for Atlassian organization, commit hooks, Jira automation, and the GitHub `Jira issue verified` workflow. The Jira flow is enabled, but its audit log has no PR-trigger run. GitHub's status check needs repository secrets and branch ruleset configuration before it can gate merges. Keep Jira issues In Review after PR merge until the subphase acceptance evidence passes.
+`docs/GITHUB_JIRA_INTEGRATION.md` records the issue-key convention, connected GitHub for Atlassian repository, Jira automation, and the remaining local Markdown lint hook. The Jira PR validation flow is enabled and has title, branch, and commit-key guards; its new commit guard still needs a live PR-event test. No Jira status is required by the GitHub branch ruleset yet. Keep Jira issues In Review after PR merge until the subphase acceptance evidence passes.
 
 

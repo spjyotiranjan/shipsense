@@ -1,6 +1,6 @@
 ﻿# ShipSense project status
 
-**As of:** 23 October 2026 (Asia/Kolkata). **Evidence basis:** the local phase/decision files, ShipSense Jira records, and a temporary GitHub connection test. Product implementation has not started. Jira shows GitHub for Atlassian connected to `spjyotiranjan`; the temporary PR appeared in Jira's Development list, but not in the work item's Development panel. The temporary PR and branch were removed. The PR-created Jira flow is enabled but has no trigger run. GitHub has no successful Jira status check or required-check ruleset yet.
+**As of:** 23 October 2026 (Asia/Kolkata). **Evidence basis:** local phase/decision files, ShipSense Jira records, and live Jira Development/automation views. Product implementation has not started. [SCRUM-13](https://spjyotiranjan.atlassian.net/browse/SCRUM-13) shows a branch, three commits, and an open PR in its Development panel. The enabled Jira PR validation flow now includes commit-count and per-commit issue-key guards; no PR event has tested those new guards yet. No Jira status is required by a GitHub branch ruleset. See [Decision 0003](docs/decisions/0003-jira-owned-development-validation.md).
 
 | Phase | Status | Completion evidence / current gap |
 | --- | --- | --- |
