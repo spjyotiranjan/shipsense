@@ -1,4 +1,4 @@
-<!-- Start the title with the same Jira key used in the branch and every commit: SCRUM-14 Describe change -->
+<!-- Branch: SCRUM-14-describe-change. Start the PR title and every commit subject with the same key: SCRUM-14 Describe change. -->
 
 ## Jira work item
 

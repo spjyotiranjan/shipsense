@@ -1,0 +1,34 @@
+name: Branch and PR key check
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  branch-and-pr-key:
+    name: Branch and PR key
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check branch and title
+        env:
+          BRANCH_NAME: ${{ github.head_ref }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          node --input-type=module <<'NODE'
+          const branch = process.env.BRANCH_NAME || '';
+          const title = process.env.PR_TITLE || '';
+          const branchMatch = /^(SCRUM-[1-9]\d*)-[a-z0-9]+(?:-[a-z0-9]+)*$/.exec(branch);
+          const titleMatch = /^(SCRUM-[1-9]\d*)\b/.exec(title);
+          if (!branchMatch) {
+            console.error('Branch must be SCRUM-<issue number>-<lowercase-description>.');
+            process.exit(1);
+          }
+          if (!titleMatch || titleMatch[1] !== branchMatch[1]) {
+            console.error(`PR title must start with ${branchMatch[1]}.`);
+            process.exit(1);
+          }
+          console.log(`Branch and PR title both use ${branchMatch[1]}.`);
+          NODE

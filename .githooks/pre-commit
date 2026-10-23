@@ -1,3 +1,4 @@
 #!/bin/sh
 set -eu
+node scripts/check-branch-name.mjs
 node scripts/lint-markdown.mjs --staged

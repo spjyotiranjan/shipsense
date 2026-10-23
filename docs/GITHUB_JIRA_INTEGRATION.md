@@ -4,7 +4,7 @@
 
 ## Development rule
 
-Use one Jira work item per pull request. The branch name, every commit subject, and PR title must carry the same exact `SCRUM-<number>` key. Put the key at the start of each commit subject and PR title:
+Use one Jira work item per pull request. Name feature branches `SCRUM-<positive issue number>-<lowercase-description>`. Start every commit subject and PR title with that same key:
 
 | Place | Example |
 | --- | --- |
@@ -16,12 +16,13 @@ The key belongs to the work item for the actual change. Do not use a convenient 
 
 ## Commit-time checks
 
-Run `git config core.hooksPath .githooks` once in each clone. The tracked hooks then run on commit:
+Run `git config core.hooksPath .githooks` once in each clone. The tracked hooks then run locally:
 
-- `pre-commit` checks staged Markdown for trailing whitespace and a final newline.
-- `commit-msg` requires the subject to start with `SCRUM-<number>`.
+- `pre-commit` checks the current branch name and staged Markdown for trailing whitespace and a final newline.
+- `commit-msg` requires a `SCRUM-<number>` subject and checks that its key matches the feature branch.
+- `pre-push` checks every branch pushed to the remote. `main` is exempt from the feature-branch naming rule.
 
-These hooks do not call Jira and need no Jira API token. Git hooks are local safeguards; contributors can bypass them, so the team still reviews PR titles and checks that the development link appears in Jira. The PR template repeats the title rule.
+These hooks do not call Jira and need no Jira API token. Git hooks are local safeguards; contributors can bypass them, so the team still reviews PR titles and checks that the development link appears in Jira. The PR template repeats the branch and title rule. `.github/workflows/branch-name-check.yml` runs independently on PRs and reports `Branch and PR key` after comparing the source branch with the PR title; it requires no Jira secrets. No branch ruleset currently requires this status check for merging.
 
 ## GitHub merge check
 
