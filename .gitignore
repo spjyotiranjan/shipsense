@@ -1,0 +1,15 @@
+node_modules/
+.next/
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+
+# Disposable review evidence belongs in external task storage.
+/apps/web/.impeccable/review/
+/docs/scrum-13*-verification.md

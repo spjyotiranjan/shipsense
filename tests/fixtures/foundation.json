@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "foundation-v1",
+  "fixtureId": "foundation-no-effect",
+  "tenantId": "synthetic-tenant",
+  "projectId": "synthetic-project",
+  "serviceId": "synthetic-service",
+  "environment": "local",
+  "provider": "synthetic",
+  "providerObjectId": "foundation-object",
+  "providerVersion": "1",
+  "eventTime": "2026-11-08T00:00:00Z",
+  "observedAt": "2026-11-08T00:00:00Z",
+  "freshness": "missing",
+  "expectedOutcome": "no-effects"
+}

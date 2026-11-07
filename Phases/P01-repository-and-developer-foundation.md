@@ -1,6 +1,6 @@
 # P01 — Repository and developer foundation
 
-**Current status:** Not started. Update `../PROJECT_STATUS.md` with evidence when it changes.
+**Current status:** In progress (8 November 2026). Corrected phase-specific web/backend plans approved; P01.1 implementation released. P01.1 local verification is recorded; independent review and acceptance remain pending. See `../PROJECT_STATUS.md`.
 **Prerequisites:** P00 architecture decisions.
 **Phase outcome:** reproducible local boot, automated checks, and a working web-to-API request.
 
@@ -22,7 +22,9 @@ Establish a reproducible development workspace and the first working web-to-API 
 
 ### P01.1 — Establish `apps/web`, `services/api`, `services/worker`, `packages/contracts`, `infra`, `docs`, and test fixtures
 
-**Status:** Not started.
+**Status:** In review; local proof recorded, independent current-SHA review and acceptance pending.
+**Local proof:** [SCRUM-13 verification evidence](https://spjyotiranjan.atlassian.net/browse/SCRUM-13), 8 November 2026. No subphase or parent completion claimed.
+
 **Expected result:** Establish `apps/web`, `services/api`, `services/worker`, `packages/contracts`, `infra`, `docs`, and test fixtures.
 
 **Acceptance criteria**
@@ -91,3 +93,8 @@ Establish a reproducible development workspace and the first working web-to-API 
 - Evidence links: _pending_
 - Open risks and owner: _pending_
 - Decision: _pending_
+
+## Phase kickoff — 8 November 2026
+
+- Jira: [SCRUM-23](https://spjyotiranjan.atlassian.net/browse/SCRUM-23), board 1, existing user-started active `SCRUM Sprint 1` (36), with SCRUM-13–SCRUM-17 linked to this epic. Sprint dates, team allocation and closure remain manual.
+- Corrected technical web/backend plans approved on 8 November 2026. P01.1/SCRUM-13 implementation is locally verified; subsequent subphases retain their technical gates.
