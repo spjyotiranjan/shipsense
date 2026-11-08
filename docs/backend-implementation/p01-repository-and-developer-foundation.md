@@ -1,12 +1,24 @@
 # P01 backend implementation plan — repository and developer foundation
 
-**Status:** P01 technical development plan, revised 8 November 2026. Technical selections identified as proposals remain unresolved until validated and recorded.
+**Status:** P01 technical development plan, revised 9 November 2026. Technical selections identified as proposals remain unresolved until validated and recorded.
 
 Read with the [web plan](../web-implementation/p01-repository-and-developer-foundation.md), [P01 detailed criteria](../../Phases/P01-repository-and-developer-foundation.md), [roadmap](../../ROADMAP.md), [status](../../PROJECT_STATUS.md), [Jira workflow](../JIRA_WORKFLOW.md), [development integration](../GITHUB_JIRA_INTEGRATION.md) and accepted Decisions [0001](../decisions/0001-release-1-scope.md), [0002](../decisions/0002-architecture-baseline.md), [0003](../decisions/0003-jira-owned-development-validation.md). The [specification](../shipsense-full-product-specification.pdf) is product source material; recorded decisions define the implementation baseline.
 
+## Tested foundation and remaining dependency gates
+
+P01.1/SCRUM-13 and P01.2/SCRUM-14 are accepted and merged on 9 November 2026: [foundation proof](https://spjyotiranjan.atlassian.net/browse/SCRUM-13?focusedCommentId=10003), [quality proof](https://spjyotiranjan.atlassian.net/browse/SCRUM-14), [PR #4](https://github.com/spjyotiranjan/shipsense/pull/4), and [PR #5](https://github.com/spjyotiranjan/shipsense/pull/5). Main baseline is `7749e4de360372f6d99f6b468c8fcbf22f7a4947`. Reuse accepted foundation/quality proof; neither acceptance nor merge completes P01.
+
+Tested surfaces include the credential-free FastAPI `/foundation` route, generated canonical OpenAPI and TypeScript consumption, minimal web shell, frozen npm/uv workspaces and byte-level contract drift/quality checks. Version/liveness/readiness/error contracts, runtime response validation and diagnostic UI states below are remaining SCRUM-16 work, not existing behavior.
+
+SCRUM-16 contract and web diagnostic implementation requires accepted SCRUM-13/14 surfaces, without waiting for SCRUM-15 storage/queue setup. First implement and verify canonical version/liveness/safe-error schemas and generated contracts without cloud credentials; then integrate the web against that tested contract. Schema generation, version and liveness must remain independent of storage, queue and database availability. Readiness schema/error examples and bounded probe interfaces can be defined now, but full SCRUM-16 acceptance requires SCRUM-15's real local adapters, seeded dependencies and outage/recovery proof. Stubs or mocked readiness cannot satisfy that gate.
+
+SCRUM-15 still requires validated issuer/emulator/reference-service selections and its fixture/region/tier/cost proof. SCRUM-17 full clean-checkout build/unit/contract/smoke CI depends on completed SCRUM-15/16 integration. Full readiness and P01 exit retain every positive, negative and recovery criterion; this dependency split waives none.
+
+Accepted tooling is recorded in Decisions [0005](../decisions/0005-initial-foundation-toolchain.md) and [0006](../decisions/0006-local-quality-toolchain.md). Preserve the current pins and frozen locks; select only still-missing tools with compatibility proof. The development minimatch advisory remains a disclosed limitation: recorded triage found no reachable vulnerable path in the current lint configuration, not blanket risk acceptance. Starlette/httpx deprecation remains. Decision 0003's 100-commit ceiling and unverified PR creation/title-edit/new-push lifecycle remain unproven; do not treat that status as a required merge gate until verified. OpenAI model selection remains advisory until measured P12 evaluation; no model is selected by this plan.
+
 ## Prerequisites, release order and scope
 
-P00 architecture decisions are the prerequisite. The implementation order is P01.1/SCRUM-13 → P01.2/SCRUM-14 → P01.3/SCRUM-15 → P01.4/SCRUM-16 → P01.5/SCRUM-17. Each subphase depends on the preceding subphase's tested technical result. A folder or closed ticket alone is insufficient proof.
+P00 architecture decisions are the prerequisite. Accepted P01.1/SCRUM-13 → P01.2/SCRUM-14 supply tested surfaces for both P01.3/SCRUM-15 and the credential-free P01.4/SCRUM-16 contract/web slice. SCRUM-16 web integration follows its tested canonical contract; full SCRUM-16 readiness/outage/recovery acceptance requires SCRUM-15. P01.5/SCRUM-17 full integration CI follows both completed slices. A folder or closed ticket alone is insufficient proof.
 
 Python FastAPI is the main backend, owning canonical APIs, authorization, policy, integrations and action orchestration. Next.js API routes form the web-facing backend layer and call FastAPI for canonical domain behavior. Python workers/jobs handle asynchronous processing.
 
@@ -26,7 +38,7 @@ P01 establishes reproducible boundaries and synthetic diagnostics. P02 owns logi
 
 Proposed API layout: `src/shipsense_api/{main,settings,errors}.py`, `routes/{health,version}.py`, `schemas/foundation.py`, plus `tests/`. Worker has a separate entrypoint and adapter module; no imports from Next.js. Avoid an invented large domain abstraction layer before P02/P03 need it. Shared Python utilities may be extracted only when a concrete shared contract warrants them.
 
-Propose one Node package manager/lockfile for the web/contracts and one Python dependency manager with frozen locks for API/worker, strict typing, one formatter/linter per language, a secret scanner and browser smoke runner. Candidate tools: npm, uv, ESLint/Prettier, Ruff, mypy, pytest, Playwright and Gitleaks. These are proposals, not installed or compatibility-tested choices. Pin exact compatible supported versions, runtime versions and container digests in P01.2 and document update/regeneration procedure. Never use floating `latest` in reproducibility proof. Record consequential technical choices and compatibility evidence before dependent implementation.
+Use the accepted npm/uv workspaces, one frozen lock per language, generated OpenAPI/TypeScript and pinned quality tools from Decisions 0005/0006. Their compatibility and seeded failure/recovery proof are accepted under SCRUM-13/14; preserve those pins. Still-missing runtime response validation, browser smoke tooling and emulators require explicit compatibility evidence before use. Do not add a second handwritten domain API, floating versions or duplicate locks. Document additions and regeneration commands without repeating accepted foundation work.
 
 Keep `.env.example` synthetic and descriptive, local `.env` ignored, example values unusable as real credentials. Validate startup profile, required local settings, endpoint allowlists and bounds. Reject production profile combined with local identity/queue/storage adapters; errors name missing setting keys without their values. Azure deployment secrets later use Key Vault and managed identity. Provider secrets never enter MongoDB, fixtures, prompts, logs, browser bundles or R2.
 
@@ -119,7 +131,7 @@ No customer resource endpoint is introduced. Make unauthenticated diagnostic exc
 
 ## Reproducible command and CI contract
 
-The following are proposed contributor-facing targets to implement, not commands that exist today. Prefer cross-platform root wrappers (Node/Python/package scripts) over requiring Bash on Windows. Document exact prerequisites, frozen install commands, ports, commands, expected output, teardown and troubleshooting in the first working change. Reconcile names with the web plan before implementing.
+Frozen installs, contracts:generate/contracts:check, quality, test:foundation and build:web already exist in the accepted foundation; reuse their documented commands. The table describes the full target behavior, including commands still to implement for SCRUM-15–17. Prefer cross-platform root wrappers (Node/Python/package scripts) over requiring Bash on Windows. Document exact prerequisites, frozen install commands, ports, commands, expected output, teardown and troubleshooting in the first working change. Reconcile names with the web plan before implementing.
 
 | Target | Required behavior |
 | --- | --- |
@@ -133,7 +145,7 @@ The following are proposed contributor-facing targets to implement, not commands
 | `build` | Build Next.js and API/worker distributions or images under pinned tools |
 | `test:smoke` | Start actual built web/API against seeded local dependencies; assert success/failure/recovery |
 
-P01.2 establishes scripts and check targets. Because complete CI is P01.5 but P01.2 explicitly requires seeded CI failure proof, add the minimal quality workflow in SCRUM-14, then expand it to builds/services/contracts/unit/smoke in SCRUM-17. This is a planned dependency resolution, not a waiver of P01.2 acceptance. Workflow checks are distinct from Jira-owned key validation.
+P01.2 established scripts, check targets and the minimal quality workflow with seeded CI failure/recovery proof. Reuse that accepted work; expand CI to builds/services/contracts/unit/smoke in SCRUM-17. This is a planned dependency resolution, not a waiver of P01.2 acceptance. Workflow checks are distinct from Jira-owned key validation.
 
 CI uses a clean checkout and the same command targets, pinned runtimes/locks/images and local adapters as the primary checkout. Run frozen installs, code/schema generation drift, quality/security checks, unit tests, both application builds, startup, seeded integration and browser smoke. Capture sanitized failure artifacts with bounded retention; tear down CI services on failure. Restrict workflow permissions, pin third-party actions, and give untrusted PRs no cloud/provider secrets or write authority. No paid provisioning or deployment stage belongs to this foundation CI.
 

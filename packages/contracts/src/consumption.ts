@@ -7,3 +7,8 @@ export const localFoundation: FoundationResponse = {
   service: "shipsense-api",
   mode: "local-foundation",
 };
+
+export type VersionResponse =
+  paths["/api/v1/version"]["get"]["responses"][200]["content"]["application/json"];
+export type ApiError =
+  paths["/api/v1/version"]["get"]["responses"][422]["content"]["application/json"];
