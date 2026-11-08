@@ -1,11 +1,19 @@
-import { execFileSync } from 'node:child_process';
+import { execFileSync } from "node:child_process";
 
-const paths = execFileSync('git', ['diff', '--cached', '--name-only', '--diff-filter=ACM', '-z', '--', '*.md']);
-const files = paths.toString('utf8').split('\0').filter(Boolean);
+const paths = execFileSync("git", [
+  "diff",
+  "--cached",
+  "--name-only",
+  "--diff-filter=ACM",
+  "-z",
+  "--",
+  "*.md",
+]);
+const files = paths.toString("utf8").split("\0").filter(Boolean);
 let failures = 0;
 
 for (const file of files) {
-  const content = execFileSync('git', ['show', `:${file}`]).toString('utf8');
+  const content = execFileSync("git", ["show", `:${file}`]).toString("utf8");
   const lines = content.split(/\r?\n/);
   for (let index = 0; index < lines.length; index += 1) {
     if (/[\t ]+$/.test(lines[index])) {
@@ -13,7 +21,7 @@ for (const file of files) {
       failures += 1;
     }
   }
-  if (content.length > 0 && !content.endsWith('\n')) {
+  if (content.length > 0 && !content.endsWith("\n")) {
     console.error(`${file}: missing final newline`);
     failures += 1;
   }

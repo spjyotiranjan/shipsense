@@ -6,11 +6,11 @@
 
 Use one Jira work item per pull request. Include the same `SCRUM-<positive issue number>` key anywhere in the branch name, each commit message, and the PR title. The key may appear at the beginning, middle, or end:
 
-| Place | Example |
-| --- | --- |
-| Branch | `feature/SCRUM-14-add-quality-hooks` |
-| Commit message | `Add quality hooks for SCRUM-14` |
-| PR title | `Add quality hooks (SCRUM-14)` |
+| Place          | Example                              |
+| -------------- | ------------------------------------ |
+| Branch         | `feature/SCRUM-14-add-quality-hooks` |
+| Commit message | `Add quality hooks for SCRUM-14`     |
+| PR title       | `Add quality hooks (SCRUM-14)`       |
 
 The key belongs to the work item for the actual change. Do not use a convenient existing key or a phase epic key. The GitHub for Atlassian app uses these keys to link development events to Jira. Mentioning a sprint name alone does not create a development link. GitHub's `SCRUM-` numeric autolink points to this Jira site; plain keys in PR descriptions and commit entries are clickable. The Atlassian bot also makes a bracketed key in a GitHub comment clickable, for example `[SCRUM-14]`.
 

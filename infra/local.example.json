@@ -1,1 +1,7 @@
-{"profile":"local","bindHost":"127.0.0.1","apiPort":8000,"webPort":3000,"effectsEnabled":false}
+{
+  "profile": "local",
+  "bindHost": "127.0.0.1",
+  "apiPort": 8000,
+  "webPort": 3000,
+  "effectsEnabled": false
+}

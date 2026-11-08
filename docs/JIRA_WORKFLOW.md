@@ -4,12 +4,12 @@
 
 ## Mapping
 
-| ShipSense record | Jira record |
-| --- | --- |
-| Phase Pxx | One epic titled `Pxx — <phase title>` |
-| Phase sprint | One sprint on ShipSense Scrum board containing every subphase; preferred title `ShipSense Pxx — <phase title>` |
-| Subphase Pxx.n | One task/story in the epic and sprint, titled `Pxx.n — <subphase title>` |
-| Acceptance evidence | Issue description/checklist and links to tests, decisions, API contract, UI proof, or provider receipt |
+| ShipSense record         | Jira record                                                                                                       |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| Phase Pxx                | One epic titled `Pxx — <phase title>`                                                                             |
+| Phase sprint             | One sprint on ShipSense Scrum board containing every subphase; preferred title `ShipSense Pxx — <phase title>`    |
+| Subphase Pxx.n           | One task/story in the epic and sprint, titled `Pxx.n — <subphase title>`                                          |
+| Acceptance evidence      | Issue description/checklist and links to tests, decisions, API contract, UI proof, or provider receipt            |
 | Cross-phase prerequisite | Issue or epic link `is blocked by`; prerequisites are noted in backlog tasks; link blockers when the phase starts |
 
 ## Start a phase
@@ -37,5 +37,3 @@ P01: SCRUM-13 through SCRUM-17, one task per P01.1–P01.5. P02: SCRUM-18 throug
 ## GitHub connection and merge checks
 
 `docs/GITHUB_JIRA_INTEGRATION.md` records the issue-key convention, connected GitHub for Atlassian repository, Jira automation, and the remaining local Markdown lint hook. The Jira PR validation flow is enabled and has title, branch, and commit-key guards; its new commit guard still needs a live PR-event test. No Jira status is required by the GitHub branch ruleset yet. Keep Jira issues In Review after PR merge until the subphase acceptance evidence passes.
-
-

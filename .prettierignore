@@ -1,0 +1,19 @@
+node_modules/
+.next/
+.venv/
+dist/
+*.tsbuildinfo
+package-lock.json
+uv.lock
+packages/contracts/openapi.json
+packages/contracts/src/generated.ts
+apps/web/next-env.d.ts
+# Historical architecture/planning records preserve their accepted text.
+docs/decisions/
+docs/backend-implementation/
+docs/web-implementation/
+ROADMAP.md
+PROJECT_STATUS.md
+Phases/
+HANDOFF.md
+AGENTS.md

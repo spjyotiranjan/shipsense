@@ -37,7 +37,7 @@ Establish a reproducible development workspace and the first working web-to-API 
 
 ### P01.2 — Pin language/tool versions, lockfiles, formatting, linting, typing, secret scanning, and branch checks
 
-**Status:** Not started.
+**Status:** In progress (9 November 2026). Pinned tools and local format/lint/type/offline-secret/contract-drift gates are implemented. ESLint 9.39.5 resolves the recorded peer incompatibility. Frozen installs, independent seeded rejection/recovery, affected builds and direct startup checks pass locally. Remote seeded CI proof, independent current-SHA review and acceptance remain pending. [SCRUM-14](https://spjyotiranjan.atlassian.net/browse/SCRUM-14) tracks evidence. No completion claimed.
 **Expected result:** Pin language/tool versions, lockfiles, formatting, linting, typing, secret scanning, and branch checks.
 
 **Acceptance criteria**
