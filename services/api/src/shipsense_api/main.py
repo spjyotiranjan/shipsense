@@ -1,10 +1,10 @@
 """Credential-free process boundary; health/version integration arrives in P01.4."""
 
 import os
+from typing import Literal
 
 from fastapi import FastAPI
 from pydantic import BaseModel, ConfigDict
-from typing import Literal
 
 
 class FoundationResponse(BaseModel):
