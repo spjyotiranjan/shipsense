@@ -1,0 +1,12 @@
+[project]
+name = "shipsense-worker"
+version = "0.1.0"
+requires-python = "==3.14.7"
+dependencies = []
+
+[project.scripts]
+shipsense-worker = "shipsense_worker.main:main"
+
+[build-system]
+requires = ["hatchling==1.33.0"]
+build-backend = "hatchling.build"

@@ -1,0 +1,50 @@
+{
+  "components": {
+    "schemas": {
+      "FoundationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "const": "local-foundation",
+            "default": "local-foundation",
+            "title": "Mode",
+            "type": "string"
+          },
+          "service": {
+            "const": "shipsense-api",
+            "default": "shipsense-api",
+            "title": "Service",
+            "type": "string"
+          }
+        },
+        "title": "FoundationResponse",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "ShipSense local foundation",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/foundation": {
+      "get": {
+        "operationId": "foundation_foundation_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FoundationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Foundation"
+      }
+    }
+  }
+}

@@ -1,6 +1,6 @@
 # ShipSense project roadmap
 
-**Planning baseline:** 23 October 2026. **Project state:** P00 complete; product implementation has not started. This plan covers the full portfolio vision in the product specification and the stack chosen by the project owner. Phase numbers express dependencies, not calendar promises.
+**Planning baseline:** 23 October 2026. **Project state:** P00 complete; corrected P01 plans approved and P01.1 implementation in progress on 8 November 2026. Subphase acceptance and phase exit proof remain pending. This plan covers the full portfolio vision in the product specification and the stack chosen by the project owner. Phase numbers express dependencies, not calendar promises.
 
 ## Product outcome
 
@@ -51,7 +51,7 @@ Detailed plans, expected results, and acceptance criteria for every phase and su
 - [x] P00.5 Record the architecture baseline for Azure services, MongoDB hosting, queue/worker model, R2 retention, provider credentials, and model selection method.
 - [x] P00.6 Configure the Jira phase workflow in ShipSense; create only P00 epic SCRUM-6 and unstarted sprint 35, containing all six subphase issues. Dates, team assignments, estimates, and sprint start are manual.
 
-### P01 — Repository and developer foundation · Not started
+### P01 — Repository and developer foundation · In progress
 **Prerequisite:** P00 architecture decisions. **Exit:** reproducible local boot, automated checks, and a working web-to-API request.
 
 - [ ] P01.1 Establish `apps/web`, `services/api`, `services/worker`, `packages/contracts`, `infra`, `docs`, and test fixtures.
