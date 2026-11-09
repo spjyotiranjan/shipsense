@@ -86,7 +86,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "DEPENDENCY_UNAVAILABLE" | "INVALID_REQUEST" | "INTERNAL_ERROR";
+            code: "DEPENDENCY_UNAVAILABLE" | "INVALID_REQUEST" | "INTERNAL_ERROR" | "API_UNAVAILABLE" | "API_TIMEOUT" | "UPSTREAM_CONTRACT_INVALID";
             /** Message */
             message: string;
             /** Requestid */

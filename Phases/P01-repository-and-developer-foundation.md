@@ -64,10 +64,11 @@ Establish a reproducible development workspace and the first working web-to-API 
 
 ### P01.4 — Build Next.js shell and FastAPI health/version endpoints; document Swagger/OpenAPI contracts
 
-**Status:** In progress; credential-free API contract implemented, web integration and full acceptance remain gated.
+**Status:** In progress; credential-free API contract and web diagnostics implemented; independent review and full acceptance remain gated.
 **Implementation:** [canonical API](../services/api/src/shipsense_api/main.py), [bounded readiness interface](../services/api/src/shipsense_api/diagnostics.py), [contract/failure tests](../services/api/tests/test_diagnostics.py) and [generated OpenAPI](../packages/contracts/openapi.json). Local startup exposes version/liveness without dependencies and returns safe readiness 503 with no adapters installed. This is partial implementation, not real adapter outage/recovery proof or accepted P01.4 completion.
 **Implementation prerequisite:** tested accepted SCRUM-13/14 supports credential-free canonical version/liveness/safe-error contracts and subsequent web diagnostic integration without SCRUM-15.
 **Full acceptance prerequisite:** SCRUM-15 local adapters, seeded dependencies and real readiness outage/recovery proof; no mocked readiness substitution. Preserve all criteria below and in both technical plans.
+**Web implementation:** [diagnostic UI](../apps/web/src/components/foundation-status.tsx), [same-origin route](../apps/web/src/app/api/foundation/route.ts), [bounded transport](../apps/web/src/lib/server/api-transport.ts) and [failure/race tests](../apps/web/tests/diagnostics.test.ts). Run the [web reproduction and verification commands](../apps/web/README.md). Safe transport errors share the generated canonical envelope. Connected indicates API reachability only. Full readiness and phase exit remain unverified.
 **Expected result:** Build Next.js shell and FastAPI health/version endpoints; document Swagger/OpenAPI contracts.
 
 **Acceptance criteria**

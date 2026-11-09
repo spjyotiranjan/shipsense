@@ -13,6 +13,44 @@ from shipsense_api.main import create_app
 
 
 class DiagnosticTests(unittest.TestCase):
+    def test_all_error_codes_are_canonical_and_unknown_codes_reject(self):
+        codes = {
+            "DEPENDENCY_UNAVAILABLE",
+            "INVALID_REQUEST",
+            "INTERNAL_ERROR",
+            "API_UNAVAILABLE",
+            "API_TIMEOUT",
+            "UPSTREAM_CONTRACT_INVALID",
+        }
+        schema = create_app().openapi()
+        self.assertEqual(
+            set(schema["components"]["schemas"]["ErrorDetail"]["properties"]["code"]["enum"]), codes
+        )
+        for code in codes:
+            ApiError.model_validate(
+                {
+                    "error": {
+                        "code": code,
+                        "message": "Safe error.",
+                        "requestId": "test-1",
+                        "retryable": True,
+                    }
+                }
+            )
+        for override in ({"code": "UNKNOWN"}, {"message": "x" * 161}, {"requestId": "x" * 65}):
+            with self.assertRaises(ValidationError):
+                ApiError.model_validate(
+                    {
+                        "error": {
+                            "code": "API_TIMEOUT",
+                            "message": "Safe error.",
+                            "requestId": "test-1",
+                            "retryable": True,
+                        }
+                        | override
+                    }
+                )
+
     def test_credential_free_success_freshness_and_no_cache(self):
         with patch.dict("os.environ", {}, clear=True), TestClient(create_app()) as client:
             first = client.get("/api/v1/version", headers={"X-Request-ID": "req-local-001"})

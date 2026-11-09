@@ -29,7 +29,14 @@ class ReadinessResponse(DiagnosticModel):
 
 
 class ErrorDetail(DiagnosticModel):
-    code: Literal["DEPENDENCY_UNAVAILABLE", "INVALID_REQUEST", "INTERNAL_ERROR"]
+    code: Literal[
+        "DEPENDENCY_UNAVAILABLE",
+        "INVALID_REQUEST",
+        "INTERNAL_ERROR",
+        "API_UNAVAILABLE",
+        "API_TIMEOUT",
+        "UPSTREAM_CONTRACT_INVALID",
+    ]
     message: Annotated[str, Field(min_length=1, max_length=160)]
     requestId: RequestId
     retryable: bool

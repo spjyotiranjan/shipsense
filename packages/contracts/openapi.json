@@ -21,7 +21,10 @@
             "enum": [
               "DEPENDENCY_UNAVAILABLE",
               "INVALID_REQUEST",
-              "INTERNAL_ERROR"
+              "INTERNAL_ERROR",
+              "API_UNAVAILABLE",
+              "API_TIMEOUT",
+              "UPSTREAM_CONTRACT_INVALID"
             ],
             "title": "Code",
             "type": "string"
