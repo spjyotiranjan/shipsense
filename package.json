@@ -12,6 +12,12 @@
     "packages/contracts"
   ],
   "scripts": {
+    "bootstrap": "python scripts/workspace.py bootstrap",
+    "check": "npm run quality",
+    "test:unit": "python scripts/workspace.py unit",
+    "build": "python scripts/workspace.py build",
+    "verify": "python scripts/workspace.py verify",
+    "test:smoke": "uv run --frozen --package shipsense-api python scripts/integration-smoke.py",
     "contracts:generate": "uv run --frozen --package shipsense-api python -m shipsense_api.export_openapi && npm run generate --workspace packages/contracts",
     "contracts:check": "uv run --frozen python scripts/check-contracts.py",
     "test:foundation": "uv run --frozen --package shipsense-api python -m unittest discover -s services/api/tests -v",

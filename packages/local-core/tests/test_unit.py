@@ -23,6 +23,62 @@ from shipsense_local.stack import LocalStack, initialize
 
 
 class ConfigurationTests(unittest.TestCase):
+    def test_ci_namespace_is_opt_in_and_swapped_state_is_refused(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            local = initialize(root / "local")
+            ci = initialize(root / "ci", project="shipsense-ci-p01")
+            self.assertEqual(local.project, "shipsense-local-p01")
+            self.assertNotEqual(local.owner, ci.owner)
+            self.assertNotEqual(local.secret_key, ci.secret_key)
+            self.assertEqual(load_settings(root / "local"), local)
+            with self.assertRaisesRegex(LocalFailure, "UNOWNED_LOCAL_TARGET"):
+                initialize(root / "local", project="shipsense-ci-p01")
+            with self.assertRaisesRegex(LocalFailure, "UNOWNED_LOCAL_TARGET"):
+                LocalStack(root / "ci", ci)
+            with self.assertRaisesRegex(LocalFailure, "LOCAL_CONFIG_MISMATCH"):
+                LocalStack(root / "local", ci, project="shipsense-ci-p01")
+            with patch.dict(os.environ, {"COMPOSE_PROJECT_NAME": "foreign"}):
+                with self.assertRaisesRegex(LocalFailure, "INHERITED_NAMESPACE_REFUSED"):
+                    LocalStack(root / "ci", ci, project="shipsense-ci-p01")
+            settings = json.loads((root / "ci/local.json").read_text())
+            settings["project"] = "arbitrary-project"
+            (root / "ci/local.json").write_text(json.dumps(settings))
+            with self.assertRaises(LocalFailure):
+                load_settings(root / "ci")
+
+    def test_ci_resource_requires_owner_namespace_and_state_labels(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary) / "ci"
+            ci = initialize(directory, project="shipsense-ci-p01")
+            stack = LocalStack(directory, ci, project="shipsense-ci-p01")
+            for changes in (
+                {"shipsense.owner": "stale-owner"},
+                {"shipsense.state": "swapped-state"},
+                {"com.docker.compose.project": "shipsense-local-p01"},
+            ):
+                labels = {
+                    "shipsense.owner": ci.owner,
+                    "shipsense.state": stack.state_identity,
+                    "com.docker.compose.project": "shipsense-ci-p01",
+                    **changes,
+                }
+                with (
+                    patch.object(stack, "local_engine", return_value={}),
+                    patch.object(
+                        stack,
+                        "docker",
+                        side_effect=[
+                            "shipsense-ci-p01-mongodb-1\n",
+                            json.dumps([{"Config": {"Labels": labels}}]),
+                        ],
+                    ),
+                    patch.object(stack, "compose") as compose,
+                ):
+                    with self.assertRaisesRegex(LocalFailure, "UNOWNED_LOCAL_RESOURCE"):
+                        stack.down(reset=True, confirmation="shipsense-ci-p01")
+                    compose.assert_not_called()
+
     def test_partial_launch_failure_is_cleaned_up_by_cli_without_reset(self):
         with tempfile.TemporaryDirectory() as temporary:
             directory = Path(temporary) / "state"

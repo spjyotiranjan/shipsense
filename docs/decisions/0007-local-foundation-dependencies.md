@@ -57,3 +57,17 @@ Keep the core development loop reproducible and cloud-credential-free while expl
 - [R2 Boto3 compatibility](https://developers.cloudflare.com/r2/examples/aws/boto3/).
 - [Pinned reference service](https://github.com/open-telemetry/opentelemetry-demo/blob/dedc0178918e260823323b8d95005a8cb924b007/src/product-catalog/main.go).
 - [Dex advisory](https://github.com/dexidp/dex/security/advisories/GHSA-7qjx-gp9h-65qj) and [candidate grant guards](https://github.com/dexidp/dex/blob/v2.46.1/server/grants/grants.go).
+
+## CI smoke isolation and browser automation — 9 November 2026
+
+**Status:** Accepted starting design; implementation, runtime compatibility and independent delivery acceptance remain required.
+
+Keep the default synthetic namespace shipsense-local-p01 and allow exactly one additional opt-in namespace shipsense-ci-p01 for clean integration smoke. Retain the selected images/clients, local-only profile, fixed loopback ports 37017/38333, database/bucket names, memory limits and privacy safeguards. These namespaces cannot run concurrently on one host. Reject arbitrary project names, endpoints, ports, remote daemons and production profiles.
+
+Each CI smoke attempt creates fresh credentials and a new private external state directory with its own owner identity. Bind lifecycle operations to the explicit namespace, repository, state identity and exact resource names/Compose labels. Reject mismatched state, inherited namespace overrides, unknown or stale resources and occupied ports before effects. Never adopt another attempt's resources or reuse existing local credentials/volumes. Preserve all shipsense-local-p01 volumes and private state. Failure and cancellation cleanup may remove only verified resources owned by the current CI attempt, including its CI volumes after explicit synthetic reset validation; ambiguity causes refusal. Delete only the attempt's validated external disposable state after its resources are safely handled. No prune, orphan sweep, automatic listener termination or host configuration change.
+
+Use the pinned Node runtime's built-in WebSocket/CDP capabilities against an already installed Chrome/Chromium for the real built-web diagnostic smoke. No added browser library, browser download, extension or authenticated user profile is selected. Detect and record the actual executable/version and prove compatibility on each environment; absence or protocol failure fails the required gate. Launch an owned headless browser with a unique private external user-data directory and loopback-only debugging endpoint. Restrict navigation and debugging connections to validated test-owned loopback targets, use bounded commands/timeouts and stop only owned processes. Never attach to an existing browser/debugging service or use real cookies/provider secrets. Keep sanitized captures/logs outside the product tree with bounded CI artifact retention; exclude credentials and browser-profile data.
+
+Rationale: clean CI must prove independent boot without consuming or resetting preserved developer state; real UI failure/recovery should use the existing runtime without another package dependency. These choices do not select issuer/reference runtimes, establish production parity or authorize cloud spending.
+
+Sources: Decision 0007 local privacy/lifecycle baseline and P01.5 clean integration acceptance; https://docs.docker.com/compose/how-tos/project-name/ ; https://developer.chrome.com/blog/remote-debugging-port .

@@ -79,4 +79,76 @@ bytes in `finally` and refuses to overwrite an existing source probe. Hold
 exclusive checkout access while running it. Local execution does not establish
 remote CI acceptance.
 
-The [local service runbook](../infra/local/README.md) covers pinned Mongo/private S3, explicit idempotent seed, scoped stop/reset and same-process queue commands. Run `npm run test:local`; use its explicit external-state instructions for real integration tests. The existing web/version/liveness diagnostic slice is accepted; full API readiness wiring and P01.5 clean build/unit/smoke CI remain separate. Quality success alone does not establish those outcomes.
+The [local service runbook](../infra/local/README.md) covers pinned Mongo/private S3, explicit idempotent seed, scoped stop/reset and same-process queue commands. Run `npm run test:local`; use its explicit external-state instructions for real integration tests. The web/version/liveness diagnostics and opt-in real API readiness are accepted under SCRUM-16; P01.5 clean build/unit/smoke CI remains a separate gate. Quality success alone does not establish that outcome.
+
+## Clean integration commands
+
+From the repository root in PowerShell or a POSIX shell:
+
+```sh
+npm run bootstrap
+npm run check
+npm run test:unit
+npm run build
+npm run test:smoke
+uv run --frozen --package shipsense-api python scripts/verify-integration-gates.py
+```
+
+`bootstrap` checks exact Node/npm/Python/uv versions, runs `npm ci`, checks lock
+freshness and installs every Python workspace/group with `--frozen`. `check`
+uses the existing quality/byte-contract gate. Units cover API contracts/lifespan,
+local safety/evidence/queue boundaries, web validation/races and no-effect worker
+smoke. `build` produces the Next.js production app and all three Python wheel/source
+distributions; disposable distributions are built outside the repository.
+`npm run verify` combines check, units, build and real smoke after bootstrap.
+
+Smoke requires a local Linux/amd64 Docker engine with Compose, the selected
+Decision 0007 images (only those exact digests may download on first CI boot),
+1.5 GiB available host memory, at least 2 GiB engine allocation and an installed
+Chrome/Chromium. Detection supports Windows Chrome and Linux Google Chrome or
+Chromium; `SHIPSENSE_CHROME` can identify an installed executable. No browser
+download, library, user profile or cloud credentials are used. Missing/incompatible
+tools fail the gate. Ports 3000, 8000, 37017 and 38333 must be free; stop an existing
+developer runtime through its owner before running. No listener is killed automatically.
+
+Each smoke uses the fixed `shipsense-ci-p01` namespace with fresh external private
+state and credentials. The default `shipsense-local-p01` namespace and its volumes
+are preserved. Runtime is serialized because both profiles retain the same fixed
+data ports. Stale resources, owner/state mismatch, remote daemons and namespace
+overrides are refused. The smoke seeds six fixtures twice, proves private access,
+runs all ten real adapter/readiness integration cases without skips, starts actual
+Uvicorn and production Next, checks safe default503/configured200, stops/restores
+each dependency and verifies readiness/liveness independence. An owned headless
+browser asserts rendered success, API stop, retry/unavailable with cleared version,
+and restart/retry recovery with focus retained. Screenshots support these assertions.
+
+Set `SHIPSENSE_EVIDENCE_DIR` to a **new external directory** to retain sanitized JSON
+and screenshots; otherwise an OS temporary directory is created. Never place it
+under the product checkout. Process environments exclude inherited provider/agent
+credentials and app settings. Private state and browser profiles are never uploaded.
+The normal/failure/cancellation path stops owned processes and resets only validated
+CI resources. Failure to verify ownership refuses deletion and retains private
+state for diagnosis. An always-run CI step repeats the same ownership-checked cleanup:
+
+```sh
+uv run --frozen --package shipsense-api python scripts/integration-smoke.py --cleanup
+```
+
+Use the original `SHIPSENSE_EVIDENCE_DIR` for recovery cleanup. The command never
+adopts another attempt or resets the developer profile. A forced process/host kill
+can prevent in-process cleanup; CI's always-run step is the fallback. Do not prune
+or delete unknown resources to get a green run.
+
+`verify-integration-gates.py` temporarily appends byte drift to canonical OpenAPI,
+requires the real contract gate to reject it, restores exact bytes in `finally`
+and checks recovery. It then runs the real smoke with its upstream deliberately
+stopped at the required success gate, requires failure plus zero remaining CI
+resources, and reruns from fresh state to prove recovery. The standalone
+`test:smoke -- --fail-upstream` is an intentional failing diagnostic, never a
+skipped integration success. Hold exclusive checkout/runtime access for this proof.
+
+The Integration workflow repeats these commands from a clean checkout with
+read-only permissions, immutable action references, no provider secrets, a
+30-minute job bound and three-day retention for only sanitized top-level JSON/PNG.
+Quality success alone cannot replace this gate. Issuer/reference validation,
+region/tier/residency/cost, production parity and P01 exit remain separate.

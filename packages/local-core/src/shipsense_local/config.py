@@ -8,6 +8,7 @@ from typing import Annotated, Final, Literal
 from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator
 
 PROJECT: Final = "shipsense-local-p01"
+Project = Literal["shipsense-local-p01", "shipsense-ci-p01"]
 DATABASE: Final = "shipsense_fixture_p01"
 BUCKET: Final = "shipsense-fixtures"
 ROOT = Path(__file__).resolve().parents[4]
@@ -20,7 +21,7 @@ class LocalFailure(RuntimeError):
 class LocalSettings(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
     profile: Literal["local"]
-    project: Literal["shipsense-local-p01"]
+    project: Project
     repository: str
     owner: Annotated[str, Field(pattern=r"^[a-f0-9]{32}$")]
     mongo_host: Literal["127.0.0.1"]

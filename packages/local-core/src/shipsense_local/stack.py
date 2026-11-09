@@ -1,6 +1,7 @@
 """Owned Compose lifecycle. Never reset an arbitrary endpoint or Docker project."""
 
 import csv
+import hashlib
 import json
 import os
 import secrets
@@ -18,6 +19,7 @@ from shipsense_local.config import (
     ROOT,
     LocalFailure,
     LocalSettings,
+    Project,
     identity,
     load_settings,
     state_path,
@@ -32,10 +34,8 @@ def private_write(path: Path, value: str) -> None:
         stream.write(value)
 
 
-def initialize(path: Path) -> LocalSettings:
-    directory = state_path(path)
-    if directory.exists():
-        return load_settings(directory)
+def private_directory(directory: Path) -> None:
+    directory = state_path(directory)
     directory.mkdir(parents=True, mode=0o700)
     if os.name == "nt":
         # Do not inherit broad temp/parent ACLs onto generated credential files.
@@ -63,9 +63,21 @@ def initialize(path: Path) -> LocalSettings:
         )
         if result.returncode:
             raise LocalFailure("PRIVATE_STATE_PERMISSIONS_FAILED")
+
+
+def initialize(path: Path, *, project: Project = PROJECT) -> LocalSettings:
+    if project not in (PROJECT, "shipsense-ci-p01"):
+        raise LocalFailure("UNOWNED_LOCAL_TARGET")
+    directory = state_path(path)
+    if directory.exists():
+        settings = load_settings(directory)
+        if settings.project != project:
+            raise LocalFailure("UNOWNED_LOCAL_TARGET")
+        return settings
+    private_directory(directory)
     settings = LocalSettings(
         profile="local",
-        project=PROJECT,
+        project=project,
         repository=str(ROOT.resolve()),
         owner=secrets.token_hex(16),
         mongo_host="127.0.0.1",
@@ -98,7 +110,17 @@ def initialize(path: Path) -> LocalSettings:
 
 
 class LocalStack:
-    def __init__(self, directory: Path, settings: LocalSettings) -> None:
+    def __init__(
+        self, directory: Path, settings: LocalSettings, *, project: Project = PROJECT
+    ) -> None:
+        if project not in (PROJECT, "shipsense-ci-p01") or settings.project != project:
+            raise LocalFailure("UNOWNED_LOCAL_TARGET")
+        if os.environ.get("COMPOSE_PROJECT_NAME") or os.environ.get("SHIPSENSE_PROJECT"):
+            raise LocalFailure("INHERITED_NAMESPACE_REFUSED")
+        if load_settings(directory) != settings:
+            raise LocalFailure("LOCAL_CONFIG_MISMATCH")
+        self.project = project
+        self.state_identity = hashlib.sha256(str(state_path(directory)).encode()).hexdigest()
         self.directory = state_path(directory)
         self.settings = settings
         self.env = os.environ.copy()
@@ -106,7 +128,11 @@ class LocalStack:
         for key in list(self.env):
             if key.startswith("COMPOSE_") or key.startswith("AWS_"):
                 del self.env[key]
-        self.env.update(SHIPSENSE_STATE=self.directory.as_posix(), SHIPSENSE_OWNER=settings.owner)
+        self.env.update(
+            SHIPSENSE_STATE=self.directory.as_posix(),
+            SHIPSENSE_OWNER=settings.owner,
+            SHIPSENSE_STATE_ID=self.state_identity,
+        )
 
     def docker(self, *arguments: str, timeout: int = 30) -> str:
         try:
@@ -138,7 +164,13 @@ class LocalStack:
 
     def compose(self, *arguments: str) -> None:
         self.docker(
-            "compose", "--project-name", PROJECT, "--file", str(COMPOSE), *arguments, timeout=180
+            "compose",
+            "--project-name",
+            self.project,
+            "--file",
+            str(COMPOSE),
+            *arguments,
+            timeout=180,
         )
 
     def validate_ownership(self) -> dict[str, str]:
@@ -146,11 +178,14 @@ class LocalStack:
         owned: dict[str, str] = {}
         # Inspect only this project's exact named resources, never globally prune.
         for kind, names in (
-            ("container", [f"{PROJECT}-mongodb-1", f"{PROJECT}-storage-1"]),
-            ("network", [f"{PROJECT}_fixture"]),
+            ("container", [f"{self.project}-mongodb-1", f"{self.project}-storage-1"]),
+            ("network", [f"{self.project}_fixture"]),
             (
                 "volume",
-                [f"{PROJECT}_{name}" for name in ("mongo-data", "mongo-config", "storage-data")],
+                [
+                    f"{self.project}_{name}"
+                    for name in ("mongo-data", "mongo-config", "storage-data")
+                ],
             ),
         ):
             for name in names:
@@ -169,7 +204,12 @@ class LocalStack:
                 labels = resource["Config"]["Labels"] if kind == "container" else resource["Labels"]
                 if not labels or labels.get("shipsense.owner") != self.settings.owner:
                     raise LocalFailure("UNOWNED_LOCAL_RESOURCE")
-                if labels.get("com.docker.compose.project") != PROJECT:
+                if labels.get("com.docker.compose.project") != self.project:
+                    raise LocalFailure("UNOWNED_LOCAL_RESOURCE")
+                if (
+                    self.project == "shipsense-ci-p01"
+                    and labels.get("shipsense.state") != self.state_identity
+                ):
                     raise LocalFailure("UNOWNED_LOCAL_RESOURCE")
                 owned[name] = resource["Id"] if kind == "container" else name
         # A same-project extra container would make Compose teardown ambiguous.
@@ -178,7 +218,7 @@ class LocalStack:
             "ls",
             "-a",
             "--filter",
-            f"label=com.docker.compose.project={PROJECT}",
+            f"label=com.docker.compose.project={self.project}",
             "--format",
             "{{.Names}}",
         )
@@ -209,7 +249,7 @@ class LocalStack:
         if info["MemTotal"] < 2 * 1024**3 or available < 1536 * 1024**2:
             raise LocalFailure("INSUFFICIENT_LOCAL_MEMORY")
         for service, port in (("mongodb", 37017), ("storage", 38333)):
-            if f"{PROJECT}-{service}-1" in owned:
+            if f"{self.project}-{service}-1" in owned:
                 continue
             try:
                 with socket.socket() as listener:
@@ -232,7 +272,7 @@ class LocalStack:
         return measurement
 
     def down(self, *, reset: bool = False, confirmation: str | None = None) -> None:
-        if reset and confirmation != PROJECT:
+        if reset and confirmation != self.project:
             raise LocalFailure("SYNTHETIC_RESET_CONFIRMATION_REQUIRED")
         self.validate_ownership()
         self.compose("down", *(["--volumes"] if reset else []))

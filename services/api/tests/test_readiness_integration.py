@@ -22,7 +22,8 @@ from shipsense_local.stack import LocalStack
 class ReadinessIntegrationTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         self.directory = Path(os.environ["SHIPSENSE_TEST_STATE"])
-        self.stack = LocalStack(self.directory, load_settings(self.directory))
+        settings = load_settings(self.directory)
+        self.stack = LocalStack(self.directory, settings, project=settings.project)
         await asyncio.to_thread(self.stack.validate_ownership)
         self.enterContext(
             patch.dict(os.environ, {"SHIPSENSE_LOCAL_STATE_DIR": str(self.directory)})
@@ -57,7 +58,7 @@ class ReadinessIntegrationTests(unittest.IsolatedAsyncioTestCase):
     async def test_real_dependency_stop_recovery_and_contracts(self):
         for service in ("mongodb", "storage"):
             await asyncio.to_thread(self.stack.validate_ownership)
-            await asyncio.to_thread(self.stack.docker, "stop", f"shipsense-local-p01-{service}-1")
+            await asyncio.to_thread(self.stack.docker, "stop", f"{self.stack.project}-{service}-1")
             try:
                 start = time.monotonic()
                 response = await self.http.get(

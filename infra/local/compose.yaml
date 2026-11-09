@@ -21,6 +21,7 @@ services:
     security_opt: ["no-new-privileges:true"]
     labels:
       shipsense.owner: ${SHIPSENSE_OWNER:?owner required}
+      shipsense.state: ${SHIPSENSE_STATE_ID:?state identity required}
     networks: [fixture]
   storage:
     image: docker.io/chrislusf/seaweedfs:4.53@sha256:ccad23e18639c8b98cee17e7100b95830a06077b56d8e5b006d6dcf8ec5e94a0
@@ -50,6 +51,7 @@ services:
     security_opt: ["no-new-privileges:true"]
     labels:
       shipsense.owner: ${SHIPSENSE_OWNER:?owner required}
+      shipsense.state: ${SHIPSENSE_STATE_ID:?state identity required}
     networks: [fixture]
 networks:
   fixture:
@@ -58,13 +60,17 @@ networks:
       com.docker.network.bridge.host_binding_ipv4: "127.0.0.1"
     labels:
       shipsense.owner: ${SHIPSENSE_OWNER:?owner required}
+      shipsense.state: ${SHIPSENSE_STATE_ID:?state identity required}
 volumes:
   mongo-data:
     labels:
       shipsense.owner: ${SHIPSENSE_OWNER:?owner required}
+      shipsense.state: ${SHIPSENSE_STATE_ID:?state identity required}
   mongo-config:
     labels:
       shipsense.owner: ${SHIPSENSE_OWNER:?owner required}
+      shipsense.state: ${SHIPSENSE_STATE_ID:?state identity required}
   storage-data:
     labels:
       shipsense.owner: ${SHIPSENSE_OWNER:?owner required}
+      shipsense.state: ${SHIPSENSE_STATE_ID:?state identity required}

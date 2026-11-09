@@ -27,7 +27,7 @@ class AdapterIntegrationTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         self.directory = Path(os.environ["SHIPSENSE_TEST_STATE"])
         self.settings = load_settings(self.directory)
-        self.stack = LocalStack(self.directory, self.settings)
+        self.stack = LocalStack(self.directory, self.settings, project=self.settings.project)
         await asyncio.to_thread(self.stack.validate_ownership)
         self.clients = LocalClients(self.settings)
         self.store = FixtureStore(self.clients)
