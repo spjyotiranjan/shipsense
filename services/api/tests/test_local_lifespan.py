@@ -16,6 +16,43 @@ from shipsense_local.stack import initialize
 
 
 class LocalConfigurationTests(unittest.TestCase):
+    def test_network_paths_are_rejected_before_loader_filesystem_or_clients(self):
+        values = [
+            prefix + "review.invalid" + separator + "share"
+            for prefix in ("//", "\\\\", "/\\", "\\/")
+            for separator in ("/", "\\")
+        ] + [r"\\?\UNC\review.invalid\share", r"\\?\C:\state", r"\\.\C:\state"]
+        for value in values:
+            with (
+                self.subTest(value=value),
+                patch.dict(os.environ, {"SHIPSENSE_LOCAL_STATE_DIR": value}),
+                patch("shipsense_api.local_readiness.load_settings") as loader,
+                patch("shipsense_api.local_readiness.LocalClients") as clients,
+                patch.object(
+                    Path, "stat", side_effect=AssertionError("filesystem reached")
+                ) as stat,
+                patch.object(
+                    Path, "is_symlink", side_effect=AssertionError("filesystem reached")
+                ) as symlink,
+                patch.object(
+                    Path, "open", side_effect=AssertionError("filesystem reached")
+                ) as opened,
+                self.assertLogs("shipsense.diagnostics") as logs,
+                TestClient(create_app()) as client,
+            ):
+                response = client.get("/health/ready")
+                self.assertEqual(response.status_code, 503)
+                self.assertEqual(response.headers["cache-control"], "no-store")
+                self.assertEqual(client.get("/health/live").status_code, 200)
+                self.assertEqual(client.get("/api/v1/version").status_code, 200)
+                self.assertIsNone(client.app.state.local_runtime)
+                self.assertNotIn("review.invalid", response.text + str(logs.output))
+            loader.assert_not_called()
+            clients.assert_not_called()
+            stat.assert_not_called()
+            symlink.assert_not_called()
+            opened.assert_not_called()
+
     def test_shutdown_failure_does_not_expose_dependency_exception(self):
         runtime = AsyncMock()
         runtime.close.side_effect = RuntimeError("private-shutdown-value")

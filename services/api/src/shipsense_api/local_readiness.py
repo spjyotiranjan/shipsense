@@ -5,7 +5,7 @@ seeds data, or grants provider authority. The queue belongs to this API process.
 """
 
 import asyncio
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 from shipsense_local.adapters import LocalClients
 from shipsense_local.config import LocalFailure, load_settings
@@ -34,7 +34,8 @@ class LocalReadiness:
         if (
             not directory
             or len(directory) > 1024
-            or directory.startswith(("\\\\", "//"))
+            or directory.replace("\\", "/").startswith("//")
+            or PureWindowsPath(directory).drive.startswith("\\")
             or not Path(directory).is_absolute()
         ):
             raise LocalFailure("LOCAL_CONFIG_INVALID")
