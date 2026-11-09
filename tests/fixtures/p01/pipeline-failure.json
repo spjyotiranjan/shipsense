@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "p01-fixture-v1",
+  "fixtureId": "pipeline-failure",
+  "tenantId": "synthetic-tenant",
+  "projectId": "synthetic-astronomy",
+  "serviceId": "product-catalog",
+  "environment": "local",
+  "provider": "synthetic",
+  "providerObjectId": "synthetic-pipeline-failure",
+  "providerVersion": "v1",
+  "eventTime": "2026-11-01T00:00:00Z",
+  "observedAt": "2026-11-01T00:01:00Z",
+  "expiresAt": "2027-11-01T00:00:00Z",
+  "freshness": "fresh",
+  "classification": "synthetic",
+  "correlationId": "fixture-pipeline-failure-v1",
+  "sourceRef": "payloads/pipeline-failure.json",
+  "payloadSha256": "c8232082b9f2cb763f1b7f603f450b5ba93e7b3882729bb1f2cb5a451479b89a",
+  "expectedOutcome": "Explain the failed synthetic attempt; propose no execution.",
+  "referenceRepository": "https://github.com/open-telemetry/opentelemetry-demo",
+  "referenceTag": "3.1.0",
+  "referenceRevision": "dedc0178918e260823323b8d95005a8cb924b007"
+}

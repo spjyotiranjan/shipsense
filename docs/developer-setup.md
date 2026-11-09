@@ -19,7 +19,7 @@ npm run typecheck:web
 npm run build:web
 ```
 
-Run the API: `uv run --frozen --package shipsense-api uvicorn shipsense_api.main:create_app --factory --host 127.0.0.1 --port 8000`. In another terminal run the web: `npm run start --workspace apps/web -- --hostname 127.0.0.1`. Visit `http://127.0.0.1:3000`, API `/foundation`, `/docs` and `/openapi.json` on port 8000. Stop each foreground process with Ctrl+C. The static web is independent of the API in P01.1.
+Run the API: `uv run --frozen --package shipsense-api uvicorn shipsense_api.main:create_app --factory --host 127.0.0.1 --port 8000`. In another terminal run the web: `npm run start --workspace apps/web -- --hostname 127.0.0.1`. Visit `http://127.0.0.1:3000`, API `/foundation`, `/docs` and `/openapi.json` on port 8000. Stop each foreground process with Ctrl+C. The web diagnostics call the versioned API; dependency readiness remains safe 503 until the separate real-adapter wiring is accepted.
 
 No environment file is needed. `SHIPSENSE_PROFILE` accepts only `local`; other profiles fail closed. Test a missing fixture with `python scripts/validate-foundation.py --fixture tests/fixtures/absent.json` (expected exit 2, `FIXTURE_MISSING`). Use `--config infra/absent.json` for `CONFIG_MISSING`. Errors contain codes rather than supplied file contents.
 
@@ -59,9 +59,7 @@ verification or inline allowlist. It enumerates tracked and nonignored
 untracked files, including `.env.example`, source and tests. Findings report
 only path, line and rule; scanner errors fail with a generic redacted message.
 Known PDF/icon assets are skipped by suffix and signature. Unsupported binary
-source, unreadable inputs and files over 10 MB fail closed. Only full npm
-SHA-512 integrity fields are excluded from entropy findings; other lockfile
-content is scanned. Keep actual local `.env` files ignored and never commit
+source, unreadable inputs and files over 10 MB fail closed. Full npm SHA-512 integrity fields and verified public fixture payload/provenance hashes are the only entropy exceptions. Fixture payload hashes are recomputed from bounded local bytes; provenance must equal the schema pin. Other source/lockfile content is scanned. Keep actual local `.env` files ignored and never commit
 credentials. Review every finding rather than generating a blanket baseline.
 
 The minimal quality workflow uses read-only permissions, pinned action SHAs,
@@ -81,6 +79,4 @@ bytes in `finally` and refuses to overwrite an existing source probe. Hold
 exclusive checkout access while running it. Local execution does not establish
 remote CI acceptance.
 
-P01.3 selects and starts local services. P01.4 adds health/version and real
-web-to-API diagnostics. P01.5 adds full build/unit/smoke CI. Those outcomes are
-not established by the quality gate.
+The [local service runbook](../infra/local/README.md) covers pinned Mongo/private S3, explicit idempotent seed, scoped stop/reset and same-process queue commands. Run `npm run test:local`; use its explicit external-state instructions for real integration tests. The existing web/version/liveness diagnostic slice is accepted; full API readiness wiring and P01.5 clean build/unit/smoke CI remain separate. Quality success alone does not establish those outcomes.

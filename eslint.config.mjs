@@ -10,6 +10,11 @@ export default defineConfig([
     settings: { next: { rootDir: "apps/web/" } },
     rules: { "no-debugger": "error" },
   },
+  {
+    files: ["infra/local/mongo-init.js"],
+    // mongosh bootstrap uses its CommonJS filesystem bridge.
+    rules: { "@typescript-eslint/no-require-imports": "off" },
+  },
   globalIgnores([
     "**/node_modules/**",
     "**/.next/**",

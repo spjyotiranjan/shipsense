@@ -51,7 +51,8 @@ Establish a reproducible development workspace and the first working web-to-API 
 
 ### P01.3 — Add local MongoDB, queue emulator/adapter, R2 compatible development storage, and seeded demo data
 
-**Status:** Not started.
+**Status:** In progress; bounded local core implemented, independent review and acceptance pending.
+**Implementation/proof:** [runbook](../infra/local/README.md), [shared local adapters](../packages/local-core/src/shipsense_local), [safety tests](../packages/local-core/tests/test_unit.py), [real Mongo/S3 integration and outage tests](../packages/local-core/tests/test_integration.py), [six inert scoped fixtures](../tests/fixtures/p01) and [SCRUM-15](https://spjyotiranjan.atlassian.net/browse/SCRUM-15). Decision 0007 controls digest/client pins and private-access/integrity requirements. The core excludes issuer/reference runtime, full API readiness wiring, production parity and paid provisioning; those remain phase exit gates.
 **Expected result:** Add local MongoDB, queue emulator/adapter, R2 compatible development storage, and seeded demo data.
 
 **Acceptance criteria**
@@ -64,7 +65,7 @@ Establish a reproducible development workspace and the first working web-to-API 
 
 ### P01.4 — Build Next.js shell and FastAPI health/version endpoints; document Swagger/OpenAPI contracts
 
-**Status:** In progress; credential-free API contract and web diagnostics implemented; independent review and full acceptance remain gated.
+**Status:** In progress; credential-free API/web diagnostic slice accepted and merged in [PR #6](https://github.com/spjyotiranjan/shipsense/pull/6) at `2353914`; full real-adapter readiness/outage/recovery acceptance remains gated.
 **Implementation:** [canonical API](../services/api/src/shipsense_api/main.py), [bounded readiness interface](../services/api/src/shipsense_api/diagnostics.py), [contract/failure tests](../services/api/tests/test_diagnostics.py) and [generated OpenAPI](../packages/contracts/openapi.json). Local startup exposes version/liveness without dependencies and returns safe readiness 503 with no adapters installed. This is partial implementation, not real adapter outage/recovery proof or accepted P01.4 completion.
 **Implementation prerequisite:** tested accepted SCRUM-13/14 supports credential-free canonical version/liveness/safe-error contracts and subsequent web diagnostic integration without SCRUM-15.
 **Full acceptance prerequisite:** SCRUM-15 local adapters, seeded dependencies and real readiness outage/recovery proof; no mocked readiness substitution. Preserve all criteria below and in both technical plans.

@@ -2,7 +2,10 @@
 name = "shipsense-api"
 version = "0.1.0"
 requires-python = "==3.14.7"
-dependencies = ["fastapi==0.162.2", "uvicorn==0.54.0", "pydantic==2.14.3"]
+dependencies = ["fastapi==0.162.2", "uvicorn==0.54.0", "pydantic==2.14.3", "shipsense-local"]
+
+[tool.uv.sources]
+shipsense-local = { workspace = true }
 
 [dependency-groups]
 dev = ["httpx==0.28.1"]

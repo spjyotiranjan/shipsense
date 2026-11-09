@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "p01-fixture-v1",
+  "fixtureId": "deployment-regression",
+  "tenantId": "synthetic-tenant",
+  "projectId": "synthetic-astronomy",
+  "serviceId": "product-catalog",
+  "environment": "local",
+  "provider": "synthetic",
+  "providerObjectId": "synthetic-deployment-regression",
+  "providerVersion": "v1",
+  "eventTime": "2026-11-01T00:00:00Z",
+  "observedAt": "2026-11-01T00:01:00Z",
+  "expiresAt": "2027-11-01T00:00:00Z",
+  "freshness": "stale",
+  "classification": "synthetic",
+  "correlationId": "fixture-deployment-regression-v1",
+  "sourceRef": "payloads/deployment-regression.json",
+  "payloadSha256": "0c617b984265acb6cec7aafcacde9d912bfc98d615bbe6c2d6b76ce55c4e4109",
+  "expectedOutcome": "Report regression; successful deployment does not establish recovery.",
+  "referenceRepository": "https://github.com/open-telemetry/opentelemetry-demo",
+  "referenceTag": "3.1.0",
+  "referenceRevision": "dedc0178918e260823323b8d95005a8cb924b007"
+}

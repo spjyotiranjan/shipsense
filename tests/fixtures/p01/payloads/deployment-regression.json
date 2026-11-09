@@ -1,0 +1,8 @@
+{
+  "signal": "deployment",
+  "revision": "synthetic-v2",
+  "deployStatus": "success",
+  "probeStatus": "unhealthy",
+  "previousRevision": "synthetic-v1",
+  "effects": false
+}
