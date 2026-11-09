@@ -11,7 +11,7 @@ import tempfile
 import threading
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from pydantic import ValidationError
 from shipsense_local.adapters import PrivateObjects
@@ -23,6 +23,73 @@ from shipsense_local.stack import LocalStack, initialize
 
 
 class ConfigurationTests(unittest.TestCase):
+    def test_partial_launch_failure_is_cleaned_up_by_cli_without_reset(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary) / "state"
+            stack = LocalStack(directory, initialize(directory))
+            commands = []
+
+            def compose(*arguments):
+                commands.append(arguments)
+                if arguments[0] == "up":
+                    raise LocalFailure("DOCKER_COMMAND_FAILED")
+
+            output = io.StringIO()
+            with (
+                patch("sys.argv", ["local", "up", "--state-dir", str(directory)]),
+                patch("shipsense_local.cli.LocalStack", return_value=stack),
+                patch.object(stack, "validate_ownership", return_value={}) as ownership,
+                patch.object(stack, "preflight", return_value={}),
+                patch.object(stack, "compose", side_effect=compose),
+                patch("shipsense_local.cli.wait_for_services") as wait,
+                contextlib.redirect_stdout(output),
+            ):
+                self.assertEqual(main(), 2)
+            self.assertEqual(json.loads(output.getvalue()), {"error": "DOCKER_COMMAND_FAILED"})
+            self.assertEqual(
+                commands, [("up", "--detach", "--pull", "missing", "--no-build"), ("down",)]
+            )
+            self.assertEqual(ownership.call_count, 2)
+            wait.assert_not_called()
+            self.assertEqual(load_settings(directory), stack.settings)
+
+    def test_failed_preflight_or_ownership_never_attempts_cleanup(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary) / "state"
+            stack = LocalStack(directory, initialize(directory))
+            for boundary in ("validate_ownership", "preflight"):
+                with (
+                    self.subTest(boundary=boundary),
+                    patch.object(stack, "validate_ownership", return_value={}),
+                    patch.object(stack, "preflight", return_value={}),
+                    patch.object(stack, boundary, side_effect=LocalFailure("REFUSED")),
+                    patch.object(stack, "compose") as compose,
+                    patch.object(stack, "down") as down,
+                ):
+                    with self.assertRaisesRegex(LocalFailure, "REFUSED"):
+                        stack.up()
+                    compose.assert_not_called()
+                    down.assert_not_called()
+
+    def test_launch_cleanup_refuses_changed_ownership(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary) / "state"
+            stack = LocalStack(directory, initialize(directory))
+            with (
+                patch.object(
+                    stack,
+                    "validate_ownership",
+                    side_effect=[{}, LocalFailure("UNOWNED_LOCAL_RESOURCE")],
+                ),
+                patch.object(stack, "preflight", return_value={}),
+                patch.object(
+                    stack, "compose", side_effect=LocalFailure("DOCKER_COMMAND_FAILED")
+                ) as compose,
+            ):
+                with self.assertRaisesRegex(LocalFailure, "UNOWNED_LOCAL_RESOURCE"):
+                    stack.up()
+                self.assertEqual(compose.call_count, 1)
+
     def test_ambiguous_configuration_fails_without_secret_echo(self):
         with tempfile.TemporaryDirectory() as temporary:
             directory = Path(temporary) / "state"
@@ -183,6 +250,86 @@ class ConfigurationTests(unittest.TestCase):
 
 
 class QueueTests(unittest.IsolatedAsyncioTestCase):
+    async def test_s3_probe_deadline_retains_admission_then_recovers_and_closes(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            settings = initialize(Path(temporary) / "state")
+            release = threading.Event()
+            started = [threading.Event() for _ in range(4)]
+            client = Mock()
+            objects = None
+            with patch("shipsense_local.adapters.local_s3", return_value=client):
+                objects = PrivateObjects(settings)
+
+            def block(index):
+                started[index].set()
+                release.wait(5)
+
+            client.head_bucket.side_effect = lambda **kwargs: block(3)
+            running = [asyncio.create_task(objects.call(lambda i=i: block(i))) for i in range(3)]
+            try:
+                before = asyncio.get_running_loop().time()
+                self.assertFalse(await objects.probe())
+                elapsed = asyncio.get_running_loop().time() - before
+                self.assertGreater(elapsed, 0.8)
+                self.assertLess(elapsed, 1.6)
+                self.assertTrue(all(event.is_set() for event in started))
+                with self.assertRaisesRegex(LocalFailure, "STORAGE_UNAVAILABLE"):
+                    await objects.call(lambda: True)
+                self.assertFalse(await objects.probe())
+                await asyncio.wait_for(asyncio.sleep(0.01), 0.1)
+                release.set()
+                await asyncio.gather(*running)
+                # Drain the last shielded worker through its completion callback.
+                await asyncio.gather(*objects._pending)
+                await asyncio.sleep(0)
+                client.head_bucket.side_effect = None
+                self.assertTrue(await objects.probe())
+            finally:
+                release.set()
+                await asyncio.gather(*running, return_exceptions=True)
+                await objects.close()
+            client.close.assert_called_once()
+            self.assertFalse(await objects.probe())
+            with self.assertRaisesRegex(LocalFailure, "STORAGE_UNAVAILABLE"):
+                await objects.call(lambda: True)
+
+    async def test_s3_probe_preserves_external_cancellation_and_close_waits_for_worker(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            settings = initialize(Path(temporary) / "state")
+            release = threading.Event()
+            started = threading.Event()
+            client = Mock()
+
+            def block(**kwargs):
+                started.set()
+                release.wait(5)
+
+            client.head_bucket.side_effect = block
+            with patch("shipsense_local.adapters.local_s3", return_value=client):
+                objects = PrivateObjects(settings)
+            probe = asyncio.create_task(objects.probe())
+            closing = None
+            try:
+                async with asyncio.timeout(1):
+                    while not started.is_set():
+                        await asyncio.sleep(0.005)
+                probe.cancel()
+                with self.assertRaises(asyncio.CancelledError):
+                    await probe
+                closing = asyncio.create_task(objects.close())
+                await asyncio.sleep(0.02)
+                self.assertFalse(closing.done())
+                client.close.assert_not_called()
+                self.assertFalse(await objects.probe())
+            finally:
+                release.set()
+                await asyncio.gather(probe, return_exceptions=True)
+                if closing is not None:
+                    await closing
+                else:
+                    await objects.close()
+            client.close.assert_called_once()
+
     async def test_duplicate_reordered_poison_timeout_and_restart_loss(self):
         manifest, _ = load_fixture(ROOT / "tests/fixtures/p01", CASES[0])
         queue = MemoryQueue(1)

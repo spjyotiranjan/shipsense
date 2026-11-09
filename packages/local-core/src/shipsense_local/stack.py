@@ -221,8 +221,14 @@ class LocalStack:
     def up(self) -> dict[str, int]:
         owned = self.validate_ownership()
         measurement = self.preflight(owned)
-        self.compose("up", "--detach", "--pull", "missing", "--no-build")
-        self.validate_ownership()
+        try:
+            self.compose("up", "--detach", "--pull", "missing", "--no-build")
+            self.validate_ownership()
+        except Exception:
+            # Compose can start some services before failing. Cleanup rechecks
+            # ownership and preserves volumes; failed preflight never enters here.
+            self.down()
+            raise
         return measurement
 
     def down(self, *, reset: bool = False, confirmation: str | None = None) -> None:

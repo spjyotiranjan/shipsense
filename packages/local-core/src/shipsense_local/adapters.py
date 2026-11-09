@@ -100,7 +100,7 @@ class PrivateObjects:
             async with asyncio.timeout(1):
                 await self.call(lambda: self._client.head_bucket(Bucket=self.bucket))
             return True
-        except LocalFailure:
+        except LocalFailure, TimeoutError:
             return False
 
     def _read(self, key: str) -> bytes:
