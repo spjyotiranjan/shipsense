@@ -1,6 +1,6 @@
 # P01 — Repository and developer foundation
 
-**Current status:** In progress (8 November 2026). Corrected phase-specific web/backend plans approved; P01.1 implementation released. P01.1 local verification is recorded; independent review and acceptance remain pending. See `../PROJECT_STATUS.md`.
+**Current status:** In progress (9 November 2026). P01.1/2 accepted with PR #4/#5 merged; P01.3–P01.5 and full phase exit remain unverified. See [current proof and limitations](../PROJECT_STATUS.md).
 **Prerequisites:** P00 architecture decisions.
 **Phase outcome:** reproducible local boot, automated checks, and a working web-to-API request.
 
@@ -22,8 +22,8 @@ Establish a reproducible development workspace and the first working web-to-API 
 
 ### P01.1 — Establish `apps/web`, `services/api`, `services/worker`, `packages/contracts`, `infra`, `docs`, and test fixtures
 
-**Status:** In review; local proof recorded, independent current-SHA review and acceptance pending.
-**Local proof:** [SCRUM-13 verification evidence](https://spjyotiranjan.atlassian.net/browse/SCRUM-13), 8 November 2026. No subphase or parent completion claimed.
+**Status:** Complete; accepted 9 November 2026.
+**Proof:** [SCRUM-13 acceptance and verification](https://spjyotiranjan.atlassian.net/browse/SCRUM-13?focusedCommentId=10003), [merged PR #4](https://github.com/spjyotiranjan/shipsense/pull/4), accepted head `e4d1efbf6e97085738556f9b968471af8b348ddd`. Local builds/startup/browser/failure checks, independent exact-SHA review and acceptance recorded. Foundation had zero CI checks; full CI remains P01.5.
 
 **Expected result:** Establish `apps/web`, `services/api`, `services/worker`, `packages/contracts`, `infra`, `docs`, and test fixtures.
 
@@ -37,7 +37,8 @@ Establish a reproducible development workspace and the first working web-to-API 
 
 ### P01.2 — Pin language/tool versions, lockfiles, formatting, linting, typing, secret scanning, and branch checks
 
-**Status:** In progress (9 November 2026). Pinned tools and local format/lint/type/offline-secret/contract-drift gates are implemented. ESLint 9.39.5 resolves the recorded peer incompatibility. Frozen installs, independent seeded rejection/recovery, affected builds and direct startup checks pass locally. Remote seeded CI proof, independent current-SHA review and acceptance remain pending. [SCRUM-14](https://spjyotiranjan.atlassian.net/browse/SCRUM-14) tracks evidence. No completion claimed.
+**Status:** Complete; accepted 9 November 2026.
+**Proof:** [SCRUM-14 quality, seeded local/CI rejection and recovery evidence](https://spjyotiranjan.atlassian.net/browse/SCRUM-14), [merged PR #5](https://github.com/spjyotiranjan/shipsense/pull/5), accepted head `d70c3f1`. Frozen installs, valid ESLint 9.39.5 peer tree, format/lint/typing/offline-secret/byte-level contract checks, affected builds/startup, independent exact-SHA review and acceptance recorded. Development minimatch advisory, Starlette/httpx deprecation and Decision 0003 validator-lifecycle limits remain disclosed in PROJECT_STATUS.md; full integration CI remains P01.5.
 **Expected result:** Pin language/tool versions, lockfiles, formatting, linting, typing, secret scanning, and branch checks.
 
 **Acceptance criteria**
@@ -63,7 +64,11 @@ Establish a reproducible development workspace and the first working web-to-API 
 
 ### P01.4 — Build Next.js shell and FastAPI health/version endpoints; document Swagger/OpenAPI contracts
 
-**Status:** Not started.
+**Status:** In progress; credential-free API contract and web diagnostics implemented; independent review and full acceptance remain gated.
+**Implementation:** [canonical API](../services/api/src/shipsense_api/main.py), [bounded readiness interface](../services/api/src/shipsense_api/diagnostics.py), [contract/failure tests](../services/api/tests/test_diagnostics.py) and [generated OpenAPI](../packages/contracts/openapi.json). Local startup exposes version/liveness without dependencies and returns safe readiness 503 with no adapters installed. This is partial implementation, not real adapter outage/recovery proof or accepted P01.4 completion.
+**Implementation prerequisite:** tested accepted SCRUM-13/14 supports credential-free canonical version/liveness/safe-error contracts and subsequent web diagnostic integration without SCRUM-15.
+**Full acceptance prerequisite:** SCRUM-15 local adapters, seeded dependencies and real readiness outage/recovery proof; no mocked readiness substitution. Preserve all criteria below and in both technical plans.
+**Web implementation:** [diagnostic UI](../apps/web/src/components/foundation-status.tsx), [same-origin route](../apps/web/src/app/api/foundation/route.ts), [bounded transport](../apps/web/src/lib/server/api-transport.ts) and [failure/race tests](../apps/web/tests/diagnostics.test.ts). Run the [web reproduction and verification commands](../apps/web/README.md). Safe transport errors share the generated canonical envelope. Connected indicates API reachability only. Full readiness and phase exit remain unverified.
 **Expected result:** Build Next.js shell and FastAPI health/version endpoints; document Swagger/OpenAPI contracts.
 
 **Acceptance criteria**
@@ -97,4 +102,4 @@ Establish a reproducible development workspace and the first working web-to-API 
 ## Phase kickoff — 8 November 2026
 
 - Jira: [SCRUM-23](https://spjyotiranjan.atlassian.net/browse/SCRUM-23), board 1, existing user-started active `SCRUM Sprint 1` (36), with SCRUM-13–SCRUM-17 linked to this epic. Sprint dates, team allocation and closure remain manual.
-- Corrected technical web/backend plans approved on 8 November 2026. P01.1/SCRUM-13 implementation is locally verified; subsequent subphases retain their technical gates.
+- Corrected technical web/backend plans approved on 8 November 2026; bounded dependency adjustment recorded 9 November 2026. P01.1/SCRUM-13 and P01.2/SCRUM-14 accepted and merged; subsequent subphases retain their full technical gates.

@@ -1,3 +1,5 @@
+import { FoundationStatus } from "../components/foundation-status";
+
 const boundaries = [
   {
     name: "Web",
@@ -33,30 +35,7 @@ export default function FoundationPage() {
           failures and reviewing governed proposals.
         </p>
 
-        <section
-          className="foundation-state"
-          aria-labelledby="foundation-heading"
-        >
-          <h2 id="foundation-heading">The web foundation is in place</h2>
-          <p>
-            This is a static local shell. No service, provider or customer data
-            is connected.
-          </p>
-          <dl>
-            <div>
-              <dt>API connection</dt>
-              <dd>Not connected in this slice</dd>
-            </div>
-            <div>
-              <dt>Service health</dt>
-              <dd>Not evaluated</dd>
-            </div>
-          </dl>
-          <p className="supporting">
-            A successful build or deployment does not establish recovered
-            service health.
-          </p>
-        </section>
+        <FoundationStatus />
 
         <section className="boundaries" aria-labelledby="boundaries-heading">
           <h2 id="boundaries-heading">Application boundaries</h2>
@@ -68,15 +47,6 @@ export default function FoundationPage() {
               </li>
             ))}
           </ul>
-        </section>
-
-        <section className="next-step" aria-labelledby="next-heading">
-          <h2 id="next-heading">Next: verify the API connection</h2>
-          <p>
-            The health and version integration follows in SCRUM-16. Connection
-            checks and retry controls will appear when that integration is
-            available.
-          </p>
         </section>
       </main>
       <footer className="site-footer">

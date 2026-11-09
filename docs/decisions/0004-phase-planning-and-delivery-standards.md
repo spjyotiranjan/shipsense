@@ -1,6 +1,7 @@
 # Decision 0004 — Phase planning and delivery standards
 
 **Date:** 8 November 2026
+**Amendment date:** 9 November 2026
 **Status:** Accepted.
 **Decision owner:** ShipSense project owner.
 
@@ -18,7 +19,7 @@ Use a simple, functional and consistent UI while broad product coverage is being
 
 Each Jira item has its own branch, issue-scoped commits and PR with its SCRUM key.
 
-Accepted coding work is complete after required local checks and direct behavior proof, independent exact-current-SHA review and acceptance. It does not wait for the owner's PR review or merge. The owner alone manually merges; do not merge or enable auto-merge. This supersedes earlier risk-based automatic-merge wording. Preserve user-owned sprint start and manual sprint administration, permission boundaries, spending approval and all quality gates.
+Accepted coding work is complete after required local checks and direct behavior proof, independent exact-current-SHA review and acceptance. It does not wait for the owner’s PR review or merge. Routine low-risk changes are merged automatically after these gates and required remote checks; risky or complex merges require owner review. This replaces the prior owner-only manual-merge policy. Preserve owner-controlled sprint administration, permission boundaries, spending approval and all quality gates.
 
 ## Repository hygiene
 
@@ -33,5 +34,5 @@ Keep implementation plans technical and distinguish accepted implementation from
 - One planning cycle per phase: user comment 7e654688-5f57-4cab-b351-de1f3c8922d1.
 - Technical-only plans and FastAPI boundary: user comment 22eff537-c603-417c-a3d0-eaadcc186317.
 - Approval after corrections: user comment 95bce72c-2d9d-4a07-a584-142e48927225 applies to the corrected P01 plans; future phase audit gates remain.
-- Manual merge and completion gates: current authenticated PAT-104 working contract, 8 November 2026.
+- Delivery policy amendment: authenticated user source e2ec3e8b-9c11-459f-81c4-71ee03b87719, 9 November 2026; replaces the prior owner-only manual-merge policy.
 - Repository hygiene: authenticated user direction, 8 November 2026, source comment ab0231ad-0ae0-449b-bb6e-7d161bf7578f.

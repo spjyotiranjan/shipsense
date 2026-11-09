@@ -15,6 +15,7 @@
     "contracts:generate": "uv run --frozen --package shipsense-api python -m shipsense_api.export_openapi && npm run generate --workspace packages/contracts",
     "contracts:check": "uv run --frozen python scripts/check-contracts.py",
     "test:foundation": "uv run --frozen --package shipsense-api python -m unittest discover -s services/api/tests -v",
+    "test:web": "node --test apps/web/tests/diagnostics.test.ts",
     "build:web": "npm run build --workspace apps/web",
     "typecheck:web": "npm run typecheck --workspace apps/web",
     "format:check": "prettier --check . && uv run --frozen ruff format --check services scripts",

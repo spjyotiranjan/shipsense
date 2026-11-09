@@ -1,6 +1,6 @@
 # ShipSense project roadmap
 
-**Planning baseline:** 23 October 2026. **Project state:** P00 complete; corrected P01 plans approved and P01.1 implementation in progress on 8 November 2026. Subphase acceptance and phase exit proof remain pending. This plan covers the full portfolio vision in the product specification and the stack chosen by the project owner. Phase numbers express dependencies, not calendar promises.
+**Planning baseline:** 23 October 2026. **Project state (9 November 2026):** P00 complete; P01.1/SCRUM-13 and P01.2/SCRUM-14 accepted, PR #4/#5 merged. P01 remains In progress; P01.3–P01.5 and phase exit proof remain unverified. See [current evidence and limitations](PROJECT_STATUS.md). This plan covers the full portfolio vision in the product specification and the stack chosen by the project owner. Phase numbers express dependencies, not calendar promises.
 
 ## Product outcome
 
@@ -54,8 +54,11 @@ Detailed plans, expected results, and acceptance criteria for every phase and su
 ### P01 — Repository and developer foundation · In progress
 **Prerequisite:** P00 architecture decisions. **Exit:** reproducible local boot, automated checks, and a working web-to-API request.
 
-- [ ] P01.1 Establish `apps/web`, `services/api`, `services/worker`, `packages/contracts`, `infra`, `docs`, and test fixtures.
-- [ ] P01.2 Pin language/tool versions, lockfiles, formatting, linting, typing, secret scanning, and branch checks.
+- [x] P01.1 Establish `apps/web`, `services/api`, `services/worker`, `packages/contracts`, `infra`, `docs`, and test fixtures.
+- [x] P01.2 Pin language/tool versions, lockfiles, formatting, linting, typing, secret scanning, and branch checks.
+
+Accepted proof: [SCRUM-13](https://spjyotiranjan.atlassian.net/browse/SCRUM-13?focusedCommentId=10003) / [PR #4](https://github.com/spjyotiranjan/shipsense/pull/4), [SCRUM-14](https://spjyotiranjan.atlassian.net/browse/SCRUM-14) / [PR #5](https://github.com/spjyotiranjan/shipsense/pull/5). Credential-free SCRUM-16 contract/web implementation depends on tested SCRUM-13/14; full readiness/outage/recovery acceptance and P01 exit still require SCRUM-15. SCRUM-17 integrates both.
+
 - [ ] P01.3 Add local MongoDB, queue emulator/adapter, R2 compatible development storage, and seeded demo data.
 - [ ] P01.4 Build Next.js shell and FastAPI health/version endpoints; document Swagger/OpenAPI contracts.
 - [ ] P01.5 Create CI that builds both apps and runs contract, unit, and smoke checks.
