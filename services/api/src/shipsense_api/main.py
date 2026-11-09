@@ -3,7 +3,8 @@
 import logging
 import os
 import re
-from collections.abc import Awaitable, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable
+from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from typing import Literal
 from uuid import uuid4
@@ -22,6 +23,7 @@ from shipsense_api.diagnostics import (
     ReadinessResponse,
     VersionResponse,
 )
+from shipsense_api.local_readiness import LocalReadiness
 
 LOGGER = logging.getLogger("shipsense.diagnostics")
 LOGGER.setLevel(logging.INFO)
@@ -81,12 +83,38 @@ def create_app(readiness: ReadinessGate | None = None) -> FastAPI:
     # This package has no production configuration or adapters yet.
     if os.environ.get("SHIPSENSE_PROFILE", "local") != "local":
         raise RuntimeError("SHIPSENSE_PROFILE must be local for the foundation.")
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        runtime = None
+        directory = os.environ.get("SHIPSENSE_LOCAL_STATE_DIR")
+        if readiness is None and directory is not None:
+            try:
+                runtime = await LocalReadiness.open(directory)
+                app.state.readiness_gate = runtime.gate
+            except Exception:
+                # Invalid configuration keeps public diagnostics available. Never
+                # log validation errors, paths, dependency addresses or secrets.
+                LOGGER.info("local_adapters=unavailable")
+        app.state.local_runtime = runtime
+        try:
+            yield
+        finally:
+            app.state.readiness_gate = ReadinessGate()
+            app.state.local_runtime = None
+            if runtime is not None:
+                try:
+                    await runtime.close()
+                except Exception:
+                    LOGGER.info("local_adapters=shutdown_failed")
+
     app = FastAPI(
         title="ShipSense local diagnostics",
         version="0.1.0",
         responses={422: error_contract(422), 500: error_contract(500)},
+        lifespan=lifespan,
     )
-    gate = readiness if readiness is not None else ReadinessGate()
+    app.state.readiness_gate = readiness if readiness is not None else ReadinessGate()
 
     @app.middleware("http")
     async def correlation(
@@ -158,7 +186,7 @@ def create_app(readiness: ReadinessGate | None = None) -> FastAPI:
         },
     )
     async def ready(request: Request) -> ReadinessResponse | JSONResponse:
-        if not await gate.ready():
+        if not await app.state.readiness_gate.ready():
             return safe_error(request, 503)
         return ReadinessResponse()
 

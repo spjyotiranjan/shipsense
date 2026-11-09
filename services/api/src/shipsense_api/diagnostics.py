@@ -52,10 +52,10 @@ Probe = Callable[[], Awaitable[bool]]
 class ReadinessGate:
     """Async, cancellation-cooperative probes; adapters own pools and shutdown.
 
-    No adapters are installed by this slice. Never cache successes. Limit each
+    Missing configuration installs no adapters. Never cache successes. Limit each
     probe to one second and at most four concurrent readiness requests. Missing,
-    failed, timed-out or excess-capacity checks fail closed. Real adapter and
-    outage/recovery acceptance belongs to the SCRUM-15 integration.
+    failed, timed-out or excess-capacity checks fail closed. The local lifespan
+    owns pooled adapters; the queue probe covers this API process only.
     """
 
     REQUIRED = frozenset({"mongodb", "storage", "queue"})

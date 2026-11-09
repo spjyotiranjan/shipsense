@@ -1,6 +1,6 @@
 # ShipSense project roadmap
 
-**Planning baseline:** 23 October 2026. **Project state (9 November 2026):** P00 complete; P01.1/SCRUM-13 and P01.2/SCRUM-14 accepted, PR #4/#5 merged. P01 remains In progress; P01.3–P01.5 and phase exit proof remain unverified. See [current evidence and limitations](PROJECT_STATUS.md). This plan covers the full portfolio vision in the product specification and the stack chosen by the project owner. Phase numbers express dependencies, not calendar promises.
+**Planning baseline:** 23 October 2026. **Project state (9 November 2026):** P00 complete; P01.1/SCRUM-13 and P01.2/SCRUM-14 accepted, PR #4/#5 merged. P01 remains In progress; SCRUM-15 bounded local core is accepted but PR #7 remains unmerged; full SCRUM-16 acceptance, SCRUM-17 and phase exit proof remain unverified. See [current evidence and limitations](PROJECT_STATUS.md). This plan covers the full portfolio vision in the product specification and the stack chosen by the project owner. Phase numbers express dependencies, not calendar promises.
 
 ## Product outcome
 
@@ -57,7 +57,7 @@ Detailed plans, expected results, and acceptance criteria for every phase and su
 - [x] P01.1 Establish `apps/web`, `services/api`, `services/worker`, `packages/contracts`, `infra`, `docs`, and test fixtures.
 - [x] P01.2 Pin language/tool versions, lockfiles, formatting, linting, typing, secret scanning, and branch checks.
 
-Accepted proof: [SCRUM-13](https://spjyotiranjan.atlassian.net/browse/SCRUM-13?focusedCommentId=10003) / [PR #4](https://github.com/spjyotiranjan/shipsense/pull/4), [SCRUM-14](https://spjyotiranjan.atlassian.net/browse/SCRUM-14) / [PR #5](https://github.com/spjyotiranjan/shipsense/pull/5). Credential-free SCRUM-16 contract/web implementation depends on tested SCRUM-13/14; full readiness/outage/recovery acceptance and P01 exit still require SCRUM-15. SCRUM-17 integrates both.
+Accepted proof: [SCRUM-13](https://spjyotiranjan.atlassian.net/browse/SCRUM-13?focusedCommentId=10003) / [PR #4](https://github.com/spjyotiranjan/shipsense/pull/4), [SCRUM-14](https://spjyotiranjan.atlassian.net/browse/SCRUM-14) / [PR #5](https://github.com/spjyotiranjan/shipsense/pull/5). Credential-free SCRUM-16 contract/web implementation depends on tested SCRUM-13/14; SCRUM-15 core is accepted at `c441de1` with PR #7 merge pending. Separate SCRUM-16 real-adapter readiness wiring now has local HTTP outage/recovery proof and awaits independent review/acceptance; issuer/reference runtime, SCRUM-17 and full P01 exit remain unverified. SCRUM-17 integrates both.
 
 - [ ] P01.3 Add local MongoDB, queue emulator/adapter, R2 compatible development storage, and seeded demo data.
 - [ ] P01.4 Build Next.js shell and FastAPI health/version endpoints; document Swagger/OpenAPI contracts.
