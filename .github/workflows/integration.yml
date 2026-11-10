@@ -40,23 +40,18 @@ jobs:
           npm run check
           npm run test:unit
           npm run build
-      - name: Isolated synthetic test fixtures, API and built-browser smoke
+      - name: Credential-free API and built-browser diagnostics
         run: npm run test:smoke
-      - name: Reject contract drift and failed upstream, then recover
+      - name: Reject contract drift and failed API, then recover
         run: uv run --frozen --package shipsense-api python scripts/verify-integration-gates.py
-      - name: Ownership-checked CI cleanup on every outcome
-        if: always()
-        run: |
-          uv run --frozen --package shipsense-api python scripts/verify-integration-gates.py --cleanup
-          uv run --frozen --package shipsense-api python scripts/integration-smoke.py --cleanup
       - name: Bounded sanitized evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: integration-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
-            ${{ runner.temp }}/shipsense-evidence/*.json
-            ${{ runner.temp }}/shipsense-evidence/*.png
+            ${{ runner.temp }}/shipsense-evidence/shipsense-smoke-*/*.json
+            ${{ runner.temp }}/shipsense-evidence/shipsense-smoke-*/*.png
           if-no-files-found: ignore
           retention-days: 3
           include-hidden-files: false

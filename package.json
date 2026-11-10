@@ -21,7 +21,6 @@
     "contracts:generate": "uv run --frozen --package shipsense-api python -m shipsense_api.export_openapi && npm run generate --workspace packages/contracts",
     "contracts:check": "uv run --frozen python scripts/check-contracts.py",
     "test:foundation": "uv run --frozen --package shipsense-api python -m unittest discover -s services/api/tests -v",
-    "test:readiness:integration": "uv run --frozen --package shipsense-api python -m unittest discover -s services/api/tests -p test_readiness_integration.py -v",
     "test:web": "node --test apps/web/tests/diagnostics.test.ts",
     "build:web": "npm run build --workspace apps/web",
     "typecheck:web": "npm run typecheck --workspace apps/web",
@@ -32,8 +31,8 @@
     "secrets:check": "uv run --frozen python scripts/check-secrets.py",
     "quality": "npm run format:check && npm run lint && npm run typecheck && npm run secrets:check && npm run contracts:check",
     "queue:smoke": "uv run --frozen --package shipsense-worker python -m shipsense_worker.main --queue-smoke",
-    "test:local": "uv run --frozen --package shipsense-local python -m unittest discover -s packages/local-core/tests -p test_unit.py -v",
-    "test:local:integration": "uv run --frozen --package shipsense-api python -m unittest discover -s packages/local-core/tests -p test_integration.py -v"
+    "test:integration": "uv run --frozen --package shipsense-api python scripts/integration-smoke.py --hosted",
+    "test:core": "uv run --frozen --package shipsense-local python -m unittest discover -s packages/local-core/tests -p test_unit.py -v"
   },
   "devDependencies": {
     "eslint": "9.39.5",

@@ -7,8 +7,8 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from shipsense_local.config import LocalFailure, local_profile
-from shipsense_local.fixtures import Manifest
+from shipsense_local.config import ROOT, LocalFailure, local_profile
+from shipsense_local.fixtures import CASES, Manifest, load_fixture
 
 
 class Envelope(BaseModel):
@@ -90,3 +90,26 @@ class MemoryQueue:
             self._queue.task_done()
         self._seen.clear()
         self._sequences.clear()
+
+
+async def queue_smoke() -> dict[str, object]:
+    queue = MemoryQueue()
+    manifest, _ = load_fixture(ROOT / "tests/fixtures/p01", CASES[0])
+    first = Envelope(manifest=manifest, sequence=2)
+    try:
+        queue.enqueue(first)
+        duplicate = queue.enqueue(first)
+        outcomes = [(await queue.consume_one())["outcome"]]
+        for sequence, kind in ((1, "observe"), (3, "poison"), (4, "timeout")):
+            queue.enqueue(
+                Envelope.model_validate({"manifest": manifest, "sequence": sequence, "kind": kind})
+            )
+            outcomes.append((await queue.consume_one())["outcome"])
+        return {
+            "duplicate": duplicate,
+            "outcomes": outcomes,
+            "effects": 0,
+            "restartLosesMessagesAndDeduplication": True,
+        }
+    finally:
+        queue.close()

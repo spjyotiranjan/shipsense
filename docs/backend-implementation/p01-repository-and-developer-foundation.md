@@ -1,189 +1,37 @@
 # P01 backend implementation plan — repository and developer foundation
 
-**Status:** P01 technical development plan, revised 10 November 2026. Technical selections identified as proposals remain unresolved until validated and recorded.
+## Current scope and prerequisites
 
-Read with the [web plan](../web-implementation/p01-repository-and-developer-foundation.md), [P01 detailed criteria](../../Phases/P01-repository-and-developer-foundation.md), [roadmap](../../ROADMAP.md), [status](../../PROJECT_STATUS.md), [development workflow](../DEVELOPMENT_WORKFLOW.md) and accepted Decisions [0001](../decisions/0001-release-1-scope.md), [0002](../decisions/0002-architecture-baseline.md), [0008](../decisions/0008-checkpoint-development-workflow.md). The [specification](../shipsense-full-product-specification.pdf) is product source material; recorded decisions define the implementation baseline.
+The owner directed hosted-only MongoDB and Cloudflare R2 for application setup and integration on 10 November 2026. This replaces earlier emulator/container blueprints, fixture bootstraps and seed/reset requirements, including automated container fixtures. Preserve the chosen Next.js/TypeScript, FastAPI/Python, MongoDB, private R2 and Azure architecture. P01.1/P01.2 and historical P01.3/P01.4 acceptance remain revision-specific in [project status](../../PROJECT_STATUS.md). Historical proof does not establish current hosted compatibility or full P01 exit.
 
-## Hosted setup amendment — 10 November 2026
+P01.1 establishes the web/API/worker/contracts/infra/docs/test boundaries; P01.2 pins npm/uv workspaces, one frozen lock per language, strict quality tools and generated contracts. Keep Decisions [0002](../decisions/0002-architecture-baseline.md), [0005](../decisions/0005-initial-foundation-toolchain.md), [0006](../decisions/0006-local-quality-toolchain.md) and [0008](../decisions/0008-checkpoint-development-workflow.md). Related checkpoint changes may share a PR; acceptance evidence remains separate. No development tracker validation is required.
 
-The hosted setup amendment in [Decision 0007](../decisions/0007-local-foundation-dependencies.md#hosted-mongodb-and-cloudflare-r2-application-setup--10-november-2026) supersedes earlier self-hosted application/developer setup in this plan. Application setup uses existing hosted MongoDB and private Cloudflare R2. No self-hosted MongoDB or S3 emulator is required or started for developer boot, and failed hosted configuration must never fall back to one. Python FastAPI remains the main backend; Next.js remains the web-facing backend layer.
+## Hosted setup and shared contracts
 
-Keep server connection settings and credentials out of browser bundles, responses, logs and artifacts. Commit only nonfunctional placeholders in `env.example`; validate missing, placeholder and invalid values before client creation. Credential-free version/liveness, schema generation and web diagnostics remain available; readiness returns safe 503 until valid configuration and authorized dependency checks establish readiness. API Connected means reachability, not backing-service readiness or recovered customer health. Never expose endpoint addresses or underlying exception details.
+Use existing hosted MongoDB and private Cloudflare R2 with the six server-only variables in placeholder-only [env.example](../../env.example). Local secrets remain ignored and are loaded explicitly by the API process. Validate required values, DNS endpoint policy, database/bucket scope and verified TLS before client creation. Use the pinned native async PyMongo and bounded off-loop Boto3 clients, fixed timeouts, small connection pools and limited retries. Cancellation retains occupied storage capacity until underlying work completes; shutdown drains only owned clients/workers. There is no local hosting or provisioning fallback.
 
-Isolated synthetic containers are automated test fixtures only. Retain pinned images, exact namespace/resource ownership checks, private access, bounds, attempt-specific credentials and cleanup safeguards. Preserve existing developer volumes/private state. Test-only transport exceptions cannot weaken hosted TLS verification or admit arbitrary remote endpoints. Synthetic fixture success cannot prove hosted MongoDB/R2 compatibility, permissions, residency or live readiness.
+P01.3 verifies authorized scoped MongoDB reads and private bucket access against supplied non-production hosted settings. The same-process bounded queue has no provider effects or durable/cross-process authority; retain duplicate, reordered, expired, poison, capacity and timeout cases. Inert reference manifests remain offline test inputs and are never seeded into hosted services. Public health reads do not enumerate or expose records, counts or provider errors. Tenant/project/service/environment/time/provider/version/freshness boundaries remain required as the domain API is built in P02/P03.
 
-Historical accepted proof remains revision/profile-specific: P01.3 bounded local core at `c441de1` and P01.4 readiness at `94279641cf4660b4a991db7af8c69b5e54b1a889` are preserved in the [phase record](../../Phases/P01-repository-and-developer-foundation.md). Earlier planning descriptions below describe that delivery sequence, not a new requirement to repeat accepted work. Hosted-live verification remains unperformed. The P01.5 setup change must verify hosted configuration/client boundaries and safe failures with isolated tests while disclosing that gap; it does not establish full P01 exit. Issuer/reference runtime, region/tier/residency/cost and all other outstanding exit requirements remain in force. Configuration support grants no provider calls, provisioning, schema/seed writes, production effects or recurring-spend authority.
+P01.4 exposes independent version/liveness/OpenAPI and safe readiness. Missing, malformed, denied or unavailable dependencies yield correlated no-store 503 while version/liveness and the web stay available. Production profiles remain refused for the foundation. Public errors/logs contain fixed safe messages and request references, never credentials, endpoint addresses, raw validation inputs or SDK exceptions. Keep the canonical OpenAPI byte check and generated TypeScript; avoid a second handwritten domain contract.
 
-## Tested foundation and remaining dependency gates
+## P01.5 verification and CI
 
-P01.1 and P01.2 are accepted and merged on 9 November 2026: [foundation proof](https://github.com/spjyotiranjan/shipsense/pull/4), [quality proof](https://github.com/spjyotiranjan/shipsense/pull/5), [PR #4](https://github.com/spjyotiranjan/shipsense/pull/4), and [PR #5](https://github.com/spjyotiranjan/shipsense/pull/5). Main baseline is `7749e4de360372f6d99f6b468c8fcbf22f7a4947`. Reuse accepted foundation/quality proof; neither acceptance nor merge completes P01.
+Use the [maintained commands](../developer-setup.md#clean-integration-commands) locally and in clean CI. Frozen bootstrap, aggregate formatting/lint/strict typing/offline secrets/contracts, meaningful API/shared utilities/web unit cases, Next.js production build and Python distributions remain required.
 
-Tested surfaces include the credential-free FastAPI `/foundation` route, generated canonical OpenAPI and TypeScript consumption, minimal web shell, frozen npm/uv workspaces and byte-level contract drift/quality checks. Version/liveness/readiness/error contracts, runtime response validation and diagnostic UI states below are remaining P01.4 work, not existing behavior.
+Credential-free pull-request/push CI runs real API/built-web/browser smoke. It checks default/malformed readiness 503, independent live/version 200, canonical version through Next.js, actual API stop/retry/restart recovery, safe errors and retained keyboard focus. A seeded contract-byte change and stopped upstream must fail the maintained success gates; restoring them must recover. No Docker, Compose, database emulator, service seed or teardown is involved. Installed Chrome/Chromium must be detected/versioned and compatible; fail on absence. Browser profiles and bounded sanitized evidence stay external; never reuse authenticated profiles or attach to existing browsers. Occupied loopback ports fail without killing other listeners; stop only test-owned processes.
 
-P01.4 contract and web diagnostic implementation requires accepted P01.1/P01.2 surfaces, without waiting for P01.3 storage/queue setup. First implement and verify canonical version/liveness/safe-error schemas and generated contracts without cloud credentials; then integrate the web against that tested contract. Schema generation, version and liveness must remain independent of storage, queue and database availability. Readiness schema/error examples and bounded probe interfaces can be defined now, but historical full P01.4 acceptance required P01.3's real local adapters, seeded dependencies and outage/recovery proof. That accepted proof is preserved; the hosted amendment adds configuration/client failure checks without asserting hosted-live readiness. Stubs or mocked readiness cannot satisfy that gate.
+Real hosted integration is a separate required live proof command using the same application settings. Missing/invalid configuration and denied/unavailable dependencies fail explicitly, with no skipped success. Verify scoped Mongo read, authenticated R2 bucket metadata, anonymous/wrong-key denial, actual API readiness 200 and built-web/browser API stop/retry/recovery without hosted service interruption or writes. Credential-free checks and mocked SDK failures do not prove live hosted compatibility or private-object policy. Keep deterministic SDK denial/timeout/cancellation/recovery tests without leaking their artificial errors.
 
-P01.3 still requires validated issuer/emulator/reference-service selections and its fixture/region/tier/cost proof. P01.5 full clean-checkout build/unit/contract/smoke CI depends on completed P01.3/P01.4 integration. Full readiness and P01 exit retain every positive, negative and recovery criterion; this dependency split waives none.
+Hosted CI is a manual workflow against a reviewed revision using a protected `hosted-integration` environment, restricted trusted branches and required reviewers. Secrets enter only its integration step, after installation/build. Pull requests receive none. Do not provision, migrate, seed, upload, reset, alter permissions or stop provider services. Preserve existing developer private state and volumes without lifecycle operations. Before live proof, supply authorized least-privilege test credentials privately; no credentials in source, artifacts, browser environment or prompts.
 
-Accepted tooling is recorded in Decisions [0005](../decisions/0005-initial-foundation-toolchain.md) and [0006](../decisions/0006-local-quality-toolchain.md). Preserve the current pins and frozen locks; select only still-missing tools with compatibility proof. The development minimatch advisory remains a disclosed limitation: recorded triage found no reachable vulnerable path in the current lint configuration, not blanket risk acceptance. Starlette/httpx deprecation remains. Decision 0003's 100-commit ceiling and unverified PR creation/title-edit/new-push lifecycle remain unproven; do not treat that status as a required merge gate until verified. OpenAI model selection remains advisory until measured P12 evaluation; no model is selected by this plan.
+## Exit evidence and limits
 
-## Prerequisites, release order and scope
+Record revision/configuration, commands/results, affected checks, real behavior and limitations under each checkpoint. Required local checks/direct proof precede publication; clean current-head CI, independent exact-SHA review and acceptance follow. Preserve the Markdown pre-commit hook and full file/link/secret hygiene. A green build, merged PR or historical fixture acceptance alone never proves the phase complete.
 
-P00 architecture decisions are the prerequisite. Accepted P01.1 → P01.2 supply tested surfaces for both P01.3 and the credential-free P01.4 contract/web slice. P01.4 web integration follows its tested canonical contract; full P01.4 readiness/outage/recovery acceptance requires P01.3. P01.5 full integration CI follows both completed slices. A folder or closed ticket alone is insufficient proof.
+Live MongoDB/R2 permissions, private-object policy, issuer/reference runtime, region/tier/residency/latency, costs and recurring-spend approval remain separate measured gates. No new model, cloud tier, provisioning or production effect is authorized. P02 owns authentication/tenancy/effective permission enforcement; P03 owns durable data, migrations, lifecycle/retention and evidence persistence. Do not add those features to make this foundation appear complete. Disclose the existing minimatch advisory and Starlette/httpx deprecation limits in project status.
 
-Python FastAPI is the main backend, owning canonical APIs, authorization, policy, integrations and action orchestration. Next.js API routes form the web-facing backend layer and call FastAPI for canonical domain behavior. Python workers/jobs handle asynchronous processing.
+## Backend behavior
 
-P01 establishes reproducible boundaries and synthetic diagnostics. P02 owns login, tenant authorization and durable application audit; P03 owns canonical event/evidence persistence and retention classes. P05/P06 own live connectors. Do not add live provider ingestion or production actions to make the foundation demo look complete. Preserve the selected Next.js/FastAPI/MongoDB/R2/Azure stack.
+FastAPI owns canonical health/version/error schemas and the hosted client lifespan. Readiness aggregates bounded independent probes without blocking the event loop; denial and timeout cannot expose provider data. Test partial client construction, repeat close, external cancellation and zero remaining owned workers. The worker exits after its no-effect diagnostic and never consumes live provider work. No hosting lifecycle or hosted persistence/seed API remains in the shared package.
 
-## Repository and toolchain proposal
-
-| Required boundary | Technical contents | P01.1 acceptance proof |
-| --- | --- | --- |
-| `apps/web` | buildable Next.js/TypeScript shell and web-facing backend | Minimal build and README commands |
-| `services/api` | FastAPI package; settings, routes, schemas, safe errors and tests | Import/build and minimal process startup |
-| `services/worker` | Python worker entrypoint and local adapter boundary | Build/import and bounded no-effect smoke; no provider credentials |
-| `packages/contracts` | API-generated OpenAPI, client/schema output and regeneration instructions | Deterministic minimal schema/client generation and consumption |
-| `infra` | local service definitions and example config; future Azure modules clearly separated | Local config validates; no cloud apply command in boot |
-| `docs` | Package responsibility READMEs, developer guide, plans/decisions and proof index | New contributor can follow without private explanation |
-| `tests/fixtures` | synthetic manifest and named cases | Schema validation and explicit missing-fixture failure |
-
-Proposed API layout: `src/shipsense_api/{main,settings,errors}.py`, `routes/{health,version}.py`, `schemas/foundation.py`, plus `tests/`. Worker has a separate entrypoint and adapter module; no imports from Next.js. Avoid an invented large domain abstraction layer before P02/P03 need it. Shared Python utilities may be extracted only when a concrete shared contract warrants them.
-
-Use the accepted npm/uv workspaces, one frozen lock per language, generated OpenAPI/TypeScript and pinned quality tools from Decisions 0005/0006. Their compatibility and seeded failure/recovery proof are accepted under P01.1/P01.2; preserve those pins. Any additional runtime response validation or browser tooling requires compatibility evidence before use; existing pinned emulators are isolated automated fixtures only. Do not add a second handwritten domain API, floating versions or duplicate locks. Document additions and regeneration commands without repeating accepted foundation work.
-
-Keep `env.example` placeholder-only and local secret files ignored; all example values must be nonfunctional. Validate the hosted application profile, settings, endpoint policy and bounds before creating clients. Test fixture configuration remains explicitly isolated. Reject production profile combined with local identity/queue/storage adapters; errors name missing setting keys without their values. Azure deployment secrets later use Key Vault and managed identity. Provider secrets never enter MongoDB, fixtures, prompts, logs, browser bundles or R2.
-
-Preserve `.githooks/pre-commit` and configure `core.hooksPath=.githooks`. The hook checks staged Markdown whitespace/newline. Decision 0008 replaces development-key validation with checkpoint references and per-checkpoint evidence. No tracker linkage, key validators or issue-key hooks are required.
-
-## Hosted clients and isolated synthetic fixture blueprint
-
-Application boot reads validated server-only hosted MongoDB and private R2 configuration without starting containers or seeding data. Reuse the pinned native async PyMongo and bounded off-loop Boto3 clients from Decision 0007; no new dependency is selected. Preserve TLS certificate verification, bounded connect/read/retry/concurrency limits, cancellation and shutdown cleanup. Reject missing, placeholder or invalid configuration before client construction; keep safe unconfigured readiness 503 and independent liveness/version/schema/web diagnostics. Tests inject client factories or isolated fixtures to exercise these boundaries without calling hosted providers.
-
-Containers, loopback bindings, fixture namespaces and seed/reset commands belong solely to explicitly isolated automated tests. Retain exact ownership/namespace checks, pinned images and private-access tests, resource limits, per-attempt credentials and cleanup refusal on ambiguous state. Preserve existing volumes/private state; no broad reset or deletion. A test-only transport exception cannot disable hosted TLS verification or admit arbitrary remote endpoints. Seed is explicit and synthetic-only; it must never target hosted infrastructure. The bounded same-process queue remains non-durable and does not prove Service Bus parity.
-
-```mermaid
-flowchart LR
-  Config[Server-only hosted settings] --> Validate[Validate before client construction]
-  Validate --> Clients[Bounded MongoDB and private R2 clients]
-  Clients --> Ready[Authorized readiness checks only]
-  Browser --> Web[Next.js web backend]
-  Web --> API[Independent FastAPI version endpoint]
-  Test[Isolated automated fixture harness] --> Seed[Scoped synthetic seed and owned containers]
-```
-
-Proposed fixture schema, separate from future canonical domain schemas:
-
-```typescript
-type FixtureManifest = {
-  schemaVersion: "p01-fixture-v1";
-  fixtureId: string; tenantId: string; projectId: string;
-  serviceId: string; environment: "local";
-  provider: "synthetic"; providerObjectId: string; providerVersion: string;
-  eventTime: string; observedAt: string; expiresAt: string;
-  freshness: "fresh" | "stale" | "missing";
-  sourceRef: string; classification: "synthetic";
-  payloadSha256: string; expectedOutcome: string;
-};
-```
-
-Timestamps are UTC RFC3339; IDs are bounded opaque strings; checksum is 64 lowercase hex characters. Validate size, field bounds, sourceRef as a local fixture reference and checksum before seed. No production URLs, real logs, credentials or personal data. Missing evidence is explicit, not replaced with fabricated success. Fixture objects and metadata share the full local scope and correlation ID. Use scoped deterministic IDs and idempotent upserts; same fixture/version/checksum is a no-op, conflicting checksum for the same version fails and preserves prior evidence. Unique compound key proposal: `(tenantId, projectId, serviceId, environment, fixtureId, providerVersion)`. Do not create a global seed key that collapses tenants.
-
-Seed may be interrupted between object and metadata writes: write checksum-addressed immutable local objects first, then upsert verified metadata; retry completes safely. Record partial failure without overwriting a prior successful version. Document cleanup of expired orphan fixture objects under a checked local prefix. Worker accepts only local synthetic envelopes, uses stable delivery IDs, and records bounded diagnostic attempts. Duplicate/reordered cases exercise the local adapter's declared behavior; durable Service Bus guarantees remain future integration proof. No external API call or effect may occur from these cases.
-
-Decision 0001 fixes Astronomy Shop as the reference application but requires one primary service and named fixtures in P01. Proposal: evaluate a small request-path service, pin its upstream revision and reproducible local inputs, and record the exact service choice with validation evidence; this plan does not select one. Required named cases: `pipeline-failure`, `probe-config-regression`, `missing-telemetry`, `dependency-failure`, `injected-runbook`, `deployment-regression`. Each needs a manifest, expected failure/abstention or outcome, provenance and freshness. Synthetic content models these cases; it does not prove live Azure/Vercel behavior. Treat injected-runbook content as inert untrusted text; no AI tool execution in P01.
-
-## API contract proposal
-
-FastAPI OpenAPI is canonical. Generate a committed versioned schema and typed/runtime-validated web client in `packages/contracts`; document Swagger at `/docs` and schema at `/openapi.json` for the local profile. Deployment exposure of operational docs is a separate secured configuration decision. Do not maintain a parallel handwritten TypeScript domain API. Contract generation should not require cloud connections or expose environment values.
-
-| Method/path | Result | Access and dependency boundary |
-| --- | --- | --- |
-| `GET /health/live` | 200 `{"status":"alive"}` | Minimal process liveness; never probes dependencies |
-| `GET /health/ready` | 200 `{"status":"ready"}` or 503 typed `DEPENDENCY_UNAVAILABLE` | Internal/local operator route; bounded configured dependency checks; unconfigured/invalid hosted setup returns 503 with no provider data or credential detail |
-| `GET /api/v1/version` | 200 VersionResponse | Deliberately minimal diagnostic; no authentication bypass to domain data |
-
-Proposed canonical types:
-
-```typescript
-type VersionResponse = {
-  service: "shipsense-api";
-  version: string;        // bounded release identifier, not arbitrary env data
-  apiVersion: "v1";
-  observedAt: string;     // RFC3339 UTC, generated per request
-};
-type ApiError = {
-  error: {
-    code: "DEPENDENCY_UNAVAILABLE" | "INVALID_REQUEST" | "INTERNAL_ERROR";
-    message: string;     // bounded safe public text
-    requestId: string;   // bounded opaque correlation
-    retryable: boolean;
-  };
-};
-```
-
-Example `/api/v1/version` success:
-
-```json
-{"service":"shipsense-api","version":"0.1.0-dev","apiVersion":"v1","observedAt":"2026-11-08T00:00:00Z"}
-```
-
-Example readiness failure:
-
-```json
-{"error":{"code":"DEPENDENCY_UNAVAILABLE","message":"A required dependency is unavailable.","requestId":"req-local-001","retryable":true}}
-```
-
-Pydantic response models must constrain fields and produce matching OpenAPI success/error examples, including the custom safe 422 validation envelope and safe 500 response. Never echo rejected values, dependency URLs, DSNs or stack traces. Propagate a validated bounded correlation identifier or generate one; include it in response headers and sanitized logs. The web backend adds only transport errors (502 `API_UNAVAILABLE`/`UPSTREAM_CONTRACT_INVALID`, 504 `API_TIMEOUT`) using the same envelope, as described in the web plan; these are not FastAPI domain errors. Verify Swagger examples against runtime responses and generated client validation.
-
-Version and liveness are independent of database/queue/storage availability. Readiness checks have bounded connection deadlines and an overall deadline (proposal: 1 second per dependency within 3 seconds total), returning only generic unavailable information externally and sanitized dependency names internally. Use connection pools and explicit shutdown cleanup. Do not perform blocking client work on the async request loop. Avoid shared mutable cached readiness state or checks that pile up under concurrent probes; cap concurrency and test concurrent readiness while a dependency is down. Diagnostic responses use `Cache-Control: no-store`.
-
-No customer resource endpoint is introduced. Make unauthenticated diagnostic exceptions explicit rather than providing an allow-all permission middleware that later leaks into domain routes. Runtime profile must deny real provider actions and production startup with local adapters. Real user/provider authority must be resolved independently in FastAPI/workers before future scoped retrieval/effects. Synthetic scope fields are test metadata, not authenticated claims. P01 logs establish request/attempt correlation; they do not claim an immutable audit archive or completed P02 audit enforcement.
-
-## Reproducible command and CI contract
-
-Frozen installs, contracts:generate/contracts:check, quality, test:foundation and build:web already exist in the accepted foundation; reuse their documented commands. The table describes the full target behavior, including commands still to implement for P01.3–P01.5. Prefer cross-platform root wrappers (Node/Python/package scripts) over requiring Bash on Windows. Document exact prerequisites, frozen install commands, ports, commands, expected output, teardown and troubleshooting in the first working change. Reconcile names with the web plan before implementing.
-
-| Target | Required behavior |
-| --- | --- |
-| `bootstrap` | Verify pinned runtimes and install frozen web/API/worker dependencies without cloud secrets |
-| Synthetic fixture lifecycle wrappers | Automated tests only: start/stop verified owned containers; preserve existing volumes/private state; never application boot or fallback |
-| Synthetic fixture seed wrapper | Automated tests only: validate exact owned synthetic targets and seed idempotently; refuse hosted, foreign or ambiguous targets |
-| `dev` | Start API/web using server-only hosted settings; no container provisioning or automatic seed; unconfigured diagnostics available with readiness 503 |
-| `contracts:generate` / `contracts:check` | Generate canonical schema/client; fail on drift without cloud boot |
-| `check` | Format-check, lint, typing and secret scan for all affected packages plus Markdown checks |
-| `test:unit` | API, worker, contract adapter and web meaningful unit checks |
-| `build` | Build Next.js and API/worker distributions or images under pinned tools |
-| `test:smoke` | Built web/API with isolated synthetic fixtures: success/failure/recovery plus hosted configuration/client safe-failure tests; no live compatibility claim |
-
-P01.2 established scripts, check targets and the minimal quality workflow with seeded CI failure/recovery proof. Reuse that accepted work; expand CI to builds/services/contracts/unit/smoke in P01.5. This is a planned dependency resolution, not a waiver of P01.2 acceptance. Required workflow checks remain independent of development tracking.
-
-CI uses a clean checkout and the same command targets and pinned runtimes/locks/images. Synthetic adapters/containers are explicitly isolated automated fixtures, with no cloud credentials, provider calls or write authority; they are not developer setup defaults. Run frozen installs, code/schema generation drift, quality/security checks, unit tests, both application builds, startup, seeded integration and browser smoke. Capture sanitized failure artifacts with bounded retention; tear down CI services on failure. Restrict workflow permissions, pin third-party actions, and give untrusted PRs no cloud/provider secrets or write authority. No paid provisioning or deployment stage belongs to this foundation CI.
-
-## Acceptance and meaningful failure proof
-
-| Subphase | Positive proof | Required negative/recovery proof |
-| --- | --- | --- |
-| P01.1 | All seven boundaries exist with package responsibility READMEs/commands and minimal buildable packages; another contributor follows README | Missing required config/fixture yields actionable safe failure; no private setup knowledge |
-| P01.2 | Exact tools and locks committed; all language/Markdown/secret targets pass locally and minimal CI | Independent synthetic format/lint/type/secret violations cause corresponding local and CI failure; wrong/floating tool setup rejected; remove probes and recheck |
-| P01.3 | Historical accepted local-core proof retained; isolated automated fixtures seed repeatably without cloud credentials; hosted application boot requires no self-hosting | Repeat seed unchanged; cross-scope/collision/invalid checksum/missing fixture/unsafe reset refused; dependency outage and partial seed retry; private object denies anonymous read |
-| P01.4 | Real browser → Next.js → versioned FastAPI response; OpenAPI/Swagger/client agree, including error example | API stop/timeout/schema mismatch and recovery; readiness 503 while liveness stays 200; safe errors/logs; keyboard and responsive states |
-| P01.5 | Clean CI builds both apps and repeats documented contract/unit/smoke checks | Contract drift and failed upstream break CI; no hidden cloud credential or workstation service reliance; teardown after failure |
-
-Plan test scope before each change: shared contracts/toolchain/config/security/local storage require cross-surface integration checks. Evidence identifies the tested revision or exact diff, profile, dependency availability, commands, exit codes, test counts, observed behavior, artifacts and unverified criteria. A fresh-profile local reproduction plus clean CI proves repeatability.
-
-Secret-scan probes are unmistakably synthetic fixtures in temporary checked locations, never real credentials; document expected scanner detection. Failure tests restore the tested service/config and prove recovery. Do not delete a user's existing data for a clean boot. Capture versioned schema, UI screenshots and request correlation with sanitized logs. Local builds and direct behavior checks must pass; CI success alone cannot substitute for local proof.
-
-## Outstanding selections and paid-resource gate
-
-| Gate or proposal | Validation evidence required | Release impact |
-| --- | --- | --- |
-| Local OIDC issuer | Evaluate a pinned local issuer with discovery/JWKS, test users, key rotation, isolation and credential-free boot; document API contract impact and the selected configuration | Resolve in P01 before exit; full login/permission enforcement remains P02. Do not invent an issuer now |
-| Astronomy Shop primary service | Record exact service/upstream revision, bounded fixture inputs and six named manifests | Resolve in P01; no broad reference stack/cloud deployment required to fake readiness |
-| Exact toolchain/emulators | Record compatibility, pins, local/CI parity and known emulator gaps | Accept before related implementation; production claims require real service tests later |
-| Central India feasibility/residency | Validate service and Atlas availability/tier/connectivity, backup/restore suitability, pilot residency, latency to R2/Vercel and dated authoritative evidence | Provisional region is not a residency commitment; change requires recorded accepted decision |
-| Forecast, tiers and spend | Produce an itemized Azure web/API/workers/jobs, Service Bus, Key Vault, telemetry, Atlas, R2, Vercel and OpenAI forecast with usage assumptions for 20–30 active users, currency/date/taxes, idle/load estimates, quotas, budget alerts, teardown and ownership | No invented monetary ceiling. Owner approval of actual recurring spend precedes paid provisioning; no resource creation in P01 plans |
-
-Region/cost validation belongs to P01 exit even though it is not a sixth implementation checkpoint: attach selection/forecast evidence under P01.3 and link the phase review. Exact prices/service availability are not researched or asserted by this plan. Use current authoritative sources during that validation; if cost assumptions or residency remain unresolved, report the gap instead of marking the phase complete. Local foundation development does not require paid-resource approval; actual provisioning does.
-
-## Phase exit proof
-
-Phase exit requires all five subphases' positive and negative proof, credential-free diagnostic boot and isolated automated fixtures by documented commands, a real web-to-API request, canonical Swagger/error examples, matching clean CI, selected issuer/reference fixtures, region/tier/cost validation, permission/secret boundaries, accessible degraded states and traceable diagnostics. Record review date, evidence, open risks and follow-on work in the P01 phase review and status, plus GitHub/source links. Keep incomplete items visible; merge/build success and ticket closure alone do not complete the phase. P02 depends on this complete P01 exit record.
+Keep OpenAPI response examples, validation failures and header correlation accurate; web requests consume generated contracts. Future mutations require agreed payload validation, explicit authority, idempotency, predictable errors and appropriate audit. Future migrations must be reversible with query-aligned indexes; no migration is introduced by P01 diagnostics.

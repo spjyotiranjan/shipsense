@@ -1,6 +1,6 @@
 # P01 — Repository and developer foundation
 
-**Scope update — 10 November 2026:** [Decision 0007 hosted amendment](../docs/decisions/0007-local-foundation-dependencies.md#hosted-mongodb-and-cloudflare-r2-application-setup--10-november-2026) supersedes manual local Mongo/S3 application setup. P01.5 adds hosted server configuration plus [env.example](../env.example); no developer self-hosting is required. Historical local acceptance remains below. Automated CI may retain isolated synthetic fixtures with no hosted secrets or application fallback; emulator success cannot establish managed MongoDB/Cloudflare R2 compatibility or permission proof. Hosted live verification remains open until authorized access is available; this does not mark phase exit complete.
+**Scope update — 11 November 2026:** [Decision 0007 hosted-only amendment](../docs/decisions/0007-local-foundation-dependencies.md#hosted-only-integration-supersession--11-november-2026) replaces all self-hosted/container application, development and integration requirements. Use existing hosted MongoDB/private R2 through placeholder-only [env.example](../env.example). Credential-free PR checks and separate protected manual hosted integration use the [same commands](../docs/developer-setup.md#clean-integration-commands). Historical local acceptance remains revision-specific; hosted local/remote success and full P01 exit are unverified until authorized test configuration is supplied.
 
 **Current status:** In progress (9 November 2026). P01.1/2 accepted with PR #4/#5 merged; P01.3 bounded local core is accepted but unmerged; P01.4 accepted but PR #8 unmerged; P01.5 clean integration CI is in progress and phase exit remains unverified. See [current proof and limitations](../PROJECT_STATUS.md).
 **Prerequisites:** P00 architecture decisions.
@@ -10,7 +10,7 @@
 
 Establish a reproducible development workspace and the first working web-to-API slice.
 
-**Included:** Repository structure, local services, quality checks, API contracts, and CI.
+**Included:** Repository structure, hosted client configuration, quality checks, API contracts, and CI.
 **Critical failure boundary:** A green local run that cannot be reproduced in CI does not pass.
 
 ## Overall phase acceptance
@@ -51,26 +51,27 @@ Establish a reproducible development workspace and the first working web-to-API 
 
 **Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
 
-### P01.3 — Add local MongoDB, queue emulator/adapter, R2 compatible development storage, and seeded demo data
+### P01.3 — Configure hosted MongoDB/private R2 and a bounded no-effect queue
 
-**Status:** Bounded local core accepted at `c441de1` on 9 November 2026; [source PR](https://github.com/spjyotiranjan/shipsense/pull/7), [PR #7](https://github.com/spjyotiranjan/shipsense/pull/7) merge remains pending. Issuer/reference runtime validation and other phase exit gates are not complete.
-**Implementation/proof:** [runbook](../infra/local/README.md), [shared local adapters](../packages/local-core/src/shipsense_local), [safety tests](../packages/local-core/tests/test_unit.py), [real Mongo/S3 integration and outage tests](../packages/local-core/tests/test_integration.py), [six inert scoped fixtures](../tests/fixtures/p01) and [P01.3](https://github.com/spjyotiranjan/shipsense/pull/7). Decision 0007 controls digest/client pins and private-access/integrity requirements. The core excludes issuer/reference runtime, full API readiness wiring, production parity and paid provisioning; those remain phase exit gates.
-**Expected result:** Add local MongoDB, queue emulator/adapter, R2 compatible development storage, and seeded demo data.
+**Status:** In progress for current hosted proof. Historical synthetic core was accepted at `c441de1` on 9 November 2026 ([source PR #7](https://github.com/spjyotiranjan/shipsense/pull/7)); its merge and hosted compatibility are separate facts. The self-hosted implementation is retired by the newer owner direction.
+
+**Implementation:** [Hosted settings/clients](../services/api/src/shipsense_api/hosted.py), [API configuration](../services/api/README.md), [bounded shared storage](../packages/local-core/src/shipsense_local/adapters.py), [same-process queue](../packages/local-core/src/shipsense_local/queue.py), [SDK/config/lifecycle tests](../services/api/tests/test_hosted.py) and [shared utility tests](../packages/local-core/tests/test_unit.py).
 
 **Acceptance criteria**
 
-- A new developer can start seeded local services from documented commands without cloud credentials.
-- The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
-- A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
+- A new developer supplies existing hosted settings privately using the placeholder-only example and documented command; no database/storage installation, container or seed is required.
+- Strict server-only configuration, verified TLS and bounded clients enforce database/bucket scope. Missing/invalid values keep readiness 503 without preventing independent live/version/web diagnostics; public errors/logs hide secrets and endpoints.
+- A bounded read-only integration against authorized non-production MongoDB/R2 proves scoped read, authenticated bucket access and anonymous/wrong-key denial. It performs no schema/seed/object writes, provisioning or provider disruption; local and protected remote outcomes are recorded separately.
+- Queue tests preserve duplicate/reorder/poison/expiry/timeout/capacity/no-effect behavior. Client tests cover deadlines, cancellation, denial/recovery, partial construction and draining shutdown.
 
-**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
+**Proof to attach:** Current revision, profile and local/remote hosted results under this checkpoint. Missing access is an explicit remaining gate; mocked SDK success or historical emulator proof is insufficient.
 
 ### P01.4 — Build Next.js shell and FastAPI health/version endpoints; document Swagger/OpenAPI contracts
 
 **Status:** Complete; accepted 9 November 2026 at `94279641cf4660b4a991db7af8c69b5e54b1a889`, stacked base `c441de1`. [Source PR](https://github.com/spjyotiranjan/shipsense/pull/8), [exact-revision independent clearance](https://github.com/spjyotiranjan/shipsense/pull/8#issuecomment-6744104125); PR #8 remains unmerged. Credential-free PR #6 remains merged.
-**Implementation:** [canonical API](../services/api/src/shipsense_api/main.py), [bounded readiness interface](../services/api/src/shipsense_api/diagnostics.py), [contract/failure tests](../services/api/tests/test_diagnostics.py) and [generated OpenAPI](../packages/contracts/openapi.json). Default startup exposes version/liveness/schema without backing services and keeps readiness503. Explicit validated external local configuration enables [owned real Mongo/S3 and same-process queue](../services/api/src/shipsense_api/local_readiness.py). [Real integration tests](../services/api/tests/test_readiness_integration.py) and direct HTTP proof exercise configured200, separate Mongo/storage200-to-503-to-200 with live/version/web remaining200, bounded storage deadlines/capacity/cancellation, queue unavailable/recovery and clean restart/shutdown. [Configuration/lifecycle tests](../services/api/tests/test_local_lifespan.py) cover invalid/missing/foreign configuration and redaction. Public OpenAPI is unchanged. Local/direct proof, exact-current-revision independent clearance, required remote checks and acceptance passed; P01.4 completion is separate from PR #8 landing and full P01 exit.
+**Implementation:** [canonical API](../services/api/src/shipsense_api/main.py), [bounded readiness interface](../services/api/src/shipsense_api/diagnostics.py), [contract/failure tests](../services/api/tests/test_diagnostics.py) and [generated OpenAPI](../packages/contracts/openapi.json). Default startup exposes version/liveness/schema without backing services and keeps readiness503. Historical external local configuration enabled [owned real Mongo/S3 and same-process queue](../services/api/src/shipsense_api/readiness_runtime.py). [Real integration tests](https://github.com/spjyotiranjan/shipsense/blob/94279641cf4660b4a991db7af8c69b5e54b1a889/services/api/tests/test_readiness_integration.py) and direct HTTP proof exercise configured200, separate Mongo/storage200-to-503-to-200 with live/version/web remaining200, bounded storage deadlines/capacity/cancellation, queue unavailable/recovery and clean restart/shutdown. [Configuration/lifecycle tests](../services/api/tests/test_hosted_lifespan.py) cover invalid/missing/foreign configuration and redaction. Public OpenAPI is unchanged. Local/direct proof, exact-current-revision independent clearance, required remote checks and acceptance passed; P01.4 completion is separate from PR #8 landing and full P01 exit.
 **Implementation prerequisite:** tested accepted P01.1/P01.2 supports credential-free canonical version/liveness/safe-error contracts and subsequent web diagnostic integration without P01.3.
-**Full acceptance prerequisite:** P01.3 local adapters, seeded dependencies and real readiness outage/recovery proof; no mocked readiness substitution. Preserve all criteria below and in both technical plans.
+**Current hosted acceptance prerequisite:** P01.3 authorized hosted adapters and read-only local/remote compatibility proof, safe configuration failure and local-owned API stop/retry/recovery. Preserve historical revision-bound acceptance without requiring new container or remote-service outages.
 **Web implementation:** [diagnostic UI](../apps/web/src/components/foundation-status.tsx), [same-origin route](../apps/web/src/app/api/foundation/route.ts), [bounded transport](../apps/web/src/lib/server/api-transport.ts) and [failure/race tests](../apps/web/tests/diagnostics.test.ts). Run the [web reproduction and verification commands](../apps/web/README.md). Safe transport errors share the generated canonical envelope. Connected indicates API reachability only. Full readiness and phase exit remain unverified.
 **Expected result:** Build Next.js shell and FastAPI health/version endpoints; document Swagger/OpenAPI contracts.
 
@@ -84,12 +85,14 @@ Establish a reproducible development workspace and the first working web-to-API 
 
 ### P01.5 — Create CI that builds both apps and runs contract, unit, and smoke checks
 
-**Status:** In progress; [P01.5](https://github.com/spjyotiranjan/shipsense/pull/9). Maintained [local/CI commands](../docs/developer-setup.md#clean-integration-commands), [workflow](../.github/workflows/integration.yml), [fresh real smoke](../scripts/integration-smoke.py) and [failure/recovery gates](../scripts/verify-integration-gates.py) are implemented. Primary local quality/contracts/units/builds and real positive-negative-recovery/cancellation proof passed; clean remote runtime evidence, independent review and acceptance remain delivery gates.
+**Status:** In progress; [P01.5](https://github.com/spjyotiranjan/shipsense/pull/9). Maintained [local/CI commands](../docs/developer-setup.md#clean-integration-commands), [workflow](../.github/workflows/integration.yml), [credential-free diagnostics and hosted integration](../scripts/integration-smoke.py) and [failure/recovery gates](../scripts/verify-integration-gates.py) are implemented. Revised hosted-only checks, live local/protected remote proof, independent current-SHA review and acceptance remain delivery gates; historical container results do not cover this revision.
 **Expected result:** Create CI that builds both apps and runs contract, unit, and smoke checks.
 
 **Acceptance criteria**
 
-- Clean checkout CI builds both apps and runs the same documented contract and smoke checks as local development.
+- Clean credential-free PR/push CI performs frozen builds of both apps, quality/contracts/unit and actual API/built-web/browser diagnostics using the documented local commands.
+- The same hosted integration command passes locally and in a protected manually invoked workflow on reviewed code with dedicated non-production read-only settings. Missing settings or access failures must fail explicitly.
+- Configuration failures, owned-client cleanup and actual web-to-API success/failure/recovery are observable without disrupting hosted services.
 - The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
 - A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
 

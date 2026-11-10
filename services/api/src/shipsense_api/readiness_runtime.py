@@ -1,15 +1,9 @@
-"""Opt-in synthetic local dependencies owned by one API lifespan.
-
-Configuration is read only. This module never starts services, creates secrets,
-seeds data, or grants provider authority. The queue belongs to this API process.
-"""
+"""Bounded client lifecycle and same-process no-effect queue readiness."""
 
 import asyncio
-from pathlib import Path, PureWindowsPath
 from typing import Protocol
 
-from shipsense_local.adapters import BoundedObjects, LocalClients
-from shipsense_local.config import LocalFailure, load_settings
+from shipsense_local.adapters import BoundedObjects
 from shipsense_local.queue import MemoryQueue
 
 from shipsense_api.diagnostics import ReadinessGate
@@ -24,7 +18,7 @@ class ReadinessClients(Protocol):
     async def close(self) -> None: ...
 
 
-class LocalReadiness:
+class DependencyReadiness:
     def __init__(self, clients: ReadinessClients) -> None:
         self.clients = clients
         self.queue = MemoryQueue()
@@ -37,25 +31,6 @@ class LocalReadiness:
         )
         self._closed = False
         self._closing: asyncio.Task[None] | None = None
-
-    @classmethod
-    async def open(cls, directory: str) -> "LocalReadiness":
-        # An explicit local absolute path only; no CWD or network-share fallback.
-        if (
-            not directory
-            or len(directory) > 1024
-            or directory.replace("\\", "/").startswith("//")
-            or PureWindowsPath(directory).drive.startswith("\\")
-            or not Path(directory).is_absolute()
-        ):
-            raise LocalFailure("LOCAL_CONFIG_INVALID")
-        settings = await asyncio.to_thread(load_settings, Path(directory))
-        clients = LocalClients(settings)
-        try:
-            return cls(clients)
-        except BaseException:
-            await clients.close()
-            raise
 
     async def queue_probe(self) -> bool:
         return not self._closed and await self.queue.probe()

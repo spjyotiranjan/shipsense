@@ -1,4 +1,4 @@
-"""Inert fixture validation and object-first conflict-preserving persistence."""
+"""Inert fixture validation; no database or object storage writes."""
 
 import hashlib
 import json
@@ -7,10 +7,9 @@ from pathlib import Path
 from typing import Annotated, Any, Literal
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
-from pymongo.errors import DuplicateKeyError
 
-from shipsense_local.adapters import MAX_OBJECT, LocalClients
-from shipsense_local.config import ROOT, LocalFailure, read_json
+from shipsense_local.adapters import MAX_OBJECT
+from shipsense_local.config import LocalFailure, read_json
 
 CASES = (
     "pipeline-failure",
@@ -114,51 +113,3 @@ def load_fixture(directory: Path, case: str) -> tuple[Manifest, bytes]:
         raise
     except Exception:
         raise LocalFailure("INVALID_OR_MISSING_FIXTURE") from None
-
-
-class FixtureStore:
-    def __init__(self, clients: LocalClients) -> None:
-        self.clients = clients
-        self.collection = clients.database.fixtures
-
-    async def initialize(self) -> None:
-        await self.collection.create_index(
-            [(key, 1) for key in SCOPE], unique=True, name="fixture_scope_version_unique"
-        )
-
-    async def seed(self, manifest: Manifest, data: bytes) -> str:
-        if hashlib.sha256(data).hexdigest() != manifest.payloadSha256:
-            raise LocalFailure("FIXTURE_CHECKSUM_MISMATCH")
-        document = manifest.model_dump(mode="json")
-        document["objectKey"] = manifest.object_key()
-        existing = await self.collection.find_one(manifest.scope(), {"_id": 0})
-        if existing is not None:
-            if existing != document:
-                raise LocalFailure("FIXTURE_VERSION_CONFLICT")
-            # Missing/corrupt referenced evidence is a failure, never silently repaired.
-            await self.clients.objects.read_verified(manifest.object_key(), manifest.payloadSha256)
-            return "unchanged"
-        await self.clients.objects.write_verified(
-            manifest.object_key(), data, manifest.payloadSha256
-        )
-        try:
-            await self.collection.insert_one(document.copy())
-            return "inserted"
-        except DuplicateKeyError:
-            winner = await self.collection.find_one(manifest.scope(), {"_id": 0})
-            if winner != document:
-                raise LocalFailure("FIXTURE_VERSION_CONFLICT") from None
-            return "unchanged"
-
-
-async def seed_all(
-    clients: LocalClients, directory: Path = ROOT / "tests/fixtures/p01"
-) -> dict[str, int]:
-    # Validate the entire bounded batch before its first write.
-    fixtures = [load_fixture(directory, case) for case in CASES]
-    store = FixtureStore(clients)
-    await store.initialize()
-    counts = {"inserted": 0, "unchanged": 0}
-    for manifest, data in fixtures:
-        counts[await store.seed(manifest, data)] += 1
-    return counts

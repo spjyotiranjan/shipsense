@@ -14,7 +14,7 @@ from pymongo.server_api import ServerApi
 from shipsense_local.adapters import BoundedObjects, private_s3
 from shipsense_local.config import LocalFailure
 
-from shipsense_api.local_readiness import LocalReadiness
+from shipsense_api.readiness_runtime import DependencyReadiness
 
 
 class HostedSettings(BaseModel):
@@ -53,7 +53,7 @@ class HostedSettings(BaseModel):
             if key.lower() in {"tls", "ssl"} and item.lower() != "true":
                 raise ValueError("INVALID_HOSTED_CONFIG")
         # Hosted standard strings can have multiple DNS seeds. No sockets,
-        # literal IPs or localhost targets; CI fixtures use a different loader.
+        # literal IPs or localhost targets. Integration uses the same hosted loader.
         hosts = uri.netloc.rsplit("@", 1)[-1].split(",")
         if uri.scheme == "mongodb+srv" and (len(hosts) != 1 or ":" in hosts[0]):
             raise ValueError("INVALID_HOSTED_CONFIG")
@@ -183,7 +183,7 @@ class HostedClients:
             await self.mongo.close()
 
 
-class HostedReadiness(LocalReadiness):
+class HostedReadiness(DependencyReadiness):
     @classmethod
     async def from_environment(cls, environment: Mapping[str, str]) -> "HostedReadiness":
         settings = HostedSettings.from_environment(environment)
