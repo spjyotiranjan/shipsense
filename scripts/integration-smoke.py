@@ -270,7 +270,27 @@ def smoke(directory: Path, *, fail_upstream: bool = False) -> None:
     browser: Child | None = None
     try:
         stack.up()
-        asyncio.run(seed_and_verify(stack))
+        try:
+            asyncio.run(seed_and_verify(stack))
+        except Exception:
+            # Inspect only ownership-verified fixture services. Never publish raw
+            # provider/container output: classify known bootstrap errors only.
+            stack.validate_ownership()
+            output = stack.docker(
+                "compose",
+                "--project-name",
+                CI_PROJECT,
+                "--file",
+                str(ROOT / "infra/local/compose.yaml"),
+                "logs",
+                "--no-color",
+                "--tail",
+                "40",
+            ).lower()
+            denied = "permission denied" in output or "eacces" in output
+            raise LocalFailure(
+                "FIXTURE_BOOTSTRAP_PERMISSION_DENIED" if denied else "FIXTURE_BOOTSTRAP_FAILED"
+            ) from None
         print("Fresh CI services seeded; private access verified.", flush=True)
         real_tests(env, state)
         default_api = start_api(env)
