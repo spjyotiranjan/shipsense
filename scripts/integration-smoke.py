@@ -65,6 +65,9 @@ def clean_environment() -> dict[str, str]:
 
 class Child:
     def __init__(self, command: list[str], env: dict[str, str], *, protocol: bool = False) -> None:
+        creationflags = 0
+        if sys.platform == "win32":
+            creationflags = subprocess.CREATE_NEW_PROCESS_GROUP
         self.process = subprocess.Popen(
             command,
             cwd=ROOT,
@@ -73,8 +76,8 @@ class Child:
             stdout=subprocess.PIPE if protocol else subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             text=True,
-            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0,
-            start_new_session=os.name != "nt",
+            creationflags=creationflags,
+            start_new_session=sys.platform != "win32",
         )
 
     def exchange(self, command: str | None, expected: str) -> None:
@@ -89,14 +92,14 @@ class Child:
 
     def stop(self) -> None:
         if self.process.poll() is None:
-            if os.name == "nt":
+            if sys.platform == "win32":
                 self.process.send_signal(signal.CTRL_BREAK_EVENT)
             else:
                 getattr(os, "killpg")(self.process.pid, signal.SIGTERM)
             try:
                 self.process.wait(timeout=10)
             except subprocess.TimeoutExpired:
-                if os.name == "nt":
+                if sys.platform == "win32":
                     subprocess.run(
                         ["taskkill", "/PID", str(self.process.pid), "/T", "/F"],
                         stdout=subprocess.DEVNULL,
