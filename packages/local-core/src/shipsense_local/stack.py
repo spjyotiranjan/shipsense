@@ -119,6 +119,12 @@ class LocalStack:
             raise LocalFailure("INHERITED_NAMESPACE_REFUSED")
         if load_settings(directory) != settings:
             raise LocalFailure("LOCAL_CONFIG_MISMATCH")
+        # Validate the exact bounded snapshot, not a second arbitrary file read.
+        # Generated fixture identity files have one canonical representation.
+        with (directory / "s3.json").open("rb") as identity_file:
+            identity_bytes = identity_file.read(16385)
+        if identity_bytes != (json.dumps(identity(settings)) + "\n").encode("utf-8"):
+            raise LocalFailure("PRIVATE_S3_CONFIG_REQUIRED")
         self.project = project
         self.state_identity = hashlib.sha256(str(state_path(directory)).encode()).hexdigest()
         self.directory = state_path(directory)
@@ -132,6 +138,9 @@ class LocalStack:
             SHIPSENSE_STATE=self.directory.as_posix(),
             SHIPSENSE_OWNER=settings.owner,
             SHIPSENSE_STATE_ID=self.state_identity,
+            # Bind the staged bytes to the already validated nonanonymous,
+            # bucket-scoped identity. Only the digest enters Compose environment.
+            SHIPSENSE_S3_CONFIG_SHA256=hashlib.sha256(identity_bytes).hexdigest(),
         )
 
     def docker(self, *arguments: str, timeout: int = 30) -> str:

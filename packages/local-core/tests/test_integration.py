@@ -4,6 +4,7 @@ import asyncio
 import hashlib
 import os
 import stat
+import subprocess
 import time
 import unittest
 from pathlib import Path
@@ -38,6 +39,88 @@ class AdapterIntegrationTests(unittest.IsolatedAsyncioTestCase):
 
     async def asyncTearDown(self):
         await self.clients.close()
+
+    async def test_storage_bootstrap_refuses_unvalidated_inputs_before_copy(self):
+        self.stack.validate_ownership()
+        target = f"{self.settings.project}-storage-1"
+        proof = "/run/shipsense/refusal-" + uuid4().hex
+        source = (ROOT / "infra/local/storage-entrypoint.sh").read_text()
+        source = (
+            source.replace("/run/secrets/s3.json", proof + "/input")
+            .replace("/run/shipsense/s3.json", proof + "/staged")
+            .replace('exec /entrypoint.sh "$@"', f"touch {proof}/entered; exit 99")
+        )
+        self.stack.docker("exec", "--user", "root", target, "sh", "-c", f"umask 077; mkdir {proof}")
+        try:
+            for name, setup, user in (
+                ("missing", "true", "root"),
+                ("empty", f": > {proof}/input", "root"),
+                ("invalid", f"printf invalid > {proof}/input", "root"),
+                ("oversized", f"head -c 16385 /dev/zero > {proof}/input", "root"),
+                (
+                    "unreadable",
+                    f"printf invalid > {proof}/input; chmod 000 {proof}/input",
+                    "seaweed",
+                ),
+                ("no-tmpfs", "true", "root"),
+                ("missing-digest", "true", "root"),
+                ("malformed-digest", "true", "root"),
+                ("mismatched-digest", "true", "root"),
+            ):
+                with self.subTest(boundary=name):
+                    self.stack.docker("exec", "--user", "root", target, "sh", "-c", setup)
+                    script = (
+                        source.replace("stat -f -c %T /run/shipsense", "stat -f -c %T /tmp")
+                        if name == "no-tmpfs"
+                        else source
+                    )
+                    expected_digest = self.stack.env["SHIPSENSE_S3_CONFIG_SHA256"]
+                    if name.endswith("-digest"):
+                        script = script.replace(proof + "/input", "/run/secrets/s3.json")
+                        expected_digest = {
+                            "missing-digest": "",
+                            "malformed-digest": "invalid",
+                            "mismatched-digest": "0" * 64,
+                        }[name]
+                    result = subprocess.run(
+                        [
+                            "docker",
+                            "exec",
+                            "-i",
+                            "--user",
+                            user,
+                            "-e",
+                            "SHIPSENSE_S3_CONFIG_SHA256=" + expected_digest,
+                            target,
+                            "sh",
+                            "-s",
+                        ],
+                        input=script.encode(),
+                        capture_output=True,
+                        timeout=15,
+                        cwd=ROOT,
+                        env=self.stack.env,
+                    )
+                    self.assertIn(result.returncode, (1, 2))
+                    self.stack.docker(
+                        "exec",
+                        "--user",
+                        "root",
+                        target,
+                        "sh",
+                        "-c",
+                        f"test ! -e {proof}/staged && test ! -e {proof}/entered",
+                    )
+        finally:
+            self.stack.docker(
+                "exec",
+                "--user",
+                "root",
+                target,
+                "sh",
+                "-c",
+                f"rm -f {proof}/input {proof}/staged {proof}/entered; rmdir {proof}",
+            )
 
     async def test_authenticated_access_and_real_denials(self):
         self.stack.validate_ownership()

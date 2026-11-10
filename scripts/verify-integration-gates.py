@@ -1,17 +1,51 @@
 """Prove maintained gates reject real drift/upstream failure and cleanly recover."""
 
+import argparse
+import importlib.util
 import json
 import os
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 NPM = "npm.cmd" if os.name == "nt" else "npm"
 
 
+def attempt_directories() -> tuple[Path, Path]:
+    # Keep ownership receipts/private state after interruption so the always
+    # cleanup step can verify resources. TemporaryDirectory can delete the only
+    # safe cleanup authority while external containers are still running.
+    spec = importlib.util.spec_from_file_location(
+        "integration_smoke", ROOT / "scripts/integration-smoke.py"
+    )
+    assert spec is not None and spec.loader is not None
+    smoke = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(smoke)
+    base = smoke.evidence_directory() / "gate-attempts"
+    return base / "failed-upstream", base / "recovered"
+
+
+def cleanup_attempts(paths: tuple[Path, Path]) -> None:
+    for evidence in paths:
+        if evidence.exists():
+            subprocess.run(
+                [sys.executable, str(ROOT / "scripts/integration-smoke.py"), "--cleanup"],
+                cwd=ROOT,
+                env={**os.environ, "SHIPSENSE_EVIDENCE_DIR": str(evidence)},
+                check=True,
+                timeout=90,
+            )
+
+
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--cleanup", action="store_true")
+    args = parser.parse_args()
+    attempts = attempt_directories()
+    if args.cleanup:
+        cleanup_attempts(attempts)
+        return
     path = ROOT / "packages/contracts/openapi.json"
     original = path.read_bytes()
     try:
@@ -25,10 +59,8 @@ def main() -> None:
     finally:
         path.write_bytes(original)
     subprocess.run([NPM, "run", "contracts:check"], cwd=ROOT, check=True, timeout=120)
-    with tempfile.TemporaryDirectory(prefix="shipsense-gate-proof-") as temporary:
-        base = Path(temporary)
-        for fault in (True, False):
-            evidence = base / ("failed-upstream" if fault else "recovered")
+    try:
+        for fault, evidence in zip((True, False), attempts, strict=True):
             env = {**os.environ, "SHIPSENSE_EVIDENCE_DIR": str(evidence)}
             result = subprocess.run(
                 [
@@ -56,6 +88,8 @@ def main() -> None:
                 else "Fresh smoke recovered and cleaned up.",
                 flush=True,
             )
+    finally:
+        cleanup_attempts(attempts)
     output = os.environ.get("SHIPSENSE_EVIDENCE_DIR")
     if output:
         directory = Path(output)

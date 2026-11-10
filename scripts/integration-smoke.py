@@ -240,7 +240,42 @@ def real_tests(env: dict[str, str], state: Path) -> None:
         )
         if result.returncode or b"skipped" in result.stderr or b"Ran 0 tests" in result.stderr:
             raise LocalFailure("REAL_INTEGRATION_FAILED")
-    print("Real adapter/readiness integrations: 10 passed, none skipped.", flush=True)
+    print("Real adapter/readiness integrations: 11 passed, none skipped.", flush=True)
+
+
+def verify_private_bootstrap(stack: LocalStack, directory: Path) -> None:
+    stack.validate_ownership()
+    for service, account, files in (
+        ("mongodb", "mongodb", ("mongo-root.txt", "mongo-app.json")),
+        ("storage", "seaweed", ("s3.json",)),
+    ):
+        checks = [
+            'test "$(stat -f -c %T /run/shipsense)" = tmpfs',
+            f'test "$(stat -c %u:%a /run/shipsense)" = "$(id -u {account}):700"',
+            f'test "$(awk \'/^Uid:/ {{print $2}}\' /proc/1/status)" = "$(id -u {account})"',
+        ]
+        checks += [
+            f'test "$(stat -c %u:%a /run/shipsense/{name})" = "$(id -u {account}):600"'
+            for name in files
+        ]
+        stack.docker(
+            "exec", "--user", "root", f"{CI_PROJECT}-{service}-1", "sh", "-c", " && ".join(checks)
+        )
+    if os.name != "nt":
+        if stack.directory.stat().st_mode & 0o777 != 0o700 or any(
+            path.stat().st_mode & 0o777 != 0o600 for path in stack.directory.iterdir()
+        ):
+            raise LocalFailure("HOST_PRIVATE_MODES_REQUIRED")
+    (directory / "private-bootstrap.json").write_text(
+        json.dumps(
+            {
+                "mongoAndStorageTmpfsVerified": True,
+                "serviceUidAndPrivateModesVerified": True,
+                "hostPosixModesVerified": os.name != "nt",
+            }
+        )
+        + "\n"
+    )
 
 
 def smoke(directory: Path, *, fail_upstream: bool = False) -> None:
@@ -316,6 +351,7 @@ def smoke(directory: Path, *, fail_upstream: bool = False) -> None:
                 "FIXTURE_BOOTSTRAP_PERMISSION_DENIED" if denied else "FIXTURE_BOOTSTRAP_FAILED"
             ) from None
         print("Fresh CI services seeded; private access verified.", flush=True)
+        verify_private_bootstrap(stack, directory)
         real_tests(env, state)
         default_api = start_api(env)
         children.append(default_api)
@@ -389,7 +425,7 @@ def smoke(directory: Path, *, fail_upstream: bool = False) -> None:
             json.dumps(
                 {
                     "status": "passed",
-                    "realIntegrationCases": 10,
+                    "realIntegrationCases": 11,
                     "freshSeed": 6,
                     "effects": 0,
                     "defaultReady": 503,

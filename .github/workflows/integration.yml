@@ -46,7 +46,9 @@ jobs:
         run: uv run --frozen --package shipsense-api python scripts/verify-integration-gates.py
       - name: Ownership-checked CI cleanup on every outcome
         if: always()
-        run: uv run --frozen --package shipsense-api python scripts/integration-smoke.py --cleanup
+        run: |
+          uv run --frozen --package shipsense-api python scripts/verify-integration-gates.py --cleanup
+          uv run --frozen --package shipsense-api python scripts/integration-smoke.py --cleanup
       - name: Bounded sanitized evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

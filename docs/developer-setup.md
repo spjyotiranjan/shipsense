@@ -116,14 +116,14 @@ into a 1 MiB container tmpfs before the official entrypoint changes user. The tm
 directory is owned by `mongodb` with mode `0700`; its copied files use `0600`.
 Host credential files remain owner-only inside the private state directory. This
 supports Linux UID separation without making the host secrets broadly readable.
-The integration gate checks the actual container ownership/modes and host POSIX modes.
+The S3 fixture similarly stages only its private identity file into seaweed-owned tmpfs0700/file0600. Its host lifecycle first validates the complete scoped identity, then supplies only the digest of those exact bytes; the wrapper requires matching bounded input and copied bytes before the upstream privilege drop. No credential values enter environment or arguments. Both wrappers fail closed when inputs or tmpfs are invalid. The integration gate checks actual backing, service UID/modes, host POSIX modes, and S3 missing/changed/oversized/unreadable input plus missing/malformed/mismatched digest refusals.
 
 Each smoke uses the fixed `shipsense-ci-p01` namespace with fresh external private
 state and credentials. The default `shipsense-local-p01` namespace and its volumes
 are preserved. Runtime is serialized because both profiles retain the same fixed
 data ports. Stale resources, owner/state mismatch, remote daemons and namespace
 overrides are refused. The smoke explicitly selects `SHIPSENSE_DEPENDENCIES=test-fixtures`, independently of hosted application configuration. It seeds six fixtures twice, proves private access,
-runs all ten real adapter/readiness integration cases without skips, starts actual
+runs all eleven real adapter/readiness integration cases without skips, starts actual
 Uvicorn and production Next, checks safe default503/configured200, stops/restores
 each dependency and verifies readiness/liveness independence. An owned headless
 browser asserts rendered success, API stop, retry/unavailable with cleared version,
@@ -138,10 +138,14 @@ CI resources. Failure to verify ownership refuses deletion and retains private
 state for diagnosis. An always-run CI step repeats the same ownership-checked cleanup:
 
 ```sh
+uv run --frozen --package shipsense-api python scripts/verify-integration-gates.py --cleanup
 uv run --frozen --package shipsense-api python scripts/integration-smoke.py --cleanup
 ```
 
-Use the original `SHIPSENSE_EVIDENCE_DIR` for recovery cleanup. The command never
+Gate attempts retain ownership receipts and private state in fixed `gate-attempts`
+children of that external evidence directory until verified teardown completes;
+temporary-directory cleanup must not erase them while containers survive.
+Use the original `SHIPSENSE_EVIDENCE_DIR` for recovery cleanup. The commands never
 adopts another attempt or resets the developer profile. A forced process/host kill
 can prevent in-process cleanup; CI's always-run step is the fallback. Do not prune
 or delete unknown resources to get a green run.
