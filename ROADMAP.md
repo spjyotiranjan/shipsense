@@ -1,6 +1,6 @@
 # ShipSense project roadmap
 
-**Planning baseline:** 23 October 2026. **Project state (9 November 2026):** P00 complete; P01.1/SCRUM-13 and P01.2/SCRUM-14 accepted, PR #4/#5 merged. P01 remains In progress; SCRUM-15 bounded local core is accepted but PR #7 remains unmerged; SCRUM-16 is accepted at `9427964` but PR #8 remains unmerged; SCRUM-17 integration CI is in progress and phase exit proof remains unverified. See [current evidence and limitations](PROJECT_STATUS.md). This plan covers the full portfolio vision in the product specification and the stack chosen by the project owner. Phase numbers express dependencies, not calendar promises.
+**Planning baseline:** 23 October 2026. **Project state (9 November 2026):** P00 complete; P01.1 and P01.2 accepted, PR #4/#5 merged. P01 remains In progress; P01.3 bounded local core is accepted but PR #7 remains unmerged; P01.4 is accepted at `9427964` but PR #8 remains unmerged; P01.5 integration CI is in progress and phase exit proof remains unverified. See [current evidence and limitations](PROJECT_STATUS.md). This plan covers the full portfolio vision in the product specification and the stack chosen by the project owner. Phase numbers express dependencies, not calendar promises.
 
 ## Product outcome
 
@@ -17,14 +17,14 @@ The authoritative product source is `docs/shipsense-full-product-specification.p
 | Data | MongoDB for tenant data, projections, workflows, and evidence metadata |
 | Object storage | Cloudflare R2 for bounded evidence snapshots, attachments, exports, and replay fixtures |
 | AI | LangChain, LangGraph, OpenAI API; tool access passes through ShipSense authorization and policy |
-| Work tracking | Jira for project delivery; Jira also becomes a customer integration. Create each phase epic and sprint only when that phase starts; put every subphase of that phase in its sprint. See `docs/JIRA_WORKFLOW.md`. |
+| Development tracking | P0X.YY acceptance checkpoints with GitHub/source evidence; related checkpoints may share a PR. See [workflow](docs/DEVELOPMENT_WORKFLOW.md) and Decision 0008. Jira remains a customer integration. |
 | Hosting | Azure Container Apps for web/API/workers, Container Apps Jobs for bounded jobs, Service Bus for asynchronous work, Key Vault for secrets, Application Insights/Log Analytics for operations; Vercel is also a Release 1 deployment connector and optional web hosting comparison |
 
 The architecture baseline and release scope are recorded in `docs/decisions/0001-release-1-scope.md` and `0002-architecture-baseline.md`. Central India is a provisional first region; P01 validates service availability, Atlas tier, residency, latency, and cost before paid provisioning. Keep R2 objects private and expose short lived scoped access. Keep provider execution in the provider, with ShipSense owning context, policy, and audit.
 
 ## Status system
 
-`Not started` means no accepted evidence. `In progress` means work has begun. `Blocked` records the unmet prerequisite. `In review` means implementation exists but exit proof is pending. `Complete` requires every required subphase and exit criterion to pass. `Deferred` requires an explicit scope decision. Record status changes and evidence in `PROJECT_STATUS.md`; do not equate Jira ticket closure with proof.
+`Not started` means no accepted evidence. `In progress` means work has begun. `Blocked` records the unmet prerequisite. `In review` means implementation exists but exit proof is pending. `Complete` requires every required subphase and exit criterion to pass. `Deferred` requires an explicit scope decision. Record status changes and evidence in `PROJECT_STATUS.md`; do not equate work-item closure with proof.
 
 ## Release boundaries
 
@@ -42,14 +42,14 @@ Release 1 includes GitHub, GitHub Actions, Jira, Azure deployments, Vercel deplo
 Detailed plans, expected results, and acceptance criteria for every phase and subphase are indexed in [`Phases/README.md`](Phases/README.md). `PROJECT_STATUS.md` remains the current status source.
 
 ### P00 — Scope and technical decisions · Complete
-**Prerequisite:** product PDF and owner's stack choices. **Exit:** accepted decision records, active-phase Jira backlog, and an agreed Release 1 reference scenario.
+**Prerequisite:** product PDF and owner's stack choices. **Exit:** accepted decision records, phase acceptance checkpoints, and an agreed Release 1 reference scenario.
 
 - [x] P00.1 Read the product specification, including trust rules, acceptance journeys, and release contradictions.
 - [x] P00.2 Record the owner's Next.js, FastAPI, MongoDB, R2, LangChain/LangGraph, OpenAI API, Swagger, Jira, and Azure choices.
 - [x] P00.3 Write this roadmap, status method, and repository handoff.
 - [x] P00.4 Decide Release 1 integration order, demo service, identity model, provisional region, spending controls, and measurable exit thresholds.
 - [x] P00.5 Record the architecture baseline for Azure services, MongoDB hosting, queue/worker model, R2 retention, provider credentials, and model selection method.
-- [x] P00.6 Configure the Jira phase workflow in ShipSense; create only P00 epic SCRUM-6 and unstarted sprint 35, containing all six subphase issues. Dates, team assignments, estimates, and sprint start are manual.
+- [x] P00.6 Establish phase acceptance tracking. Historical tracker setup is superseded by Decision 0008; current development uses checkpoints and GitHub/source proof.
 
 ### P01 — Repository and developer foundation · In progress
 **Prerequisite:** P00 architecture decisions. **Exit:** reproducible local boot, automated checks, and a working web-to-API request.
@@ -57,9 +57,9 @@ Detailed plans, expected results, and acceptance criteria for every phase and su
 - [x] P01.1 Establish `apps/web`, `services/api`, `services/worker`, `packages/contracts`, `infra`, `docs`, and test fixtures.
 - [x] P01.2 Pin language/tool versions, lockfiles, formatting, linting, typing, secret scanning, and branch checks.
 
-Accepted proof: [SCRUM-13](https://spjyotiranjan.atlassian.net/browse/SCRUM-13?focusedCommentId=10003) / [PR #4](https://github.com/spjyotiranjan/shipsense/pull/4), [SCRUM-14](https://spjyotiranjan.atlassian.net/browse/SCRUM-14) / [PR #5](https://github.com/spjyotiranjan/shipsense/pull/5). Credential-free SCRUM-16 contract/web implementation depends on tested SCRUM-13/14; SCRUM-15 core is accepted at `c441de1` with PR #7 merge pending. Separate SCRUM-16 real-adapter readiness at `9427964` passed exact-revision review and acceptance ([proof](https://spjyotiranjan.atlassian.net/browse/SCRUM-16?focusedCommentId=10015)), with PR #8 merge pending; issuer/reference runtime, SCRUM-17 and full P01 exit remain unverified. SCRUM-17 integrates both.
+Accepted proof: [P01.1](https://github.com/spjyotiranjan/shipsense/pull/4) / [PR #4](https://github.com/spjyotiranjan/shipsense/pull/4), [P01.2](https://github.com/spjyotiranjan/shipsense/pull/5) / [PR #5](https://github.com/spjyotiranjan/shipsense/pull/5). Credential-free P01.4 contract/web implementation depends on tested P01.1/P01.2; P01.3 core is accepted at `c441de1` with PR #7 merge pending. Separate P01.4 real-adapter readiness at `9427964` passed exact-revision review and acceptance ([proof](https://github.com/spjyotiranjan/shipsense/pull/8)), with PR #8 merge pending; issuer/reference runtime, P01.5 and full P01 exit remain unverified. P01.5 integrates both.
 
-- [ ] P01.3 Add local MongoDB, queue emulator/adapter, R2 compatible development storage, and seeded demo data.
+- [ ] P01.3 Configure hosted MongoDB/private R2 and bounded queue behavior; preserve historical synthetic fixture proof. Live hosted validation remains open.
 - [x] P01.4 Build Next.js shell and FastAPI health/version endpoints; document Swagger/OpenAPI contracts.
 - [ ] P01.5 Create CI that builds both apps and runs contract, unit, and smoke checks.
 
@@ -230,11 +230,11 @@ Accepted proof: [SCRUM-13](https://spjyotiranjan.atlassian.net/browse/SCRUM-13?f
 
 ## Cross-phase rules
 
-Every feature must carry tenant/service/environment/time scope; provider identity and freshness; authorization at the API and connector; loading/empty/stale/denied/failure states; audit; tests for meaningful failure paths; and a source link when a claim depends on external evidence. A phase may run in parallel with another only when its stated prerequisites and shared contracts are ready. Jira tracks work; `PROJECT_STATUS.md` records phase truth and proof.
+Every feature must carry tenant/service/environment/time scope; provider identity and freshness; authorization at the API and connector; loading/empty/stale/denied/failure states; audit; tests for meaningful failure paths; and a source link when a claim depends on external evidence. A phase may run in parallel with another only when its stated prerequisites and shared contracts are ready. P0X.YY checkpoints track acceptance; `PROJECT_STATUS.md` records phase truth and proof.
 
 ## Execution choices at later gates
 
 1. P01 validates Central India, Atlas tier, service availability, tenancy setup, OIDC issuer, R2 retention classes, and the itemized forecast before paid provisioning.
 2. P05–P06 pin provider-specific capabilities and effect permissions.
 3. P12 selects the initial OpenAI model and evaluation set using quality, latency, cost, and data-handling measurements.
-4. Set milestone and sprint dates after team capacity, provider access, and pilot availability are known.
+4. Set milestone dates after capacity, provider access and pilot availability are known.

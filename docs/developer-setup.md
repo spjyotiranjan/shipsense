@@ -65,8 +65,8 @@ credentials. Review every finding rather than generating a blanket baseline.
 The minimal quality workflow uses read-only permissions, pinned action SHAs,
 no provider secrets, a 15-minute deadline, frozen installs and `npm run quality`.
 Required independent seeded CI failure/recovery proof remains an acceptance
-gate until verified on the remote workflow. Jira owns development-key checks;
-this workflow does not duplicate or prove Jira linkage. Update pins deliberately,
+gate until verified on the remote workflow. Development uses [checkpoint acceptance](DEVELOPMENT_WORKFLOW.md);
+no external development-key validator or tracker linkage is required. Update pins deliberately,
 regenerate the relevant root lock, inspect audit/peer compatibility, and repeat
 frozen installation plus affected behavior and failure/recovery checks. Do not
 use peer bypasses or automatic audit fixes.
@@ -79,7 +79,7 @@ bytes in `finally` and refuses to overwrite an existing source probe. Hold
 exclusive checkout access while running it. Local execution does not establish
 remote CI acceptance.
 
-The [automated fixture runbook](../infra/local/README.md) covers isolated test-only Mongo/private S3, integrity, private access and owned cleanup. Run `npm run test:local` for fixture safety units; `npm run test:smoke` alone orchestrates the real credential-free synthetic runtime. These containers are never application defaults, developer provisioning or hosted fallback. The web/version/liveness diagnostics and opt-in real API readiness are accepted under SCRUM-16; P01.5 clean build/unit/smoke CI remains a separate gate. Quality success alone does not establish that outcome.
+The [automated fixture runbook](../infra/local/README.md) covers isolated test-only Mongo/private S3, integrity, private access and owned cleanup. Run `npm run test:local` for fixture safety units; `npm run test:smoke` alone orchestrates the real credential-free synthetic runtime. These containers are never application defaults, developer provisioning or hosted fallback. The web/version/liveness diagnostics and opt-in real API readiness are accepted under P01.4; P01.5 clean build/unit/smoke CI remains a separate gate. Quality success alone does not establish that outcome.
 
 ## Clean integration commands
 

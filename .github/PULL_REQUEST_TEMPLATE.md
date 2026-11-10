@@ -1,13 +1,11 @@
-<!-- Include the same Jira key anywhere in the branch name, PR title, and each commit message. Example: feature/SCRUM-14-add-hooks; Add hooks for SCRUM-14. -->
+## Checkpoints and behavior
 
-## Jira work item
-
-SCRUM-<!-- replace with work item number -->
-
-## What changed
-
-<!-- Briefly describe the change and link acceptance evidence. -->
+<!-- Reference each P0X.YY checkpoint, its concrete behavior and acceptance scope. Related checkpoints may share a PR. -->
 
 ## Verification
 
-<!-- List relevant checks and the Jira development-panel link once it appears. -->
+<!-- Link revision-bound local/direct evidence and required current-head CI. Record unverified criteria and risks. -->
+
+## Review and acceptance
+
+<!-- Independent exact-current-SHA review and acceptance remain required. Keep merge and phase exit separate. -->

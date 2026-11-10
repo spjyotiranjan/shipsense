@@ -1,5 +1,7 @@
 # Decision 0002 — Architecture baseline
 
+**Development workflow supersession — 10 November 2026:** [Decision 0008](0008-checkpoint-development-workflow.md) replaces development-tracking, naming, linkage and administration requirements. Product connector scope and technical quality gates remain in force.
+
 **Date:** 23 October 2026
 **Status:** Accepted as an implementation baseline; SKU, issuer, model, lifecycle values and spending are selected at measured phase gates.
 **Decision owner:** ShipSense project owner.

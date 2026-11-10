@@ -14,7 +14,7 @@ Trace a GitHub change through exact CI attempts, Jira work items, and controlled
 ## Overall phase acceptance
 
 - The phase outcome is demonstrated: Failed PR run is traceable to exact attempt, job, log, artifact, Jira work item, and affected service.
-- Every subphase below satisfies its acceptance criteria and has a linked proof artifact, such as a passing test, screenshot, API contract, decision record, provider receipt, or Jira issue.
+- Every subphase below satisfies its acceptance criteria and has a linked proof artifact, such as a passing test, screenshot, API contract, decision record, provider receipt, or GitHub/source evidence.
 - Permissions, tenant and environment scope, source provenance, freshness, accessible states, audit, and meaningful failure paths are checked wherever the phase touches them.
 - The parent phase is marked Complete only after the exit review records reviewer, date, evidence links, unresolved gaps, and any follow-on work.
 
@@ -31,7 +31,7 @@ Trace a GitHub change through exact CI attempts, Jira work items, and controlled
 - The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
 - A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
 
-**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence in the Jira item and `../PROJECT_STATUS.md`.
+**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
 
 ### P05.2 — Normalize commits, PRs, checks, Actions workflow runs, jobs, attempts, tests, and artifacts
 
@@ -44,7 +44,7 @@ Trace a GitHub change through exact CI attempts, Jira work items, and controlled
 - The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
 - A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
 
-**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence in the Jira item and `../PROJECT_STATUS.md`.
+**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
 
 ### P05.3 — Render pipeline DAG, logs, test failure clusters, retry history, and superseded commits
 
@@ -57,7 +57,7 @@ Trace a GitHub change through exact CI attempts, Jira work items, and controlled
 - The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
 - A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
 
-**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence in the Jira item and `../PROJECT_STATUS.md`.
+**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
 
 ### P05.4 — Offer authorized manual retry/cancel controls with provider receipt, idempotency, and policy
 
@@ -70,7 +70,7 @@ Trace a GitHub change through exact CI attempts, Jira work items, and controlled
 - The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
 - A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
 
-**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence in the Jira item and `../PROJECT_STATUS.md`.
+**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
 
 ### P05.5 — Prove source-to-run-to-artifact lineage with a deliberate failing fixture
 
@@ -83,7 +83,7 @@ Trace a GitHub change through exact CI attempts, Jira work items, and controlled
 - The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
 - A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
 
-**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence in the Jira item and `../PROJECT_STATUS.md`.
+**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
 
 ### P05.6 — Connect Jira work items to the delivery trail
 
@@ -97,7 +97,7 @@ Trace a GitHub change through exact CI attempts, Jira work items, and controlled
 - Issue updates require current provider authority, ShipSense policy, actor, exact field diff, idempotency key, provider receipt and audit record. Revoked access fails closed.
 - One denied-scope, stale-webhook, and duplicate-update path is demonstrated.
 
-**Proof to attach:** Jira installation scope, mapping fixture, end-to-end trace, action receipt, and negative tests in the Jira item and `../PROJECT_STATUS.md`.
+**Proof to attach:** Jira installation scope, mapping fixture, end-to-end trace, action receipt, and negative tests under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
 
 ## Phase review record
 

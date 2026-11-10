@@ -331,6 +331,25 @@ def smoke(directory: Path, *, fail_upstream: bool = False) -> None:
                 denied = denied or permission
                 classification[service] = {
                     "permissionDenied": permission,
+                    # Fixed vocabulary only; never copy log text or State.Error.
+                    "startupMarkers": [
+                        marker
+                        for marker in (
+                            "address already in use",
+                            "unknown flag",
+                            "flag provided but not defined",
+                            "invalid value",
+                            "connection refused",
+                            "no such file",
+                            "checksum",
+                            "unrecognized option",
+                            "out of memory",
+                            "leveldb",
+                            "fips",
+                            "read-only file system",
+                        )
+                        if marker in output
+                    ],
                     "mentions": [
                         name
                         for name in (
@@ -346,6 +365,14 @@ def smoke(directory: Path, *, fail_upstream: bool = False) -> None:
                         if name in output
                     ],
                 }
+                state = json.loads(
+                    stack.docker(
+                        "inspect", "--format", "{{json .State}}", f"{CI_PROJECT}-{service}-1"
+                    )
+                )
+                classification[service]["running"] = state["Running"] is True
+                classification[service]["oomKilled"] = state["OOMKilled"] is True
+                classification[service]["exitCode"] = int(state["ExitCode"])
             (directory / "bootstrap-diagnostic.json").write_text(json.dumps(classification) + "\n")
             raise LocalFailure(
                 "FIXTURE_BOOTSTRAP_PERMISSION_DENIED" if denied else "FIXTURE_BOOTSTRAP_FAILED"

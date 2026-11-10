@@ -1,12 +1,14 @@
 # Decision 0001 — Release 1 scope and acceptance
 
+**Development workflow supersession — 10 November 2026:** [Decision 0008](0008-checkpoint-development-workflow.md) replaces development-tracking, naming, linkage and administration requirements. Product connector scope and technical quality gates remain in force.
+
 **Date:** 23 October 2026
 **Status:** Accepted for integration breadth and operating scale; region and spending cap are provisional execution controls.
 **Decision owner:** ShipSense project owner.
 
 ## Decision
 
-Release 1 covers the end-to-end ShipSense trust loop across **GitHub, GitHub Actions, Jira, Azure deployments, and Vercel deployments**. Jira is both the development tracker and a customer-facing connector; those are separate configurations. Azure hosts ShipSense itself. Azure and Vercel connectors show deployment, revision, environment, provider receipt, and observed health for connected customer services. OpenTelemetry-based signals, source-linked metrics, and generic webhook alerts supply minimum runtime evidence.
+Release 1 covers the end-to-end ShipSense trust loop across **GitHub, GitHub Actions, Jira, Azure deployments, and Vercel deployments**. Jira remains a customer-facing connector; development uses checkpoint tracking under Decision 0008. Azure hosts ShipSense itself. Azure and Vercel connectors show deployment, revision, environment, provider receipt, and observed health for connected customer services. OpenTelemetry-based signals, source-linked metrics, and generic webhook alerts supply minimum runtime evidence.
 
 The journey is: open a failed PR run or alert for one service; inspect the time-scoped change, CI, Jira, deployment and telemetry trail; ask a bounded question; review competing hypotheses and contradictions; obtain a minimal verified draft PR under policy and human review; observe post-merge health; freeze a resolved case for replay. AI cannot directly mutate production.
 

@@ -1,5 +1,7 @@
 # Decision 0006 — Local quality toolchain
 
+**Development workflow supersession — 10 November 2026:** [Decision 0008](0008-checkpoint-development-workflow.md) replaces development-tracking, naming, linkage and administration requirements. Product connector scope and technical quality gates remain in force.
+
 **Date:** 9 November 2026
 **Status:** Accepted starting choices; compatibility and quality proof remain delivery gates.
 **Decision owner:** Patrick Jane, within delegated technical authority.
@@ -10,7 +12,7 @@ For P01.2 use Prettier 3.9.10, ESLint 9.39.5, eslint-config-next 16.4.5, typescr
 
 Secret scanning must fail closed on findings and scanner errors, redact matched values, cover tracked and nonignored untracked relevant inputs including .env.example, and disable network credential verification. Do not accept blanket baselines or broad source exclusions. Synthetic failures and restored success must prove the real quality gates.
 
-Minimal quality CI uses read-only permissions, no provider secrets, immutable action references, bounded execution and the same documented frozen-install/local quality commands. Jira continues to own development-key validation under Decision 0003. Full build/smoke CI remains P01.5.
+Minimal quality CI uses read-only permissions, no provider secrets, immutable action references, bounded execution and the same documented frozen-install/local quality commands. Decision 0008 removes development-key validation and linkage requirements. Full build/smoke CI remains P01.5.
 
 ## Rationale and limits
 
