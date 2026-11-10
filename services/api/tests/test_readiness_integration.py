@@ -26,7 +26,13 @@ class ReadinessIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.stack = LocalStack(self.directory, settings, project=settings.project)
         await asyncio.to_thread(self.stack.validate_ownership)
         self.enterContext(
-            patch.dict(os.environ, {"SHIPSENSE_LOCAL_STATE_DIR": str(self.directory)})
+            patch.dict(
+                os.environ,
+                {
+                    "SHIPSENSE_DEPENDENCIES": "test-fixtures",
+                    "SHIPSENSE_LOCAL_STATE_DIR": str(self.directory),
+                },
+            )
         )
         self.app = create_app()
         self.lifespan = self.app.router.lifespan_context(self.app)

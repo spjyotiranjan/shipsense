@@ -1,4 +1,4 @@
-"""Real owned Mongo/S3 operations. Set SHIPSENSE_TEST_STATE after local:up."""
+"""Real owned test-fixture operations. Orchestrated by integration-smoke.py."""
 
 import asyncio
 import hashlib

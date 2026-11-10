@@ -6,16 +6,26 @@ seeds data, or grants provider authority. The queue belongs to this API process.
 
 import asyncio
 from pathlib import Path, PureWindowsPath
+from typing import Protocol
 
-from shipsense_local.adapters import LocalClients
+from shipsense_local.adapters import BoundedObjects, LocalClients
 from shipsense_local.config import LocalFailure, load_settings
 from shipsense_local.queue import MemoryQueue
 
 from shipsense_api.diagnostics import ReadinessGate
 
 
+class ReadinessClients(Protocol):
+    @property
+    def objects(self) -> BoundedObjects: ...
+
+    async def mongo_probe(self) -> bool: ...
+
+    async def close(self) -> None: ...
+
+
 class LocalReadiness:
-    def __init__(self, clients: LocalClients) -> None:
+    def __init__(self, clients: ReadinessClients) -> None:
         self.clients = clients
         self.queue = MemoryQueue()
         self.gate = ReadinessGate(

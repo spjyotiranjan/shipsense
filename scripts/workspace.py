@@ -39,6 +39,7 @@ def units() -> None:
         ("services/api/tests", "test_foundation.py"),
         ("services/api/tests", "test_diagnostics.py"),
         ("services/api/tests", "test_local_lifespan.py"),
+        ("services/api/tests", "test_hosted.py"),
         ("packages/local-core/tests", "test_unit.py"),
     ):
         run(

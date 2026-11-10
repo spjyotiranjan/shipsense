@@ -151,6 +151,7 @@ def start_api(env: dict[str, str], state: Path | None = None) -> Child:
     assert_free(8000)
     options = env.copy()
     if state is not None:
+        options["SHIPSENSE_DEPENDENCIES"] = "test-fixtures"
         options["SHIPSENSE_LOCAL_STATE_DIR"] = str(state)
     return Child(
         [
@@ -276,18 +277,41 @@ def smoke(directory: Path, *, fail_upstream: bool = False) -> None:
             # Inspect only ownership-verified fixture services. Never publish raw
             # provider/container output: classify known bootstrap errors only.
             stack.validate_ownership()
-            output = stack.docker(
-                "compose",
-                "--project-name",
-                CI_PROJECT,
-                "--file",
-                str(ROOT / "infra/local/compose.yaml"),
-                "logs",
-                "--no-color",
-                "--tail",
-                "40",
-            ).lower()
-            denied = "permission denied" in output or "eacces" in output
+            denied = False
+            classification = {}
+            for service in ("mongodb", "storage"):
+                output = stack.docker(
+                    "compose",
+                    "--project-name",
+                    CI_PROJECT,
+                    "--file",
+                    str(ROOT / "infra/local/compose.yaml"),
+                    "logs",
+                    "--no-color",
+                    "--tail",
+                    "80",
+                    service,
+                ).lower()
+                permission = "permission denied" in output or "eacces" in output
+                denied = denied or permission
+                classification[service] = {
+                    "permissionDenied": permission,
+                    "mentions": [
+                        name
+                        for name in (
+                            "/run/secrets",
+                            "/run/shipsense",
+                            "/docker-entrypoint-initdb.d",
+                            "/data/db",
+                            "/tmp",
+                            "/proc",
+                            "file_env",
+                            "mongosh",
+                        )
+                        if name in output
+                    ],
+                }
+            (directory / "bootstrap-diagnostic.json").write_text(json.dumps(classification) + "\n")
             raise LocalFailure(
                 "FIXTURE_BOOTSTRAP_PERMISSION_DENIED" if denied else "FIXTURE_BOOTSTRAP_FAILED"
             ) from None

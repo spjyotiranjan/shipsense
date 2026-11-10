@@ -31,11 +31,6 @@
     "typecheck": "npm run typecheck:web && npm run typecheck --workspace packages/contracts && uv run --frozen mypy",
     "secrets:check": "uv run --frozen python scripts/check-secrets.py",
     "quality": "npm run format:check && npm run lint && npm run typecheck && npm run secrets:check && npm run contracts:check",
-    "local:up": "uv run --frozen --package shipsense-local python -m shipsense_local.cli up",
-    "local:down": "uv run --frozen --package shipsense-local python -m shipsense_local.cli down",
-    "local:reset": "uv run --frozen --package shipsense-local python -m shipsense_local.cli reset",
-    "local:check": "uv run --frozen --package shipsense-local python -m shipsense_local.cli check",
-    "fixtures:seed": "uv run --frozen --package shipsense-local python -m shipsense_local.cli seed",
     "queue:smoke": "uv run --frozen --package shipsense-worker python -m shipsense_worker.main --queue-smoke",
     "test:local": "uv run --frozen --package shipsense-local python -m unittest discover -s packages/local-core/tests -p test_unit.py -v",
     "test:local:integration": "uv run --frozen --package shipsense-api python -m unittest discover -s packages/local-core/tests -p test_integration.py -v"

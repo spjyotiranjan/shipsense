@@ -40,7 +40,7 @@ jobs:
           npm run check
           npm run test:unit
           npm run build
-      - name: Real seeded API and built-browser smoke
+      - name: Isolated synthetic test fixtures, API and built-browser smoke
         run: npm run test:smoke
       - name: Reject contract drift and failed upstream, then recover
         run: uv run --frozen --package shipsense-api python scripts/verify-integration-gates.py

@@ -1,6 +1,6 @@
 # Local foundation setup
 
-Use the supplied primary checkout. Required versions: Node 26.7.0, npm 11.19.0, Python 3.14.7 and uv 0.12.21. Runtime/version files and root locks define initial reproducibility. Do not substitute floating versions. Package registries are required for a fresh install; no cloud or provider credentials are required.
+Use the supplied primary checkout. Required versions: Node 26.7.0, npm 11.19.0, Python 3.14.7 and uv 0.12.21. Runtime/version files and root locks define initial reproducibility. Do not substitute floating versions. Package registries are required for a fresh install; no cloud or provider credentials are required for installs, builds or diagnostics. Hosted readiness needs existing MongoDB and private Cloudflare R2 access.
 
 From the repository root:
 
@@ -19,9 +19,9 @@ npm run typecheck:web
 npm run build:web
 ```
 
-Run the API: `uv run --frozen --package shipsense-api uvicorn shipsense_api.main:create_app --factory --host 127.0.0.1 --port 8000`. In another terminal run the web: `npm run start --workspace apps/web -- --hostname 127.0.0.1`. Visit `http://127.0.0.1:3000`, API `/foundation`, `/docs` and `/openapi.json` on port 8000. Stop each foreground process with Ctrl+C. The web diagnostics call the versioned API; dependency readiness remains safe 503 until the separate real-adapter wiring is accepted.
+Run the API: `uv run --frozen --package shipsense-api uvicorn shipsense_api.main:create_app --factory --host 127.0.0.1 --port 8000`. In another terminal run the web: `npm run start --workspace apps/web -- --hostname 127.0.0.1`. Visit `http://127.0.0.1:3000`, API `/foundation`, `/docs` and `/openapi.json` on port 8000. Stop each foreground process with Ctrl+C. The web diagnostics call the versioned API; dependency readiness stays safely503 until valid hosted configuration and authorized dependency access are available.
 
-No environment file is needed. `SHIPSENSE_PROFILE` accepts only `local`; other profiles fail closed. Test a missing fixture with `python scripts/validate-foundation.py --fixture tests/fixtures/absent.json` (expected exit 2, `FIXTURE_MISSING`). Use `--config infra/absent.json` for `CONFIG_MISSING`. Errors contain codes rather than supplied file contents.
+For credential-free diagnostics no environment file is needed. For hosted dependencies, copy root `env.example` to ignored `.env`, fill its placeholders privately and launch the API with `uv run --env-file .env --frozen --package shipsense-api uvicorn shipsense_api.main:create_app --factory --host 127.0.0.1 --port 8000 --no-access-log`. See the [API configuration contract](../services/api/README.md). Do not load that credential file into the web process; it needs only server-side `SHIPSENSE_API_ORIGIN`. No MongoDB/S3 self-hosting, Docker startup or seed is required for application setup. `SHIPSENSE_PROFILE` accepts only `local`; other profiles fail closed. Test a missing fixture with `python scripts/validate-foundation.py --fixture tests/fixtures/absent.json` (expected exit 2, `FIXTURE_MISSING`). Use `--config infra/absent.json` for `CONFIG_MISSING`. Errors contain codes rather than supplied file contents.
 
 ## Quality checks
 
@@ -56,7 +56,7 @@ generated diffs, then run the quality gate.
 
 The secret gate uses detect-secrets offline with no baseline, credential
 verification or inline allowlist. It enumerates tracked and nonignored
-untracked files, including `.env.example`, source and tests. Findings report
+untracked files, including `env.example`, source and tests. Findings report
 only path, line and rule; scanner errors fail with a generic redacted message.
 Known PDF/icon assets are skipped by suffix and signature. Unsupported binary
 source, unreadable inputs and files over 10 MB fail closed. Full npm SHA-512 integrity fields and verified public fixture payload/provenance hashes are the only entropy exceptions. Fixture payload hashes are recomputed from bounded local bytes; provenance must equal the schema pin. Other source/lockfile content is scanned. Keep actual local `.env` files ignored and never commit
@@ -79,7 +79,7 @@ bytes in `finally` and refuses to overwrite an existing source probe. Hold
 exclusive checkout access while running it. Local execution does not establish
 remote CI acceptance.
 
-The [local service runbook](../infra/local/README.md) covers pinned Mongo/private S3, explicit idempotent seed, scoped stop/reset and same-process queue commands. Run `npm run test:local`; use its explicit external-state instructions for real integration tests. The web/version/liveness diagnostics and opt-in real API readiness are accepted under SCRUM-16; P01.5 clean build/unit/smoke CI remains a separate gate. Quality success alone does not establish that outcome.
+The [automated fixture runbook](../infra/local/README.md) covers isolated test-only Mongo/private S3, integrity, private access and owned cleanup. Run `npm run test:local` for fixture safety units; `npm run test:smoke` alone orchestrates the real credential-free synthetic runtime. These containers are never application defaults, developer provisioning or hosted fallback. The web/version/liveness diagnostics and opt-in real API readiness are accepted under SCRUM-16; P01.5 clean build/unit/smoke CI remains a separate gate. Quality success alone does not establish that outcome.
 
 ## Clean integration commands
 
@@ -102,7 +102,7 @@ smoke. `build` produces the Next.js production app and all three Python wheel/so
 distributions; disposable distributions are built outside the repository.
 `npm run verify` combines check, units, build and real smoke after bootstrap.
 
-Smoke requires a local Linux/amd64 Docker engine with Compose, the selected
+Only the isolated automated smoke gate requires a local Linux/amd64 Docker engine with Compose, the selected
 Decision 0007 images (only those exact digests may download on first CI boot),
 1.5 GiB available host memory, at least 2 GiB engine allocation and an installed
 Chrome/Chromium. Detection supports Windows Chrome and Linux Google Chrome or
@@ -122,7 +122,7 @@ Each smoke uses the fixed `shipsense-ci-p01` namespace with fresh external priva
 state and credentials. The default `shipsense-local-p01` namespace and its volumes
 are preserved. Runtime is serialized because both profiles retain the same fixed
 data ports. Stale resources, owner/state mismatch, remote daemons and namespace
-overrides are refused. The smoke seeds six fixtures twice, proves private access,
+overrides are refused. The smoke explicitly selects `SHIPSENSE_DEPENDENCIES=test-fixtures`, independently of hosted application configuration. It seeds six fixtures twice, proves private access,
 runs all ten real adapter/readiness integration cases without skips, starts actual
 Uvicorn and production Next, checks safe default503/configured200, stops/restores
 each dependency and verifies readiness/liveness independence. An owned headless
@@ -157,5 +157,5 @@ skipped integration success. Hold exclusive checkout/runtime access for this pro
 The Integration workflow repeats these commands from a clean checkout with
 read-only permissions, immutable action references, no provider secrets, a
 30-minute job bound and three-day retention for only sanitized top-level JSON/PNG.
-Quality success alone cannot replace this gate. Issuer/reference validation,
+Quality success alone cannot replace this gate. Hosted configuration/transport/lifecycle tests run without provider calls; real managed MongoDB/Cloudflare R2 compatibility and permissions remain unverified without authorized endpoints/access. Isolated emulator success is never live hosted proof. Issuer/reference validation,
 region/tier/residency/cost, production parity and P01 exit remain separate.

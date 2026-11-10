@@ -1,8 +1,18 @@
 # P01 backend implementation plan — repository and developer foundation
 
-**Status:** P01 technical development plan, revised 9 November 2026. Technical selections identified as proposals remain unresolved until validated and recorded.
+**Status:** P01 technical development plan, revised 10 November 2026. Technical selections identified as proposals remain unresolved until validated and recorded.
 
 Read with the [web plan](../web-implementation/p01-repository-and-developer-foundation.md), [P01 detailed criteria](../../Phases/P01-repository-and-developer-foundation.md), [roadmap](../../ROADMAP.md), [status](../../PROJECT_STATUS.md), [Jira workflow](../JIRA_WORKFLOW.md), [development integration](../GITHUB_JIRA_INTEGRATION.md) and accepted Decisions [0001](../decisions/0001-release-1-scope.md), [0002](../decisions/0002-architecture-baseline.md), [0003](../decisions/0003-jira-owned-development-validation.md). The [specification](../shipsense-full-product-specification.pdf) is product source material; recorded decisions define the implementation baseline.
+
+## Hosted setup amendment — 10 November 2026
+
+The hosted setup amendment in [Decision 0007](../decisions/0007-local-foundation-dependencies.md#hosted-mongodb-and-cloudflare-r2-application-setup--10-november-2026) supersedes earlier self-hosted application/developer setup in this plan. Application setup uses existing hosted MongoDB and private Cloudflare R2. No self-hosted MongoDB or S3 emulator is required or started for developer boot, and failed hosted configuration must never fall back to one. Python FastAPI remains the main backend; Next.js remains the web-facing backend layer.
+
+Keep server connection settings and credentials out of browser bundles, responses, logs and artifacts. Commit only nonfunctional placeholders in `env.example`; validate missing, placeholder and invalid values before client creation. Credential-free version/liveness, schema generation and web diagnostics remain available; readiness returns safe 503 until valid configuration and authorized dependency checks establish readiness. API Connected means reachability, not backing-service readiness or recovered customer health. Never expose endpoint addresses or underlying exception details.
+
+Isolated synthetic containers are automated test fixtures only. Retain pinned images, exact namespace/resource ownership checks, private access, bounds, attempt-specific credentials and cleanup safeguards. Preserve existing developer volumes/private state. Test-only transport exceptions cannot weaken hosted TLS verification or admit arbitrary remote endpoints. Synthetic fixture success cannot prove hosted MongoDB/R2 compatibility, permissions, residency or live readiness.
+
+Historical accepted proof remains revision/profile-specific: SCRUM-15 bounded local core at `c441de1` and SCRUM-16 readiness at `94279641cf4660b4a991db7af8c69b5e54b1a889` are preserved in the [phase record](../../Phases/P01-repository-and-developer-foundation.md). Earlier planning descriptions below describe that delivery sequence, not a new requirement to repeat accepted work. Hosted-live verification remains unperformed. The SCRUM-17 setup change must verify hosted configuration/client boundaries and safe failures with isolated tests while disclosing that gap; it does not establish full P01 exit. Issuer/reference runtime, region/tier/residency/cost and all other outstanding exit requirements remain in force. Configuration support grants no provider calls, provisioning, schema/seed writes, production effects or recurring-spend authority.
 
 ## Tested foundation and remaining dependency gates
 
@@ -10,7 +20,7 @@ P01.1/SCRUM-13 and P01.2/SCRUM-14 are accepted and merged on 9 November 2026: [f
 
 Tested surfaces include the credential-free FastAPI `/foundation` route, generated canonical OpenAPI and TypeScript consumption, minimal web shell, frozen npm/uv workspaces and byte-level contract drift/quality checks. Version/liveness/readiness/error contracts, runtime response validation and diagnostic UI states below are remaining SCRUM-16 work, not existing behavior.
 
-SCRUM-16 contract and web diagnostic implementation requires accepted SCRUM-13/14 surfaces, without waiting for SCRUM-15 storage/queue setup. First implement and verify canonical version/liveness/safe-error schemas and generated contracts without cloud credentials; then integrate the web against that tested contract. Schema generation, version and liveness must remain independent of storage, queue and database availability. Readiness schema/error examples and bounded probe interfaces can be defined now, but full SCRUM-16 acceptance requires SCRUM-15's real local adapters, seeded dependencies and outage/recovery proof. Stubs or mocked readiness cannot satisfy that gate.
+SCRUM-16 contract and web diagnostic implementation requires accepted SCRUM-13/14 surfaces, without waiting for SCRUM-15 storage/queue setup. First implement and verify canonical version/liveness/safe-error schemas and generated contracts without cloud credentials; then integrate the web against that tested contract. Schema generation, version and liveness must remain independent of storage, queue and database availability. Readiness schema/error examples and bounded probe interfaces can be defined now, but historical full SCRUM-16 acceptance required SCRUM-15's real local adapters, seeded dependencies and outage/recovery proof. That accepted proof is preserved; the hosted amendment adds configuration/client failure checks without asserting hosted-live readiness. Stubs or mocked readiness cannot satisfy that gate.
 
 SCRUM-15 still requires validated issuer/emulator/reference-service selections and its fixture/region/tier/cost proof. SCRUM-17 full clean-checkout build/unit/contract/smoke CI depends on completed SCRUM-15/16 integration. Full readiness and P01 exit retain every positive, negative and recovery criterion; this dependency split waives none.
 
@@ -38,27 +48,26 @@ P01 establishes reproducible boundaries and synthetic diagnostics. P02 owns logi
 
 Proposed API layout: `src/shipsense_api/{main,settings,errors}.py`, `routes/{health,version}.py`, `schemas/foundation.py`, plus `tests/`. Worker has a separate entrypoint and adapter module; no imports from Next.js. Avoid an invented large domain abstraction layer before P02/P03 need it. Shared Python utilities may be extracted only when a concrete shared contract warrants them.
 
-Use the accepted npm/uv workspaces, one frozen lock per language, generated OpenAPI/TypeScript and pinned quality tools from Decisions 0005/0006. Their compatibility and seeded failure/recovery proof are accepted under SCRUM-13/14; preserve those pins. Still-missing runtime response validation, browser smoke tooling and emulators require explicit compatibility evidence before use. Do not add a second handwritten domain API, floating versions or duplicate locks. Document additions and regeneration commands without repeating accepted foundation work.
+Use the accepted npm/uv workspaces, one frozen lock per language, generated OpenAPI/TypeScript and pinned quality tools from Decisions 0005/0006. Their compatibility and seeded failure/recovery proof are accepted under SCRUM-13/14; preserve those pins. Any additional runtime response validation or browser tooling requires compatibility evidence before use; existing pinned emulators are isolated automated fixtures only. Do not add a second handwritten domain API, floating versions or duplicate locks. Document additions and regeneration commands without repeating accepted foundation work.
 
-Keep `.env.example` synthetic and descriptive, local `.env` ignored, example values unusable as real credentials. Validate startup profile, required local settings, endpoint allowlists and bounds. Reject production profile combined with local identity/queue/storage adapters; errors name missing setting keys without their values. Azure deployment secrets later use Key Vault and managed identity. Provider secrets never enter MongoDB, fixtures, prompts, logs, browser bundles or R2.
+Keep `env.example` placeholder-only and local secret files ignored; all example values must be nonfunctional. Validate the hosted application profile, settings, endpoint policy and bounds before creating clients. Test fixture configuration remains explicitly isolated. Reject production profile combined with local identity/queue/storage adapters; errors name missing setting keys without their values. Azure deployment secrets later use Key Vault and managed identity. Provider secrets never enter MongoDB, fixtures, prompts, logs, browser bundles or R2.
 
 Preserve `.githooks/pre-commit` and configure `core.hooksPath=.githooks`. The hook checks staged Markdown whitespace/newline. Jira owns remote branch/commit-key validation; retain its 100-commit ceiling and unverified creation/title-edit/push lifecycle gaps as explicit risks. Do not add duplicate GitHub Actions Jira validators or local issue-key hooks.
 
-## Local services and synthetic fixture blueprint
+## Hosted clients and isolated synthetic fixture blueprint
 
-Propose a documented Docker Compose local profile: MongoDB, a private S3-compatible development store for the R2 adapter, and a local queue adapter. Local storage is an emulator, not a decision to replace R2. An in-process queue is permitted only for local development by Decision 0002 and must disclose lack of durable/restart parity with Service Bus. Do not use it to claim production retry/dead-letter acceptance. Select and pin the exact storage emulator and any optional Service Bus emulator only after compatibility checks; no new cloud credential dependency.
+Application boot reads validated server-only hosted MongoDB and private R2 configuration without starting containers or seeding data. Reuse the pinned native async PyMongo and bounded off-loop Boto3 clients from Decision 0007; no new dependency is selected. Preserve TLS certificate verification, bounded connect/read/retry/concurrency limits, cancellation and shutdown cleanup. Reject missing, placeholder or invalid configuration before client construction; keep safe unconfigured readiness 503 and independent liveness/version/schema/web diagnostics. Tests inject client factories or isolated fixtures to exercise these boundaries without calling hosted providers.
 
-Document ports, volumes, health checks, Windows prerequisites, startup order, stop and explicit synthetic-only reset. Bind development services to loopback; use isolated fixture DB/bucket names and reject reset against non-local/non-fixture targets. A reset must never enumerate/delete unrelated databases, accounts or objects. Seed is an explicit developer command, never an automatic production startup side effect. Restrict object access; prove anonymous reads fail even locally.
+Containers, loopback bindings, fixture namespaces and seed/reset commands belong solely to explicitly isolated automated tests. Retain exact ownership/namespace checks, pinned images and private-access tests, resource limits, per-attempt credentials and cleanup refusal on ambiguous state. Preserve existing volumes/private state; no broad reset or deletion. A test-only transport exception cannot disable hosted TLS verification or admit arbitrary remote endpoints. Seed is explicit and synthetic-only; it must never target hosted infrastructure. The bounded same-process queue remains non-durable and does not prove Service Bus parity.
 
 ```mermaid
 flowchart LR
-  Seed[Explicit synthetic seed command] --> Validate[Validate manifest and local target]
-  Validate --> Mongo[Local MongoDB fixture metadata]
-  Validate --> Object[Private local object store]
-  Validate --> Queue[Local queue adapter]
-  Queue --> Worker[Bounded no-effect worker]
+  Config[Server-only hosted settings] --> Validate[Validate before client construction]
+  Validate --> Clients[Bounded MongoDB and private R2 clients]
+  Clients --> Ready[Authorized readiness checks only]
   Browser --> Web[Next.js web backend]
-  Web --> API[FastAPI version endpoint]
+  Web --> API[Independent FastAPI version endpoint]
+  Test[Isolated automated fixture harness] --> Seed[Scoped synthetic seed and owned containers]
 ```
 
 Proposed fixture schema, separate from future canonical domain schemas:
@@ -89,7 +98,7 @@ FastAPI OpenAPI is canonical. Generate a committed versioned schema and typed/ru
 | Method/path | Result | Access and dependency boundary |
 | --- | --- | --- |
 | `GET /health/live` | 200 `{"status":"alive"}` | Minimal process liveness; never probes dependencies |
-| `GET /health/ready` | 200 `{"status":"ready"}` or 503 typed `DEPENDENCY_UNAVAILABLE` | Internal/local operator route; bounded local dependency checks, no provider data or credential detail |
+| `GET /health/ready` | 200 `{"status":"ready"}` or 503 typed `DEPENDENCY_UNAVAILABLE` | Internal/local operator route; bounded configured dependency checks; unconfigured/invalid hosted setup returns 503 with no provider data or credential detail |
 | `GET /api/v1/version` | 200 VersionResponse | Deliberately minimal diagnostic; no authentication bypass to domain data |
 
 Proposed canonical types:
@@ -136,18 +145,18 @@ Frozen installs, contracts:generate/contracts:check, quality, test:foundation an
 | Target | Required behavior |
 | --- | --- |
 | `bootstrap` | Verify pinned runtimes and install frozen web/API/worker dependencies without cloud secrets |
-| `local:up` / `local:down` | Start/stop only named local services; report readiness; preserve volumes by default |
-| `fixtures:seed` | Validate and seed scoped synthetic fixtures idempotently, refusing unsafe targets |
-| `dev` | Start API, bounded local worker and web with explicit local profile |
+| Synthetic fixture lifecycle wrappers | Automated tests only: start/stop verified owned containers; preserve existing volumes/private state; never application boot or fallback |
+| Synthetic fixture seed wrapper | Automated tests only: validate exact owned synthetic targets and seed idempotently; refuse hosted, foreign or ambiguous targets |
+| `dev` | Start API/web using server-only hosted settings; no container provisioning or automatic seed; unconfigured diagnostics available with readiness 503 |
 | `contracts:generate` / `contracts:check` | Generate canonical schema/client; fail on drift without cloud boot |
 | `check` | Format-check, lint, typing and secret scan for all affected packages plus Markdown checks |
 | `test:unit` | API, worker, contract adapter and web meaningful unit checks |
 | `build` | Build Next.js and API/worker distributions or images under pinned tools |
-| `test:smoke` | Start actual built web/API against seeded local dependencies; assert success/failure/recovery |
+| `test:smoke` | Built web/API with isolated synthetic fixtures: success/failure/recovery plus hosted configuration/client safe-failure tests; no live compatibility claim |
 
 P01.2 established scripts, check targets and the minimal quality workflow with seeded CI failure/recovery proof. Reuse that accepted work; expand CI to builds/services/contracts/unit/smoke in SCRUM-17. This is a planned dependency resolution, not a waiver of P01.2 acceptance. Workflow checks are distinct from Jira-owned key validation.
 
-CI uses a clean checkout and the same command targets, pinned runtimes/locks/images and local adapters as the primary checkout. Run frozen installs, code/schema generation drift, quality/security checks, unit tests, both application builds, startup, seeded integration and browser smoke. Capture sanitized failure artifacts with bounded retention; tear down CI services on failure. Restrict workflow permissions, pin third-party actions, and give untrusted PRs no cloud/provider secrets or write authority. No paid provisioning or deployment stage belongs to this foundation CI.
+CI uses a clean checkout and the same command targets and pinned runtimes/locks/images. Synthetic adapters/containers are explicitly isolated automated fixtures, with no cloud credentials, provider calls or write authority; they are not developer setup defaults. Run frozen installs, code/schema generation drift, quality/security checks, unit tests, both application builds, startup, seeded integration and browser smoke. Capture sanitized failure artifacts with bounded retention; tear down CI services on failure. Restrict workflow permissions, pin third-party actions, and give untrusted PRs no cloud/provider secrets or write authority. No paid provisioning or deployment stage belongs to this foundation CI.
 
 ## Acceptance and meaningful failure proof
 
@@ -155,7 +164,7 @@ CI uses a clean checkout and the same command targets, pinned runtimes/locks/ima
 | --- | --- | --- |
 | P01.1 / SCRUM-13 | All seven boundaries exist with package responsibility READMEs/commands and minimal buildable packages; another contributor follows README | Missing required config/fixture yields actionable safe failure; no private setup knowledge |
 | P01.2 / SCRUM-14 | Exact tools and locks committed; all language/Markdown/secret targets pass locally and minimal CI | Independent synthetic format/lint/type/secret violations cause corresponding local and CI failure; wrong/floating tool setup rejected; remove probes and recheck |
-| P01.3 / SCRUM-15 | Fresh local profile starts dependencies and seeds repeatably with all cloud credentials absent | Repeat seed unchanged; cross-scope/collision/invalid checksum/missing fixture/unsafe reset refused; dependency outage and partial seed retry; private object denies anonymous read |
+| P01.3 / SCRUM-15 | Historical accepted local-core proof retained; isolated automated fixtures seed repeatably without cloud credentials; hosted application boot requires no self-hosting | Repeat seed unchanged; cross-scope/collision/invalid checksum/missing fixture/unsafe reset refused; dependency outage and partial seed retry; private object denies anonymous read |
 | P01.4 / SCRUM-16 | Real browser → Next.js → versioned FastAPI response; OpenAPI/Swagger/client agree, including error example | API stop/timeout/schema mismatch and recovery; readiness 503 while liveness stays 200; safe errors/logs; keyboard and responsive states |
 | P01.5 / SCRUM-17 | Clean CI builds both apps and repeats documented contract/unit/smoke checks | Contract drift and failed upstream break CI; no hidden cloud credential or workstation service reliance; teardown after failure |
 
@@ -177,4 +186,4 @@ Region/cost validation belongs to P01 exit even though it is not a sixth Jira su
 
 ## Phase exit proof
 
-Phase exit requires all five subphases' positive and negative proof, credential-free boot by documented commands, a real web-to-API request, canonical Swagger/error examples, matching clean CI, selected issuer/reference fixtures, region/tier/cost validation, permission/secret boundaries, accessible degraded states and traceable diagnostics. Record review date, evidence, open risks and follow-on work in the P01 phase review and status, plus Jira links. Keep incomplete items visible; merge/build success and ticket closure alone do not complete the phase. P02 depends on this complete P01 exit record.
+Phase exit requires all five subphases' positive and negative proof, credential-free diagnostic boot and isolated automated fixtures by documented commands, a real web-to-API request, canonical Swagger/error examples, matching clean CI, selected issuer/reference fixtures, region/tier/cost validation, permission/secret boundaries, accessible degraded states and traceable diagnostics. Record review date, evidence, open risks and follow-on work in the P01 phase review and status, plus Jira links. Keep incomplete items visible; merge/build success and ticket closure alone do not complete the phase. P02 depends on this complete P01 exit record.

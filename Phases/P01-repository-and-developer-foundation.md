@@ -1,5 +1,7 @@
 # P01 — Repository and developer foundation
 
+**Scope update — 10 November 2026:** [Decision 0007 hosted amendment](../docs/decisions/0007-local-foundation-dependencies.md#hosted-mongodb-and-cloudflare-r2-application-setup--10-november-2026) supersedes manual local Mongo/S3 application setup. SCRUM-17 adds hosted server configuration plus [env.example](../env.example); no developer self-hosting is required. Historical local acceptance remains below. Automated CI may retain isolated synthetic fixtures with no hosted secrets or application fallback; emulator success cannot establish managed MongoDB/Cloudflare R2 compatibility or permission proof. Hosted live verification remains open until authorized access is available; this does not mark phase exit complete.
+
 **Current status:** In progress (9 November 2026). P01.1/2 accepted with PR #4/#5 merged; SCRUM-15 bounded local core is accepted but unmerged; SCRUM-16 accepted but PR #8 unmerged; SCRUM-17 clean integration CI is in progress and phase exit remains unverified. See [current proof and limitations](../PROJECT_STATUS.md).
 **Prerequisites:** P00 architecture decisions.
 **Phase outcome:** reproducible local boot, automated checks, and a working web-to-API request.

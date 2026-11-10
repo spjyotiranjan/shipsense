@@ -20,7 +20,9 @@ T = TypeVar("T")
 MAX_OBJECT = 32768
 
 
-def local_s3(settings: LocalSettings, mode: str = "authenticated") -> Any:
+def private_s3(
+    endpoint: str, region: str, access_key: str, secret_key: str, *, unsigned: bool = False
+) -> Any:
     # Isolate this session from host AWS profiles, files and credential sources.
     variables = {
         name: (None, None, values[2], values[3])
@@ -34,16 +36,13 @@ def local_s3(settings: LocalSettings, mode: str = "authenticated") -> Any:
     )
     return session.client(
         "s3",
-        endpoint_url=settings.s3_endpoint,
-        region_name="us-east-1",
-        aws_access_key_id=(
-            "incorrect-local-identity"
-            if mode == "wrong-key"
-            else settings.access_key.get_secret_value()
-        ),
-        aws_secret_access_key=settings.secret_key.get_secret_value(),
+        endpoint_url=endpoint,
+        region_name=region,
+        verify=True,
+        aws_access_key_id=access_key,
+        aws_secret_access_key=secret_key,
         config=Config(
-            signature_version=UNSIGNED if mode == "unsigned" else "s3v4",
+            signature_version=UNSIGNED if unsigned else "s3v4",
             connect_timeout=0.35,
             read_timeout=1.5,
             retries={"total_max_attempts": 1},
@@ -54,17 +53,28 @@ def local_s3(settings: LocalSettings, mode: str = "authenticated") -> Any:
     )
 
 
-class PrivateObjects:
+def local_s3(settings: LocalSettings, mode: str = "authenticated") -> Any:
+    return private_s3(
+        settings.s3_endpoint,
+        "us-east-1",
+        "incorrect-local-identity"
+        if mode == "wrong-key"
+        else settings.access_key.get_secret_value(),
+        settings.secret_key.get_secret_value(),
+        unsigned=mode == "unsigned",
+    )
+
+
+class BoundedObjects:
     """At most four running S3 calls, including calls outliving cancellation.
 
     Admission fails closed rather than accumulating an unbounded executor queue.
     Socket/retry bounds also cap the underlying work after a caller times out.
     """
 
-    def __init__(self, settings: LocalSettings) -> None:
-        local_profile()
-        self.bucket = settings.bucket
-        self._client = local_s3(settings)
+    def __init__(self, bucket: str, client: Any) -> None:
+        self.bucket = bucket
+        self._client = client
         self._pool = ThreadPoolExecutor(max_workers=4, thread_name_prefix="local-s3")
         self._slots = asyncio.Semaphore(4)
         self._pending: set[asyncio.Future[Any]] = set()
@@ -91,8 +101,7 @@ class PrivateObjects:
             raise LocalFailure("STORAGE_UNAVAILABLE") from None
 
     async def verify_bucket(self) -> None:
-        # The container precreates only the named synthetic bucket. Application
-        # credentials deliberately have no CreateBucket/Admin permission.
+        # Require an existing private bucket; never create it or grant access.
         await self.call(lambda: self._client.head_bucket(Bucket=self.bucket))
 
     async def probe(self) -> bool:
@@ -151,6 +160,14 @@ class PrivateObjects:
             await asyncio.to_thread(self._client.close)
         finally:
             await asyncio.to_thread(self._pool.shutdown, wait=True, cancel_futures=True)
+
+
+class PrivateObjects(BoundedObjects):
+    """Explicit synthetic fixture storage; never selects a hosted target."""
+
+    def __init__(self, settings: LocalSettings) -> None:
+        local_profile()
+        super().__init__(settings.bucket, local_s3(settings))
 
 
 class LocalClients:

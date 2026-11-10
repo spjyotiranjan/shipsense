@@ -4,6 +4,8 @@
 **Status:** Accepted starting choices for the local P01 core; runtime compatibility and delivery acceptance remain required.
 **Decision owner:** ShipSense CTO, within the accepted architecture baseline.
 
+**Supersession:** The [10 November hosted setup amendment](#hosted-mongodb-and-cloudflare-r2-application-setup--10-november-2026) replaces application defaults and developer provisioning below. Local containers remain automated test fixtures only.
+
 ## Local core
 
 Use the following exact starting dependencies with the existing pinned runtimes and single uv lock. Container references include the verified multi-platform index digest; the initial runtime target is Linux/amd64.
@@ -81,3 +83,18 @@ Keep external host credential files owner-only and their directory private. Do n
 Rationale: Linux owner-only bind files must remain private while Mongo's bootstrap runs after its upstream privilege drop.
 
 Sources: https://raw.githubusercontent.com/docker-library/mongo/master/8.0/docker-entrypoint.sh ; https://docs.docker.com/engine/storage/tmpfs/ .
+
+## Hosted MongoDB and Cloudflare R2 application setup — 10 November 2026
+
+**Status:** Accepted; supersedes the local MongoDB/S3 application-default and developer-provisioning scope above. Earlier local implementation and verification remain historical evidence, not proof of hosted operation.
+**Decision owner:** ShipSense project owner; isolated CI-fixture boundary accepted by the CTO.
+
+Application configuration uses existing hosted MongoDB and private Cloudflare R2 endpoints and access. Do not start or require self-hosted MongoDB or S3 emulators for application/developer setup. Keep connection settings and credentials server-only; commit only nonfunctional placeholders in env.example. Missing, placeholder or invalid configuration must fail closed: credential-free liveness/version and web diagnostics remain available while readiness is 503. Validate configuration before creating clients; retain bounded connection/read/retry/concurrency limits, cancellation and clean shutdown. Do not expose endpoint addresses, credentials or underlying exception details in public responses, browser bundles, logs or artifacts. Preserve TLS certificate verification for hosted connections and private bucket access. Configuration support does not itself authorize provider calls, schema changes, seed writes or production effects.
+
+Explicitly isolated synthetic containers may remain solely as credential-free automated test fixtures, never the application's default, developer provisioning path or implicit fallback when hosted configuration fails. Retain the existing pinned test images, exact namespace/ownership checks, private access, resource bounds, attempt-specific credentials and cleanup safeguards. Test-only transport exceptions must be isolated from hosted configuration and must not permit arbitrary remote endpoints or disable hosted TLS verification. Existing developer volumes and private state must be preserved; this decision does not authorize their deletion. Tests must exercise the hosted client/configuration boundary and safe failure behavior; emulator success cannot establish Cloudflare R2 or managed MongoDB compatibility, permissions, residency or live readiness.
+
+Apply this setup change across affected application, examples, runbooks, technical plans and CI. Keep historical local proof identified by profile and revision, and disclose that live hosted verification remains unperformed until configured endpoints and authorized access are available. No paid provisioning, recurring-spend approval, production permission, region/tier selection or full P01 exit is inferred. Queue, issuer/reference, integrity, scope/audit and production-governance requirements otherwise remain unchanged.
+
+Rationale: the owner will use hosted MongoDB and Cloudflare R2 access and does not want manual self-hosting now. Synthetic test fixtures retain reproducible credential-free failure checks without becoming application infrastructure.
+
+Sources: authenticated owner comments 3d27374b-a2e4-4acd-a2a7-5ddfaee68288 and 83b7ed01-1827-43c8-a7d8-e0163b5dbeae (10 November 2026); Decisions 0002 and 0007 privacy, integrity and lifecycle constraints.

@@ -25,7 +25,10 @@ class LocalConfigurationTests(unittest.TestCase):
         for value in values:
             with (
                 self.subTest(value=value),
-                patch.dict(os.environ, {"SHIPSENSE_LOCAL_STATE_DIR": value}),
+                patch.dict(
+                    os.environ,
+                    {"SHIPSENSE_DEPENDENCIES": "test-fixtures", "SHIPSENSE_LOCAL_STATE_DIR": value},
+                ),
                 patch("shipsense_api.local_readiness.load_settings") as loader,
                 patch("shipsense_api.local_readiness.LocalClients") as clients,
                 patch.object(
@@ -57,7 +60,13 @@ class LocalConfigurationTests(unittest.TestCase):
         runtime = AsyncMock()
         runtime.close.side_effect = RuntimeError("private-shutdown-value")
         with (
-            patch.dict(os.environ, {"SHIPSENSE_LOCAL_STATE_DIR": "/external/state"}),
+            patch.dict(
+                os.environ,
+                {
+                    "SHIPSENSE_DEPENDENCIES": "test-fixtures",
+                    "SHIPSENSE_LOCAL_STATE_DIR": "/external/state",
+                },
+            ),
             patch("shipsense_api.main.LocalReadiness.open", return_value=runtime),
             self.assertLogs("shipsense.diagnostics") as logs,
         ):
@@ -66,7 +75,7 @@ class LocalConfigurationTests(unittest.TestCase):
                 self.assertEqual(client.get("/health/live").status_code, 200)
         self.assertIsNone(app.state.local_runtime)
         self.assertNotIn("private-shutdown-value", str(logs.output))
-        self.assertIn("local_adapters=shutdown_failed", str(logs.output))
+        self.assertIn("dependency_adapters=shutdown_failed", str(logs.output))
 
     def test_invalid_configuration_is_read_only_redacted_and_never_installs_clients(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -90,7 +99,13 @@ class LocalConfigurationTests(unittest.TestCase):
                     (state / filename).write_bytes(invalid)
                     before = {path.name: path.read_bytes() for path in state.iterdir()}
                     with (
-                        patch.dict(os.environ, {"SHIPSENSE_LOCAL_STATE_DIR": str(state)}),
+                        patch.dict(
+                            os.environ,
+                            {
+                                "SHIPSENSE_DEPENDENCIES": "test-fixtures",
+                                "SHIPSENSE_LOCAL_STATE_DIR": str(state),
+                            },
+                        ),
                         patch("shipsense_api.local_readiness.LocalClients") as clients,
                         self.assertLogs("shipsense.diagnostics") as logs,
                         TestClient(create_app()) as client,
@@ -119,7 +134,13 @@ class LocalConfigurationTests(unittest.TestCase):
             for value in (str(missing), "", "relative-state", "//foreign/share"):
                 with (
                     self.subTest(value=value),
-                    patch.dict(os.environ, {"SHIPSENSE_LOCAL_STATE_DIR": value}),
+                    patch.dict(
+                        os.environ,
+                        {
+                            "SHIPSENSE_DEPENDENCIES": "test-fixtures",
+                            "SHIPSENSE_LOCAL_STATE_DIR": value,
+                        },
+                    ),
                     TestClient(create_app()) as client,
                 ):
                     self.assertEqual(client.get("/health/ready").status_code, 503)
