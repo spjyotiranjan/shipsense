@@ -1,1 +1,2 @@
 /.githooks/* text eol=lf
+/infra/local/*.sh text eol=lf

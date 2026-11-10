@@ -71,3 +71,13 @@ Use the pinned Node runtime's built-in WebSocket/CDP capabilities against an alr
 Rationale: clean CI must prove independent boot without consuming or resetting preserved developer state; real UI failure/recovery should use the existing runtime without another package dependency. These choices do not select issuer/reference runtimes, establish production parity or authorize cloud spending.
 
 Sources: Decision 0007 local privacy/lifecycle baseline and P01.5 clean integration acceptance; https://docs.docker.com/compose/how-tos/project-name/ ; https://developer.chrome.com/blog/remote-debugging-port .
+
+## Private Mongo bootstrap compatibility — 10 November 2026
+
+**Status:** Accepted local development/CI design; runtime compatibility and independent delivery acceptance remain required.
+
+Keep external host credential files owner-only and their directory private. Do not relax host permissions to accommodate the container UID. A bounded root bootstrap wrapper may copy only the two declared Mongo bootstrap credential inputs from read-only bind mounts into a dedicated container tmpfs capped at 1 MiB. Set its directory to 0700 and copied files to 0600, owned by the image's mongodb account on every start. Fail closed on missing, unreadable or invalid inputs or unavailable tmpfs. Then exec the unchanged pinned official entrypoint, preserving its privilege drop and command/signal behavior. Do not inject credential values through Compose environment, command arguments or logs; the upstream entrypoint's internal file processing is not a new credential transport. Never copy these inputs into image layers, writable container layers, persistent volumes or artifacts. Tmpfs is removed when the container stops, but host swap may persist its contents; no swap-proof secrecy is claimed and no host setting change is authorized. Retain image/client pins, memory limits, namespaces, loopback bindings, private-access checks and owned-resource cleanup. This is local compatibility, not production identity or security clearance.
+
+Rationale: Linux owner-only bind files must remain private while Mongo's bootstrap runs after its upstream privilege drop.
+
+Sources: https://raw.githubusercontent.com/docker-library/mongo/master/8.0/docker-entrypoint.sh ; https://docs.docker.com/engine/storage/tmpfs/ .

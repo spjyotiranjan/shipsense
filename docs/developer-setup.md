@@ -111,6 +111,13 @@ download, library, user profile or cloud credentials are used. Missing/incompati
 tools fail the gate. Ports 3000, 8000, 37017 and 38333 must be free; stop an existing
 developer runtime through its owner before running. No listener is killed automatically.
 
+MongoDB's bootstrap wrapper copies only its two read-only mounted credential files
+into a 1 MiB container tmpfs before the official entrypoint changes user. The tmpfs
+directory is owned by `mongodb` with mode `0700`; its copied files use `0600`.
+Host credential files remain owner-only inside the private state directory. This
+supports Linux UID separation without making the host secrets broadly readable.
+The integration gate checks the actual container ownership/modes and host POSIX modes.
+
 Each smoke uses the fixed `shipsense-ci-p01` namespace with fresh external private
 state and credentials. The default `shipsense-local-p01` namespace and its volumes
 are preserved. Runtime is serialized because both profiles retain the same fixed

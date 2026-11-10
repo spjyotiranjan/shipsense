@@ -3,6 +3,7 @@ services:
   mongodb:
     image: docker.io/library/mongo:8.0.34@sha256:b9924c330a8bbc5800fe9c69f04a84e221eca7b28fd049a0354147d9908fa142
     platform: linux/amd64
+    entrypoint: ["bash", "/shipsense/mongo-entrypoint.sh"]
     command: ["mongod", "--wiredTigerCacheSizeGB", "0.25", "--bind_ip_all"]
     environment:
       MONGO_INITDB_ROOT_USERNAME: shipsense_bootstrap
@@ -15,6 +16,9 @@ services:
       - ${SHIPSENSE_STATE:?external state required}/mongo-root.txt:/run/secrets/mongo-root.txt:ro
       - ${SHIPSENSE_STATE:?external state required}/mongo-app.json:/run/secrets/mongo-app.json:ro
       - ./mongo-init.js:/docker-entrypoint-initdb.d/fixture.js:ro
+      - ./mongo-entrypoint.sh:/shipsense/mongo-entrypoint.sh:ro
+    tmpfs:
+      - /run/shipsense:size=1m,mode=0700
     mem_limit: 768m
     cpus: 1.0
     pids_limit: 128

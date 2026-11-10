@@ -3,6 +3,7 @@
 import asyncio
 import hashlib
 import os
+import stat
 import time
 import unittest
 from pathlib import Path
@@ -39,6 +40,35 @@ class AdapterIntegrationTests(unittest.IsolatedAsyncioTestCase):
         await self.clients.close()
 
     async def test_authenticated_access_and_real_denials(self):
+        self.stack.validate_ownership()
+        permissions = self.stack.docker(
+            "exec",
+            f"{self.settings.project}-mongodb-1",
+            "stat",
+            "-c",
+            "%a %U %G",
+            "/run/shipsense",
+            "/run/shipsense/mongo-root.txt",
+            "/run/shipsense/mongo-app.json",
+        )
+        self.assertEqual(
+            permissions.splitlines(),
+            ["700 mongodb mongodb", "600 mongodb mongodb", "600 mongodb mongodb"],
+        )
+        filesystem = self.stack.docker(
+            "exec",
+            f"{self.settings.project}-mongodb-1",
+            "stat",
+            "-f",
+            "-c",
+            "%T",
+            "/run/shipsense",
+        )
+        self.assertEqual(filesystem.strip(), "tmpfs")
+        if os.name != "nt":
+            self.assertEqual(stat.S_IMODE(self.directory.stat().st_mode), 0o700)
+            for name in ("local.json", "mongo-root.txt", "mongo-app.json", "s3.json"):
+                self.assertEqual(stat.S_IMODE((self.directory / name).stat().st_mode), 0o600)
         self.assertTrue(await self.clients.mongo_probe())
         self.assertTrue(await self.clients.objects.probe())
         await private_access(self.settings, self.clients)
