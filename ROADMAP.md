@@ -1,6 +1,6 @@
 # ShipSense project roadmap
 
-**Planning baseline:** 23 October 2026. **Project state (9 November 2026):** P00 complete; P01.1 and P01.2 accepted, PR #4/#5 merged. P01 remains In progress; P01.3 bounded local core is accepted but PR #7 remains unmerged; P01.4 is accepted at `9427964` but PR #8 remains unmerged; P01.5 integration CI is in progress and phase exit proof remains unverified. See [current evidence and limitations](PROJECT_STATUS.md). This plan covers the full portfolio vision in the product specification and the stack chosen by the project owner. Phase numbers express dependencies, not calendar promises.
+**Planning baseline:** 23 October 2026. **Project state (11 November 2026):** P00 and P01 complete; P01.1–P01.5 accepted. The completion record is included in [PR #9](https://github.com/spjyotiranjan/shipsense/pull/9) before merging the reviewed #7 → #8 → #9 stack. See [evidence and limitations](PROJECT_STATUS.md). P02 is next; identity/reference-runtime and pre-provisioning validation remain explicit follow-on gates. Phase numbers express dependencies, not calendar promises.
 
 ## Product outcome
 
@@ -51,17 +51,17 @@ Detailed plans, expected results, and acceptance criteria for every phase and su
 - [x] P00.5 Record the architecture baseline for Azure services, MongoDB hosting, queue/worker model, R2 retention, provider credentials, and model selection method.
 - [x] P00.6 Establish phase acceptance tracking. Historical tracker setup is superseded by Decision 0008; current development uses checkpoints and GitHub/source proof.
 
-### P01 — Repository and developer foundation · In progress
+### P01 — Repository and developer foundation · Complete
 **Prerequisite:** P00 architecture decisions. **Exit:** reproducible local boot, automated checks, and a working web-to-API request.
 
 - [x] P01.1 Establish `apps/web`, `services/api`, `services/worker`, `packages/contracts`, `infra`, `docs`, and test fixtures.
 - [x] P01.2 Pin language/tool versions, lockfiles, formatting, linting, typing, secret scanning, and branch checks.
 
-Accepted proof: [P01.1](https://github.com/spjyotiranjan/shipsense/pull/4) / [PR #4](https://github.com/spjyotiranjan/shipsense/pull/4), [P01.2](https://github.com/spjyotiranjan/shipsense/pull/5) / [PR #5](https://github.com/spjyotiranjan/shipsense/pull/5). Credential-free P01.4 contract/web implementation depends on tested P01.1/P01.2; P01.3 core is accepted at `c441de1` with PR #7 merge pending. Separate P01.4 real-adapter readiness at `9427964` passed exact-revision review and acceptance ([proof](https://github.com/spjyotiranjan/shipsense/pull/8)), with PR #8 merge pending; issuer/reference runtime, P01.5 and full P01 exit remain unverified. P01.5 integrates both.
+Accepted proof: [P01.1](https://github.com/spjyotiranjan/shipsense/pull/4), [P01.2](https://github.com/spjyotiranjan/shipsense/pull/5), [P01.3–P01.5](https://github.com/spjyotiranjan/shipsense/pull/9), with historical [local-core](https://github.com/spjyotiranjan/shipsense/pull/7) and [readiness](https://github.com/spjyotiranjan/shipsense/pull/8) reviews preserved. Local boot/builds, canonical contracts, API/web/browser failure-recovery and clean credential-free CI satisfy the repository-foundation exit. Separate hosted verification is not a gate under Decision 0007. See the [phase exit record](Phases/P01-repository-and-developer-foundation.md#phase-review-record) for limitations and follow-on work.
 
-- [ ] P01.3 Configure hosted MongoDB/private R2 and bounded queue behavior; preserve historical synthetic fixture proof. Retain existing integration tests and disclose unsupported coverage; separate hosted verification is not an acceptance gate.
+- [x] P01.3 Configure hosted MongoDB/private R2 and bounded queue behavior; preserve historical synthetic fixture proof. Retain existing integration tests and disclose unsupported coverage; separate hosted verification is not an acceptance gate.
 - [x] P01.4 Build Next.js shell and FastAPI health/version endpoints; document Swagger/OpenAPI contracts.
-- [ ] P01.5 Create CI that builds both apps and runs contract, unit, and smoke checks.
+- [x] P01.5 Create CI that builds both apps and runs contract, unit, and smoke checks.
 
 ### P02 — Identity, tenancy, permissions, and audit · Not started
 **Prerequisite:** P01. **Exit:** denied access never exposes another tenant; all material decisions have correlated audit records.
