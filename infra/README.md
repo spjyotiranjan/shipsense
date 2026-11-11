@@ -1,5 +1,5 @@
 # Infrastructure boundary
 
-Owns local configuration and future Azure deployment definitions. From the repository root run `python scripts/validate-foundation.py` to validate `local.example.json` and the bounded synthetic fixture. Both files are credential-free and enable no effects. API and web bind to loopback using the developer commands.
+Application development and integration use existing hosted MongoDB and private Cloudflare R2. Configure server-only values through [.env.example](../.env.example) and the [developer guide](../docs/developer-setup.md). This repository does not install or operate database/storage services.
 
-The [synthetic local service runbook](local/README.md) documents the pinned Mongo/private S3 profile, explicit seed, same-process queue, ownership checks and scoped stop/reset. External credentials remain private to the OS account. Production Atlas/R2/Service Bus and Azure secret management remain separate; no paid provisioning is included.
+Azure deployment, Key Vault/managed identity, Service Bus and paid provisioning remain governed by the accepted architecture and measured phase gates. Hosted integration is read-only and never provisions, seeds, resets or restarts provider services.

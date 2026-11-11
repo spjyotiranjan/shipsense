@@ -5,7 +5,7 @@ import json
 import os
 import sys
 
-from shipsense_local.cli import queue_smoke
+from shipsense_local.queue import queue_smoke
 
 
 def main() -> int:

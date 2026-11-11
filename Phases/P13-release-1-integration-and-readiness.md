@@ -14,7 +14,7 @@ Prove the complete Release 1 trust loop under realistic success and failure cond
 ## Overall phase acceptance
 
 - The phase outcome is demonstrated: Acceptance journeys for the trustworthy loop pass across roles and failure states.
-- Every subphase below satisfies its acceptance criteria and has a linked proof artifact, such as a passing test, screenshot, API contract, decision record, provider receipt, or Jira issue.
+- Every subphase below satisfies its acceptance criteria and has a linked proof artifact, such as a passing test, screenshot, API contract, decision record, provider receipt, or GitHub/source evidence.
 - Permissions, tenant and environment scope, source provenance, freshness, accessible states, audit, and meaningful failure paths are checked wherever the phase touches them.
 - The parent phase is marked Complete only after the exit review records reviewer, date, evidence links, unresolved gaps, and any follow-on work.
 
@@ -31,7 +31,7 @@ Prove the complete Release 1 trust loop under realistic success and failure cond
 - The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
 - A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
 
-**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence in the Jira item and `../PROJECT_STATUS.md`.
+**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
 
 ### P13.2 — Review keyboard accessibility, role permissions, partial data, and stale provider states
 
@@ -44,7 +44,7 @@ Prove the complete Release 1 trust loop under realistic success and failure cond
 - The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
 - A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
 
-**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence in the Jira item and `../PROJECT_STATUS.md`.
+**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
 
 ### P13.3 — Measure setup time, time to decisive evidence, user comprehension, and AI evaluation gates
 
@@ -57,7 +57,7 @@ Prove the complete Release 1 trust loop under realistic success and failure cond
 - The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
 - A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
 
-**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence in the Jira item and `../PROJECT_STATUS.md`.
+**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
 
 ### P13.4 — Publish runbooks, Swagger docs, architecture decisions, threat model, and recovery demo
 
@@ -70,7 +70,7 @@ Prove the complete Release 1 trust loop under realistic success and failure cond
 - The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
 - A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
 
-**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence in the Jira item and `../PROJECT_STATUS.md`.
+**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
 
 ### P13.5 — Record explicit release decision with gaps and evidence; archive a replay baseline
 
@@ -83,7 +83,7 @@ Prove the complete Release 1 trust loop under realistic success and failure cond
 - The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
 - A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
 
-**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence in the Jira item and `../PROJECT_STATUS.md`.
+**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
 
 ## Phase review record
 

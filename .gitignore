@@ -14,7 +14,7 @@ dist/
 
 # Disposable review evidence belongs in external task storage.
 /apps/web/.impeccable/review/
-/docs/scrum-13*-verification.md
+/docs/p01*-verification.md
 
 # Local credentials and disposable runtime proof stay in external state storage.
 /infra/local/runtime-state/

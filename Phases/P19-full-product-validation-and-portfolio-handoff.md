@@ -14,7 +14,7 @@ Close the full portfolio with reproducible proof and an honest next decision.
 ## Overall phase acceptance
 
 - The phase outcome is demonstrated: All applicable acceptance journeys and release gates have reproducible evidence.
-- Every subphase below satisfies its acceptance criteria and has a linked proof artifact, such as a passing test, screenshot, API contract, decision record, provider receipt, or Jira issue.
+- Every subphase below satisfies its acceptance criteria and has a linked proof artifact, such as a passing test, screenshot, API contract, decision record, provider receipt, or GitHub/source evidence.
 - Permissions, tenant and environment scope, source provenance, freshness, accessible states, audit, and meaningful failure paths are checked wherever the phase touches them.
 - The parent phase is marked Complete only after the exit review records reviewer, date, evidence links, unresolved gaps, and any follow-on work.
 
@@ -31,7 +31,7 @@ Close the full portfolio with reproducible proof and an honest next decision.
 - The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
 - A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
 
-**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence in the Jira item and `../PROJECT_STATUS.md`.
+**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
 
 ### P19.2 — Run task studies for developer, SRE, platform, security, and leadership roles
 
@@ -44,7 +44,7 @@ Close the full portfolio with reproducible proof and an honest next decision.
 - The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
 - A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
 
-**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence in the Jira item and `../PROJECT_STATUS.md`.
+**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
 
 ### P19.3 — Compare investigation time and evidence quality with existing tools using the same scenario
 
@@ -57,7 +57,7 @@ Close the full portfolio with reproducible proof and an honest next decision.
 - The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
 - A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
 
-**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence in the Jira item and `../PROJECT_STATUS.md`.
+**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
 
 ### P19.4 — Document remaining product gaps, operations manual, architecture, API, model evaluation, and lessons
 
@@ -70,7 +70,7 @@ Close the full portfolio with reproducible proof and an honest next decision.
 - The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
 - A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
 
-**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence in the Jira item and `../PROJECT_STATUS.md`.
+**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
 
 ### P19.5 — Decide commercial validation separately through interviews and design partners
 
@@ -83,7 +83,7 @@ Close the full portfolio with reproducible proof and an honest next decision.
 - The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
 - A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
 
-**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence in the Jira item and `../PROJECT_STATUS.md`.
+**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
 
 ## Phase review record
 

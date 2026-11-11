@@ -14,7 +14,7 @@ Extend the Release 1 Jira connector and canonical delivery model to Jenkins and 
 ## Overall phase acceptance
 
 - The phase outcome is demonstrated: Jenkins runs and Kubernetes/Argo delivery state have full source links and authorized actions; Jira advanced mappings preserve Release 1 behavior.
-- Every subphase below satisfies its acceptance criteria and has a linked proof artifact, such as a passing test, screenshot, API contract, decision record, provider receipt, or Jira issue.
+- Every subphase below satisfies its acceptance criteria and has a linked proof artifact, such as a passing test, screenshot, API contract, decision record, provider receipt, or GitHub/source evidence.
 - Permissions, tenant and environment scope, source provenance, freshness, accessible states, audit, and meaningful failure paths are checked wherever the phase touches them.
 - The parent phase is marked Complete only after the exit review records reviewer, date, evidence links, unresolved gaps, and any follow-on work.
 
@@ -31,7 +31,7 @@ Extend the Release 1 Jira connector and canonical delivery model to Jenkins and 
 - The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
 - A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
 
-**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence in the Jira item and `../PROJECT_STATUS.md`.
+**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
 
 ### P14.2 — Connect Kubernetes workload state and Argo CD/Rollouts history
 
@@ -44,7 +44,7 @@ Extend the Release 1 Jira connector and canonical delivery model to Jenkins and 
 - The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
 - A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
 
-**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence in the Jira item and `../PROJECT_STATUS.md`.
+**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
 
 ### P14.3 — Connect Jenkins jobs/builds/stages/tests/artifacts and map retries and parameters into canonical CI states
 
@@ -57,7 +57,7 @@ Extend the Release 1 Jira connector and canonical delivery model to Jenkins and 
 - The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
 - A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
 
-**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence in the Jira item and `../PROJECT_STATUS.md`.
+**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
 
 ### P14.4 — Add manual trigger/cancel/retry and AI proposal handoff through the same action framework
 
@@ -70,7 +70,7 @@ Extend the Release 1 Jira connector and canonical delivery model to Jenkins and 
 - The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
 - A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
 
-**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence in the Jira item and `../PROJECT_STATUS.md`.
+**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
 
 ### P14.5 — Validate denied scopes, rate limits, failure recovery, and parity with GitHub Actions flows
 
@@ -83,7 +83,7 @@ Extend the Release 1 Jira connector and canonical delivery model to Jenkins and 
 - The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
 - A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
 
-**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence in the Jira item and `../PROJECT_STATUS.md`.
+**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
 
 ## Phase review record
 

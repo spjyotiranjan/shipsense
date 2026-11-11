@@ -14,7 +14,7 @@ Answer application questions with exact scope, visible source planning, and defe
 ## Overall phase acceptance
 
 - The phase outcome is demonstrated: Cited explain/compare answers preserve scope and abstain on denied or stale decisive sources.
-- Every subphase below satisfies its acceptance criteria and has a linked proof artifact, such as a passing test, screenshot, API contract, decision record, provider receipt, or Jira issue.
+- Every subphase below satisfies its acceptance criteria and has a linked proof artifact, such as a passing test, screenshot, API contract, decision record, provider receipt, or GitHub/source evidence.
 - Permissions, tenant and environment scope, source provenance, freshness, accessible states, audit, and meaningful failure paths are checked wherever the phase touches them.
 - The parent phase is marked Complete only after the exit review records reviewer, date, evidence links, unresolved gaps, and any follow-on work.
 
@@ -31,7 +31,7 @@ Answer application questions with exact scope, visible source planning, and defe
 - The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
 - A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
 
-**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence in the Jira item and `../PROJECT_STATUS.md`.
+**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
 
 ### P09.2 — Build authorized source planner with cost/time/data budgets and cancellation
 
@@ -44,7 +44,7 @@ Answer application questions with exact scope, visible source planning, and defe
 - The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
 - A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
 
-**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence in the Jira item and `../PROJECT_STATUS.md`.
+**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
 
 ### P09.3 — Use LangGraph for resumable turns and LangChain adapters where useful; persist scoped checkpoints in MongoDB
 
@@ -57,7 +57,7 @@ Answer application questions with exact scope, visible source planning, and defe
 - The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
 - A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
 
-**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence in the Jira item and `../PROJECT_STATUS.md`.
+**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
 
 ### P09.4 — Use OpenAI API behind a model adapter; require structured claim/evidence outputs and log version/cost
 
@@ -70,7 +70,7 @@ Answer application questions with exact scope, visible source planning, and defe
 - The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
 - A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
 
-**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence in the Jira item and `../PROJECT_STATUS.md`.
+**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
 
 ### P09.5 — Display facts, interpretations, contradictions, gaps, confidence limits, source links, and correction history
 
@@ -83,7 +83,7 @@ Answer application questions with exact scope, visible source planning, and defe
 - The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
 - A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
 
-**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence in the Jira item and `../PROJECT_STATUS.md`.
+**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
 
 ### P09.6 — Test cross-tenant leaks, injected logs/runbooks, revoked access, stale memory, and tool failures
 
@@ -96,7 +96,7 @@ Answer application questions with exact scope, visible source planning, and defe
 - The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
 - A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
 
-**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence in the Jira item and `../PROJECT_STATUS.md`.
+**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
 
 ## Phase review record
 

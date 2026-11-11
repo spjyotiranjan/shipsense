@@ -1,20 +1,20 @@
 # P00 — Scope and technical decisions
 
-**Current status:** Complete. This phase contains planning and Jira setup, not product implementation.
+**Current status:** Complete. This phase contains planning and historical tracking setup, not product implementation.
 **Prerequisites:** product PDF and owner's stack choices.
-**Phase outcome:** accepted decision records, an active P00 Jira backlog, and an agreed Release 1 reference scenario.
+**Phase outcome:** accepted decision records, phase acceptance checkpoints, and an agreed Release 1 reference scenario.
 
 ## Purpose and scope
 
 Turn the product vision and selected stack into explicit, reviewable decisions and an executable backlog.
 
-**Included:** Product scope, reference integration pack, architecture choices, cost boundary, and Jira planning.
+**Included:** Product scope, reference integration pack, architecture choices, cost boundary, and checkpoint planning.
 **Critical failure boundary:** An unresolved release boundary or an unowned decision cannot be treated as agreed.
 
 ## Overall phase acceptance
 
-- The phase outcome is demonstrated: Accepted decision records, active-phase Jira backlog, and an agreed Release 1 reference scenario.
-- Every subphase below satisfies its acceptance criteria and has a linked proof artifact, such as a passing test, screenshot, API contract, decision record, provider receipt, or Jira issue.
+- The phase outcome is demonstrated: Accepted decision records, phase acceptance checkpoints, and an agreed Release 1 reference scenario.
+- Every subphase below satisfies its acceptance criteria and has a linked proof artifact, such as a passing test, screenshot, API contract, decision record, provider receipt, or GitHub/source evidence.
 - Permissions, tenant and environment scope, source provenance, freshness, accessible states, audit, and meaningful failure paths are checked wherever the phase touches them.
 - The parent phase is marked Complete only after the exit review records reviewer, date, evidence links, unresolved gaps, and any follow-on work.
 
@@ -31,7 +31,7 @@ Turn the product vision and selected stack into explicit, reviewable decisions a
 - The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
 - A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
 
-**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence in the Jira item and `../PROJECT_STATUS.md`.
+**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
 
 ### P00.2 — Record the owner's Next.js, FastAPI, MongoDB, R2, LangChain/LangGraph, OpenAI API, Swagger, Jira, and Azure choices
 
@@ -44,7 +44,7 @@ Turn the product vision and selected stack into explicit, reviewable decisions a
 - The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
 - A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
 
-**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence in the Jira item and `../PROJECT_STATUS.md`.
+**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
 
 ### P00.3 — Write this roadmap, status method, and repository handoff
 
@@ -57,7 +57,7 @@ Turn the product vision and selected stack into explicit, reviewable decisions a
 - The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
 - A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
 
-**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence in the Jira item and `../PROJECT_STATUS.md`.
+**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
 
 ### P00.4 — Decide Release 1 integration order, demo service, identity model, provisional region, spending controls, and measurable exit thresholds
 
@@ -70,7 +70,7 @@ Turn the product vision and selected stack into explicit, reviewable decisions a
 - The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
 - A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
 
-**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence in the Jira item and `../PROJECT_STATUS.md`.
+**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
 
 ### P00.5 — Record architecture decisions for Azure services, MongoDB hosting, queue/worker model, R2 retention, provider credentials, and model selection
 
@@ -83,24 +83,23 @@ Turn the product vision and selected stack into explicit, reviewable decisions a
 - The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
 - A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
 
-**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence in the Jira item and `../PROJECT_STATUS.md`.
+**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence under the checkpoint in `../PROJECT_STATUS.md` and the relevant pull request.
 
-### P00.6 — Configure phase-based Jira epics and sprints; create only the started P00 phase records
+### P00.6 — Establish phase acceptance tracking
 
-**Status:** Complete; sprint remains unstarted for manual scheduling.
-**Expected result:** Record the phase-based Jira workflow in The Mentalists, then create the P00 epic and P00 sprint. The sprint contains P00.1–P00.6 as tasks with acceptance evidence and dependencies. Team assignments, estimates, dates, and sprint start are added manually later.
+**Status:** Historical planning acceptance retained; development tracking superseded on 10 November 2026 by [Decision 0008](../docs/decisions/0008-checkpoint-development-workflow.md).
+**Expected result:** Inspectable phase/subphase scope, prerequisites, acceptance criteria and evidence locations.
 
 **Acceptance criteria**
 
-- The Mentalists (SCRUM) has P00 epic SCRUM-6 and unstarted sprint 35; SCRUM-7 through SCRUM-12 are members of the sprint and children of the epic, with descriptions, evidence locations, and prerequisite notes. ShipSense future-phase epics and sprints are absent until those phases start.
-- The result can be inspected by another contributor without relying on an unstated local setup or private explanation.
-- A representative failure, denial, missing-data, or recovery case is recorded when this subphase handles external data or effects.
+- Use P0X.YY checkpoints and GitHub/source proof. Related checkpoints may share a PR with separate acceptance evidence. Former external tracker setup is retired; no development administration or linkage is required.
+- Preserve accepted planning history and do not infer fresh product acceptance from this tracking migration.
 
-**Proof to attach:** Link the implementation or decision, its targeted verification result, and any UI/provider/audit evidence in the Jira item and `../PROJECT_STATUS.md`.
+**Proof:** [Roadmap](../ROADMAP.md), [phase index](README.md), [workflow](../docs/DEVELOPMENT_WORKFLOW.md) and [project status](../PROJECT_STATUS.md).
 
 ## Phase review record
 
-- Reviewer and date: ShipSense owner scope answers and Jira setup, 23 October 2026.
-- Evidence links: `../docs/decisions/0001-release-1-scope.md`, `../docs/decisions/0002-architecture-baseline.md`, `../docs/JIRA_WORKFLOW.md`, and Jira SCRUM-6–SCRUM-12.
-- Open risks and owner: Owner approves a monetary ceiling before paid provisioning; P01 validates region and cost; sprint scheduling and team allocation are manual.
-- Decision: P00 planning acceptance met; verify repository/Jira status sync before closing the phase.
+- Reviewer and date: ShipSense owner scope answers and historical planning acceptance, 23 October 2026.
+- Evidence links: `../docs/decisions/0001-release-1-scope.md`, `../docs/decisions/0002-architecture-baseline.md`, `../docs/DEVELOPMENT_WORKFLOW.md`; current tracking supersession in Decision 0008.
+- Open risks and owner: Owner approves a monetary ceiling before paid provisioning; P01 validates region and cost.
+- Decision: P00 planning acceptance met; tracking migration preserves that historical acceptance without creating new product proof.

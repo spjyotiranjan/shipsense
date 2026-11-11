@@ -23,7 +23,7 @@ from shipsense_api.diagnostics import (
     ReadinessResponse,
     VersionResponse,
 )
-from shipsense_api.local_readiness import LocalReadiness
+from shipsense_api.hosted import HostedReadiness
 
 LOGGER = logging.getLogger("shipsense.diagnostics")
 LOGGER.setLevel(logging.INFO)
@@ -86,27 +86,26 @@ def create_app(readiness: ReadinessGate | None = None) -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        runtime = None
-        directory = os.environ.get("SHIPSENSE_LOCAL_STATE_DIR")
-        if readiness is None and directory is not None:
+        runtime: HostedReadiness | None = None
+        if readiness is None:
             try:
-                runtime = await LocalReadiness.open(directory)
+                runtime = await HostedReadiness.from_environment(os.environ)
                 app.state.readiness_gate = runtime.gate
             except Exception:
                 # Invalid configuration keeps public diagnostics available. Never
                 # log validation errors, paths, dependency addresses or secrets.
-                LOGGER.info("local_adapters=unavailable")
-        app.state.local_runtime = runtime
+                LOGGER.info("dependency_adapters=unavailable")
+        app.state.dependency_runtime = runtime
         try:
             yield
         finally:
             app.state.readiness_gate = ReadinessGate()
-            app.state.local_runtime = None
+            app.state.dependency_runtime = None
             if runtime is not None:
                 try:
                     await runtime.close()
                 except Exception:
-                    LOGGER.info("local_adapters=shutdown_failed")
+                    LOGGER.info("dependency_adapters=shutdown_failed")
 
     app = FastAPI(
         title="ShipSense local diagnostics",

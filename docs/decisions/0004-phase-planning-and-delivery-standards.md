@@ -1,5 +1,7 @@
 # Decision 0004 — Phase planning and delivery standards
 
+**Development workflow supersession — 10 November 2026:** [Decision 0008](0008-checkpoint-development-workflow.md) replaces development-tracking, naming, linkage and administration requirements. Product connector scope and technical quality gates remain in force.
+
 **Date:** 8 November 2026
 **Amendment date:** 9 November 2026
 **Status:** Accepted.
@@ -7,7 +9,7 @@
 
 ## Planning and technical boundaries
 
-Prepare phase-specific technical web and backend implementation plans in docs/web-implementation/ and docs/backend-implementation/ before implementation, with the owner's audit and go-ahead. Maintain one plan per area per phase; individual Jira items follow those plans. Revisit planning only when a new finding requires an adjustment. Plans contain technical development scope, dependencies, contracts, acceptance and verification; exclude staffing, internal organization and coordination details. Include accepted plans and these deferred standards in the first working implementation commit and PR; no separate planning commit or PR.
+Prepare phase-specific technical web and backend implementation plans in docs/web-implementation/ and docs/backend-implementation/ before implementation, with the owner's audit and go-ahead. Maintain one plan per area per phase; individual checkpoints follow those plans. Revisit planning only when a new finding requires an adjustment. Plans contain technical development scope, dependencies, contracts, acceptance and verification; exclude staffing, internal organization and coordination details. Include accepted plans and these deferred standards in the first working implementation commit and PR; no separate planning commit or PR.
 
 Python FastAPI is the main backend for canonical domain behavior, authorization and orchestration. Next.js API routes provide the normal web-facing backend layer and call FastAPI for canonical behavior, as established by Decision 0002.
 
@@ -17,9 +19,9 @@ Use a simple, functional and consistent UI while broad product coverage is being
 
 ## Delivery
 
-Each Jira item has its own branch, issue-scoped commits and PR with its SCRUM key.
+Related checkpoints may share descriptive branches, commits and PRs; retain evidence and acceptance for each checkpoint under Decision 0008.
 
-Accepted coding work is complete after required local checks and direct behavior proof, independent exact-current-SHA review and acceptance. It does not wait for the owner’s PR review or merge. Routine low-risk changes are merged automatically after these gates and required remote checks; risky or complex merges require owner review. This replaces the prior owner-only manual-merge policy. Preserve owner-controlled sprint administration, permission boundaries, spending approval and all quality gates.
+Accepted coding work is complete after required local checks and direct behavior proof, independent exact-current-SHA review and acceptance. It does not wait for the owner’s PR review or merge. Routine low-risk changes are merged automatically after these gates and required remote checks; risky or complex merges require owner review. This replaces the prior owner-only manual-merge policy. Preserve permission boundaries, spending approval and all quality gates.
 
 ## Repository hygiene
 
