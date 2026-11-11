@@ -123,9 +123,48 @@ class Child:
 def assert_free(port: int) -> None:
     try:
         with socket.socket() as listener:
+            # POSIX servers reuse closed connections in TIME_WAIT. Windows
+            # instead needs exclusive binding: SO_REUSEADDR can share a live
+            # listener there. listen() also detects a competing POSIX listener
+            # when both sockets opted into address reuse; never use REUSEPORT.
+            if sys.platform == "win32":
+                listener.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+            else:
+                listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             listener.bind(("127.0.0.1", port))
+            listener.listen(1)
     except OSError:
         raise LocalFailure("SMOKE_PORT_CONFLICT") from None
+
+
+def cleanup(directory: Path, children: list[Child], browser: Child | None) -> None:
+    if browser is not None and browser.process.poll() is None:
+        assert browser.process.stdin is not None
+        try:
+            browser.process.stdin.write("quit\n")
+            browser.process.stdin.flush()
+            browser.process.wait(timeout=10)
+        except OSError, subprocess.TimeoutExpired:
+            pass
+    stop_failed = False
+    for child in reversed(children):
+        try:
+            child.stop()
+        except OSError, subprocess.SubprocessError:
+            stop_failed = True
+    ports_free = True
+    for port in (8000, 3000):
+        try:
+            assert_free(port)
+        except LocalFailure:
+            ports_free = False
+    (directory / "cleanup.json").write_text(
+        json.dumps({"ownedProcessesStopped": not stop_failed, "portsAvailable": ports_free}) + "\n"
+    )
+    if stop_failed:
+        raise LocalFailure("OWNED_PROCESS_CLEANUP_FAILED")
+    if not ports_free:
+        raise LocalFailure("SMOKE_PORT_CONFLICT")
 
 
 def request(path: str, expected: int, *, web: bool = False) -> dict[str, Any]:
@@ -243,6 +282,7 @@ def smoke(directory: Path, *, hosted: bool, fail_upstream: bool) -> None:
         asyncio.run(verify_hosted_access(configured))
     children: list[Child] = []
     browser: Child | None = None
+    primary_failed = False
     try:
         assert_free(3000)
         # Check missing and malformed configuration against actual HTTP. The
@@ -297,44 +337,35 @@ def smoke(directory: Path, *, hosted: bool, fail_upstream: bool) -> None:
         wait_http("/health/ready", 200 if hosted else 503)
         request("/api/foundation", 200, web=True)
         browser.exchange("recovered", "BROWSER_RECOVERED")
-        (directory / "smoke.json").write_text(
-            json.dumps(
-                {
-                    "status": "passed",
-                    "profile": "hosted" if hosted else "credential-free",
-                    "hostedAccessVerified": hosted,
-                    "providerWrites": 0,
-                    "unconfiguredReady": 503,
-                    "configuredReady": 200 if hosted else None,
-                    "browserRecovery": True,
-                }
-            )
-            + "\n"
-        )
-        print(
-            "Hosted integration passed." if hosted else "Credential-free API/web smoke passed.",
-            flush=True,
-        )
+    except BaseException:
+        primary_failed = True
+        raise
     finally:
-        if browser is not None and browser.process.poll() is None:
-            assert browser.process.stdin is not None
-            try:
-                browser.process.stdin.write("quit\n")
-                browser.process.stdin.flush()
-                browser.process.wait(timeout=10)
-            except OSError, subprocess.TimeoutExpired:
-                pass
-        stop_failed = False
-        for child in reversed(children):
-            try:
-                child.stop()
-            except OSError, subprocess.SubprocessError:
-                stop_failed = True
-        if stop_failed:
-            raise LocalFailure("OWNED_PROCESS_CLEANUP_FAILED")
-        for port in (8000, 3000):
-            assert_free(port)
-        (directory / "cleanup.json").write_text(json.dumps({"ownedProcessesStopped": True}) + "\n")
+        try:
+            cleanup(directory, children, browser)
+        except Exception:
+            # Preserve the original failure/cancellation; cleanup.json records
+            # any secondary stop/port failure without exposing exception data.
+            if not primary_failed:
+                raise
+    (directory / "smoke.json").write_text(
+        json.dumps(
+            {
+                "status": "passed",
+                "profile": "hosted" if hosted else "credential-free",
+                "hostedAccessVerified": hosted,
+                "providerWrites": 0,
+                "unconfiguredReady": 503,
+                "configuredReady": 200 if hosted else None,
+                "browserRecovery": True,
+            }
+        )
+        + "\n"
+    )
+    print(
+        "Hosted integration passed." if hosted else "Credential-free API/web smoke passed.",
+        flush=True,
+    )
 
 
 def main() -> int:
