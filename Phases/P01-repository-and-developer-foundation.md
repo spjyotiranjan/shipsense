@@ -1,6 +1,6 @@
 # P01 — Repository and developer foundation
 
-**Current status:** In progress (9 November 2026). P01.1/2 accepted with PR #4/#5 merged; P01.3–P01.5 and full phase exit remain unverified. See [current proof and limitations](../PROJECT_STATUS.md).
+**Current status:** In progress (9 November 2026). P01.1/2 accepted with PR #4/#5 merged; SCRUM-15 bounded local core is accepted but unmerged; full SCRUM-16 acceptance, SCRUM-17 and phase exit remain unverified. See [current proof and limitations](../PROJECT_STATUS.md).
 **Prerequisites:** P00 architecture decisions.
 **Phase outcome:** reproducible local boot, automated checks, and a working web-to-API request.
 
@@ -51,7 +51,7 @@ Establish a reproducible development workspace and the first working web-to-API 
 
 ### P01.3 — Add local MongoDB, queue emulator/adapter, R2 compatible development storage, and seeded demo data
 
-**Status:** In progress; bounded local core implemented, independent review and acceptance pending.
+**Status:** Bounded local core accepted at `c441de1` on 9 November 2026; [acceptance/Done](https://spjyotiranjan.atlassian.net/browse/SCRUM-15?focusedCommentId=10011), [PR #7](https://github.com/spjyotiranjan/shipsense/pull/7) merge remains pending. Issuer/reference runtime validation and other phase exit gates are not complete.
 **Implementation/proof:** [runbook](../infra/local/README.md), [shared local adapters](../packages/local-core/src/shipsense_local), [safety tests](../packages/local-core/tests/test_unit.py), [real Mongo/S3 integration and outage tests](../packages/local-core/tests/test_integration.py), [six inert scoped fixtures](../tests/fixtures/p01) and [SCRUM-15](https://spjyotiranjan.atlassian.net/browse/SCRUM-15). Decision 0007 controls digest/client pins and private-access/integrity requirements. The core excludes issuer/reference runtime, full API readiness wiring, production parity and paid provisioning; those remain phase exit gates.
 **Expected result:** Add local MongoDB, queue emulator/adapter, R2 compatible development storage, and seeded demo data.
 
@@ -65,8 +65,8 @@ Establish a reproducible development workspace and the first working web-to-API 
 
 ### P01.4 — Build Next.js shell and FastAPI health/version endpoints; document Swagger/OpenAPI contracts
 
-**Status:** In progress; credential-free API/web diagnostic slice accepted and merged in [PR #6](https://github.com/spjyotiranjan/shipsense/pull/6) at `2353914`; full real-adapter readiness/outage/recovery acceptance remains gated.
-**Implementation:** [canonical API](../services/api/src/shipsense_api/main.py), [bounded readiness interface](../services/api/src/shipsense_api/diagnostics.py), [contract/failure tests](../services/api/tests/test_diagnostics.py) and [generated OpenAPI](../packages/contracts/openapi.json). Local startup exposes version/liveness without dependencies and returns safe readiness 503 with no adapters installed. This is partial implementation, not real adapter outage/recovery proof or accepted P01.4 completion.
+**Status:** In progress; credential-free API/web diagnostic slice accepted and merged in [PR #6](https://github.com/spjyotiranjan/shipsense/pull/6) at `2353914`; real-adapter lifespan integration and direct local HTTP outage/recovery proof now implemented; independent exact-revision review and acceptance pending.
+**Implementation:** [canonical API](../services/api/src/shipsense_api/main.py), [bounded readiness interface](../services/api/src/shipsense_api/diagnostics.py), [contract/failure tests](../services/api/tests/test_diagnostics.py) and [generated OpenAPI](../packages/contracts/openapi.json). Default startup exposes version/liveness/schema without backing services and keeps readiness503. Explicit validated external local configuration enables [owned real Mongo/S3 and same-process queue](../services/api/src/shipsense_api/local_readiness.py). [Real integration tests](../services/api/tests/test_readiness_integration.py) and direct HTTP proof exercise configured200, separate Mongo/storage200-to-503-to-200 with live/version/web remaining200, bounded storage deadlines/capacity/cancellation, queue unavailable/recovery and clean restart/shutdown. [Configuration/lifecycle tests](../services/api/tests/test_local_lifespan.py) cover invalid/missing/foreign configuration and redaction. Public OpenAPI is unchanged. Author proof is pending independent review and acceptance; no P01.4 or phase completion inferred.
 **Implementation prerequisite:** tested accepted SCRUM-13/14 supports credential-free canonical version/liveness/safe-error contracts and subsequent web diagnostic integration without SCRUM-15.
 **Full acceptance prerequisite:** SCRUM-15 local adapters, seeded dependencies and real readiness outage/recovery proof; no mocked readiness substitution. Preserve all criteria below and in both technical plans.
 **Web implementation:** [diagnostic UI](../apps/web/src/components/foundation-status.tsx), [same-origin route](../apps/web/src/app/api/foundation/route.ts), [bounded transport](../apps/web/src/lib/server/api-transport.ts) and [failure/race tests](../apps/web/tests/diagnostics.test.ts). Run the [web reproduction and verification commands](../apps/web/README.md). Safe transport errors share the generated canonical envelope. Connected indicates API reachability only. Full readiness and phase exit remain unverified.
