@@ -13,7 +13,7 @@ class LifespanTests(unittest.TestCase):
         runtime = AsyncMock()
         runtime.close.side_effect = RuntimeError("private-shutdown-value")
         with (
-            patch.dict(os.environ, {"SHIPSENSE_DEPENDENCIES": "hosted"}, clear=True),
+            patch.dict(os.environ, {}, clear=True),
             patch("shipsense_api.main.HostedReadiness.from_environment", return_value=runtime),
             self.assertLogs("shipsense.diagnostics") as logs,
             TestClient(create_app()) as client,

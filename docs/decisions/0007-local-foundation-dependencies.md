@@ -4,7 +4,7 @@
 **Status:** Accepted starting choices for the local P01 core; runtime compatibility and delivery acceptance remain required.
 **Decision owner:** ShipSense CTO, within the accepted architecture baseline.
 
-**Supersession:** The [hosted-only integration amendment](#hosted-only-integration-supersession--11-november-2026) supersedes all self-hosted/container application, development and integration paths below, including the earlier synthetic-fixture permission. Historical sections preserve context and do not govern the active path.
+**Supersession:** The [hosted profile amendment](#hosted-profile-and-single-integration-workflow--11-november-2026) governs current database naming and the single Integration workflow. The [hosted-only integration amendment](#hosted-only-integration-supersession--11-november-2026) supersedes all self-hosted/container application, development and integration paths below, including the earlier synthetic-fixture permission. Historical sections preserve context and do not govern the active path.
 
 ## Local core
 
@@ -133,3 +133,15 @@ Update P01.3 acceptance to documented hosted setup, private server configuration
 Rationale: the owner uses hosted endpoints and explicitly requested removing Docker/self-hosting from integration to simplify the development path.
 
 Sources: authenticated user comments 6c7b8ffa-afbb-47d4-8a84-43d4ffb5d5a8 and a1675686-0d8d-4c76-bae2-e507b496fe2f (10 November 2026 UTC; 11 November Asia/Kolkata). Architecture Decision 0002 and this record's hosted privacy, boundedness and no-effect constraints otherwise remain in force.
+
+## Hosted profile and single Integration workflow ? 11 November 2026
+
+**Status:** Accepted; supersedes dependency selectors and the separate hosted workflow above.
+
+MongoDB configuration supplies a validated base database name and server profile. Derive the effective database exactly as `{base}-{profile}`; validate the final database name before client creation. Retain the foundation's local-only profile and production refusal until production authority is implemented. Hosted MongoDB and private Cloudflare R2 are the sole dependency path. Remove the dependency selector and obsolete alternatives.
+
+Use one workflow named Integration. Its pull-request/push diagnostics remain credential-free. An explicitly manual job on reviewed code uses the protected environment's dedicated non-production read-only settings; provider secrets never enter untrusted PR jobs. Keep TLS verification, redaction, deadlines, cancellation, client cleanup, no provider writes and no spending authorization. Local and protected remote hosted outcomes remain separate evidence gates.
+
+Keep supplied ignored local configuration private. Commit only placeholder values in `.env.example`; the example is never a credential source. Update existing phase criteria, plans and runbooks consistently.
+
+Source: authenticated owner comment `c506f5bd-9608-4721-ba0c-5f83a23c57f8`; dated canonical transcription delegated in Patrick handoff `2ef95baf-af1a-47ff-8d16-b0dc9f87ef3d`.

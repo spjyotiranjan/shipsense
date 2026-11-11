@@ -176,7 +176,14 @@ async def verify_hosted_access(environment: dict[str, str]) -> None:
     settings = HostedSettings.from_environment(environment)
     runtime = await HostedReadiness.from_environment(environment)
     try:
-        if not await runtime.clients.mongo_probe():
+        # Allow bounded cold DNS/TLS discovery without relaxing individual probe
+        # deadlines. A persistent denial or outage must still fail the command.
+        for attempt in range(3):
+            if await runtime.clients.mongo_probe():
+                break
+            if attempt < 2:
+                await asyncio.sleep(0.15)
+        else:
             raise LocalFailure("HOSTED_MONGODB_READ_FAILED")
         if not await runtime.clients.objects.probe():
             raise LocalFailure("HOSTED_R2_ACCESS_FAILED")
@@ -186,8 +193,8 @@ async def verify_hosted_access(environment: dict[str, str]) -> None:
                 private_s3(
                     settings.r2_endpoint,
                     "auto",
-                    "invalid-test-key",
-                    "invalid-test-secret",
+                    "0" * 32,
+                    "0" * 64,
                     unsigned=mode == "anonymous",
                 ),
             )
@@ -195,9 +202,28 @@ async def verify_hosted_access(environment: dict[str, str]) -> None:
 
                 def denied() -> bool:
                     try:
-                        denied_objects._client.head_bucket(Bucket=settings.r2_bucket)
+                        # HEAD hides R2's auth error body. Request zero keys to
+                        # distinguish authentication rejection from bad requests
+                        # without retrieving object names or customer contents.
+                        denied_objects._client.list_objects_v2(Bucket=settings.r2_bucket, MaxKeys=0)
                     except ClientError as error:
-                        return bool(error.response["ResponseMetadata"]["HTTPStatusCode"] == 403)
+                        status = error.response["ResponseMetadata"]["HTTPStatusCode"]
+                        detail = error.response.get("Error", {})
+                        return (
+                            status in {401, 403}
+                            and detail.get("Code")
+                            in {
+                                "Unauthorized",
+                                "AccessDenied",
+                                "SignatureDoesNotMatch",
+                                "InvalidAccessKeyId",
+                            }
+                        ) or (
+                            mode == "anonymous"
+                            and status == 400
+                            and detail.get("Code") == "InvalidArgument"
+                            and detail.get("Message") == "Authorization"
+                        )
                     return False
 
                 if not await denied_objects.call(denied):
@@ -213,12 +239,7 @@ def smoke(directory: Path, *, hosted: bool, fail_upstream: bool) -> None:
     configured = env.copy()
     if hosted:
         HostedSettings.from_environment(os.environ)
-        if (
-            os.environ.get("SHIPSENSE_PROFILE", "local") != "local"
-            or os.environ.get("SHIPSENSE_DEPENDENCIES", "hosted") != "hosted"
-        ):
-            raise LocalFailure("HOSTED_TEST_PROFILE_REQUIRED")
-        configured.update({key: os.environ[key] for key in HOSTED_KEYS})
+        configured.update({key: os.environ[key] for key in HOSTED_KEYS if key in os.environ})
         asyncio.run(verify_hosted_access(configured))
     children: list[Child] = []
     browser: Child | None = None

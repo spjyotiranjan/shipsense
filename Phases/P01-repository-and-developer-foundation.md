@@ -1,6 +1,6 @@
 # P01 — Repository and developer foundation
 
-**Scope update — 11 November 2026:** [Decision 0007 hosted-only amendment](../docs/decisions/0007-local-foundation-dependencies.md#hosted-only-integration-supersession--11-november-2026) replaces all self-hosted/container application, development and integration requirements. Use existing hosted MongoDB/private R2 through placeholder-only [env.example](../env.example). Credential-free PR checks and separate protected manual hosted integration use the [same commands](../docs/developer-setup.md#clean-integration-commands). Historical local acceptance remains revision-specific; hosted local/remote success and full P01 exit are unverified until authorized test configuration is supplied.
+**Scope update — 11 November 2026:** [Decision 0007 hosted-only amendment](../docs/decisions/0007-local-foundation-dependencies.md#hosted-only-integration-supersession--11-november-2026) replaces all self-hosted/container application, development and integration requirements. Use existing hosted MongoDB/private R2 through placeholder-only [.env.example](../.env.example). Credential-free PR checks and protected manual hosted job in Integration integration use the [same commands](../docs/developer-setup.md#clean-integration-commands). Historical local acceptance remains revision-specific; configuration has been supplied; local/remote outcomes and full P01 exit require actual verification. MongoDB uses a validated `{base}-{profile}` target, hosted dependencies are unconditional, and one Integration workflow contains credential-free diagnostics plus its manual protected hosted job.
 
 **Current status:** In progress (9 November 2026). P01.1/2 accepted with PR #4/#5 merged; P01.3 bounded local core is accepted but unmerged; P01.4 accepted but PR #8 unmerged; P01.5 clean integration CI is in progress and phase exit remains unverified. See [current proof and limitations](../PROJECT_STATUS.md).
 **Prerequisites:** P00 architecture decisions.
@@ -53,7 +53,7 @@ Establish a reproducible development workspace and the first working web-to-API 
 
 ### P01.3 — Configure hosted MongoDB/private R2 and a bounded no-effect queue
 
-**Status:** In progress for current hosted proof. Historical synthetic core was accepted at `c441de1` on 9 November 2026 ([source PR #7](https://github.com/spjyotiranjan/shipsense/pull/7)); its merge and hosted compatibility are separate facts. The self-hosted implementation is retired by the newer owner direction.
+**Status:** In progress for current hosted proof. Author local hosted read/private-authentication checks and API/web/browser recovery passed on 11 November ([PR #9](https://github.com/spjyotiranjan/shipsense/pull/9)); protected remote proof, independent current-SHA review and acceptance remain pending. Historical synthetic core was accepted at `c441de1` on 9 November 2026 ([source PR #7](https://github.com/spjyotiranjan/shipsense/pull/7)); its merge and hosted compatibility are separate facts. The self-hosted implementation is retired by the newer owner direction.
 
 **Implementation:** [Hosted settings/clients](../services/api/src/shipsense_api/hosted.py), [API configuration](../services/api/README.md), [bounded shared storage](../packages/local-core/src/shipsense_local/adapters.py), [same-process queue](../packages/local-core/src/shipsense_local/queue.py), [SDK/config/lifecycle tests](../services/api/tests/test_hosted.py) and [shared utility tests](../packages/local-core/tests/test_unit.py).
 
@@ -61,7 +61,7 @@ Establish a reproducible development workspace and the first working web-to-API 
 
 - A new developer supplies existing hosted settings privately using the placeholder-only example and documented command; no database/storage installation, container or seed is required.
 - Strict server-only configuration, verified TLS and bounded clients enforce database/bucket scope. Missing/invalid values keep readiness 503 without preventing independent live/version/web diagnostics; public errors/logs hide secrets and endpoints.
-- A bounded read-only integration against authorized non-production MongoDB/R2 proves scoped read, authenticated bucket access and anonymous/wrong-key denial. It performs no schema/seed/object writes, provisioning or provider disruption; local and protected remote outcomes are recorded separately.
+- A bounded read-only integration against authorized non-production MongoDB/R2 proves scoped read, authenticated bucket access and anonymous/wrong-key authentication rejection using a zero-key request. It performs no schema/seed/object writes, provisioning or provider disruption; local and protected remote outcomes are recorded separately.
 - Queue tests preserve duplicate/reorder/poison/expiry/timeout/capacity/no-effect behavior. Client tests cover deadlines, cancellation, denial/recovery, partial construction and draining shutdown.
 
 **Proof to attach:** Current revision, profile and local/remote hosted results under this checkpoint. Missing access is an explicit remaining gate; mocked SDK success or historical emulator proof is insufficient.
@@ -85,7 +85,7 @@ Establish a reproducible development workspace and the first working web-to-API 
 
 ### P01.5 — Create CI that builds both apps and runs contract, unit, and smoke checks
 
-**Status:** In progress; [P01.5](https://github.com/spjyotiranjan/shipsense/pull/9). Maintained [local/CI commands](../docs/developer-setup.md#clean-integration-commands), [workflow](../.github/workflows/integration.yml), [credential-free diagnostics and hosted integration](../scripts/integration-smoke.py) and [failure/recovery gates](../scripts/verify-integration-gates.py) are implemented. Revised hosted-only checks, live local/protected remote proof, independent current-SHA review and acceptance remain delivery gates; historical container results do not cover this revision.
+**Status:** In progress; [P01.5](https://github.com/spjyotiranjan/shipsense/pull/9). Maintained [local/CI commands](../docs/developer-setup.md#clean-integration-commands), [workflow](../.github/workflows/integration.yml), [credential-free diagnostics and hosted integration](../scripts/integration-smoke.py) and [failure/recovery gates](../scripts/verify-integration-gates.py) are implemented. Revised hosted-only local checks and actual read-only local hosted/browser recovery proof pass; protected remote proof, independent current-SHA review and acceptance remain delivery gates; historical container results do not cover this revision.
 **Expected result:** Create CI that builds both apps and runs contract, unit, and smoke checks.
 
 **Acceptance criteria**

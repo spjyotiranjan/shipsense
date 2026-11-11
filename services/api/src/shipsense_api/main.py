@@ -87,11 +87,8 @@ def create_app(readiness: ReadinessGate | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         runtime: HostedReadiness | None = None
-        mode = os.environ.get("SHIPSENSE_DEPENDENCIES", "hosted")
         if readiness is None:
             try:
-                if mode != "hosted":
-                    raise ValueError("INVALID_DEPENDENCY_MODE")
                 runtime = await HostedReadiness.from_environment(os.environ)
                 app.state.readiness_gate = runtime.gate
             except Exception:

@@ -114,7 +114,7 @@ class HostedConfigurationTests(unittest.TestCase):
                 clients.assert_not_called()
 
     def test_example_is_nonfunctional_and_legacy_state_is_never_fallback(self):
-        example = Path(__file__).resolve().parents[3] / "env.example"
+        example = Path(__file__).resolve().parents[3] / ".env.example"
         values = dict(
             line.split("=", 1)
             for line in example.read_text().splitlines()
@@ -123,15 +123,31 @@ class HostedConfigurationTests(unittest.TestCase):
         self.assertTrue(all(not values[key] for key in environment()))
         with self.assertRaisesRegex(LocalFailure, "^HOSTED_CONFIG_INVALID$"):
             HostedSettings.from_environment(values)
-        for mode in (None, "hosted", "test-fixtures", "unknown-private-mode"):
-            values = {"SHIPSENSE_LOCAL_STATE_DIR": "//never-inspect.invalid/state"}
-            if mode is not None:
-                values["SHIPSENSE_DEPENDENCIES"] = mode
+        for legacy_state in ("//never-inspect.invalid/state", "unused-private-state"):
+            values = {"SHIPSENSE_LOCAL_STATE_DIR": legacy_state}
             with (
                 patch.dict(os.environ, values, clear=True),
                 TestClient(create_app()) as api,
             ):
                 self.assertEqual(api.get("/health/ready").status_code, 503)
+
+    def test_database_base_and_profile_validate_the_final_target_before_clients(self):
+        for base in ("ShipSense", "shipsense-local", "a" * 57):
+            settings = HostedSettings.from_environment(
+                environment() | {"SHIPSENSE_MONGODB_DATABASE": base, "SHIPSENSE_PROFILE": "local"}
+            )
+            self.assertEqual(settings.effective_database, base + "-local")
+        for changed in (
+            {"SHIPSENSE_MONGODB_DATABASE": "a" * 58},
+            {"SHIPSENSE_MONGODB_DATABASE": "admin"},
+            {"SHIPSENSE_MONGODB_DATABASE": "base/other"},
+            {"SHIPSENSE_PROFILE": ""},
+            {"SHIPSENSE_PROFILE": "../other"},
+            {"SHIPSENSE_PROFILE": "production"},
+        ):
+            with self.subTest(fields=tuple(changed)):
+                with self.assertRaisesRegex(LocalFailure, "^HOSTED_CONFIG_INVALID$"):
+                    HostedSettings.from_environment(environment() | changed)
 
     def test_srv_and_standard_replica_strings_keep_secrets_redacted(self):
         for uri in (
@@ -173,6 +189,7 @@ class HostedLifecycleTests(unittest.IsolatedAsyncioTestCase):
         mongo.__getitem__ = Mock(return_value=Mock(fixtures=Mock(find_one=read)))
         with patch("shipsense_api.hosted.AsyncMongoClient", return_value=mongo) as factory:
             runtime = await HostedReadiness.from_environment(environment())
+        mongo.__getitem__.assert_called_once_with("shipsense_development-local")
         options = factory.call_args.kwargs
         self.assertTrue(options["tls"])
         self.assertFalse(options["tlsAllowInvalidCertificates"])
@@ -291,9 +308,9 @@ class HostedIntegrationBoundaryTests(unittest.IsolatedAsyncioTestCase):
         runtime.clients.objects.probe = AsyncMock(return_value=True)
         runtime.close = AsyncMock()
         client = Mock()
-        client.head_bucket.side_effect = ClientError(
+        client.list_objects_v2.side_effect = ClientError(
             {"Error": {"Code": "AccessDenied"}, "ResponseMetadata": {"HTTPStatusCode": 403}},
-            "HeadBucket",
+            "ListObjectsV2",
         )
         with (
             patch.object(smoke.HostedReadiness, "from_environment", return_value=runtime),
@@ -303,12 +320,18 @@ class HostedIntegrationBoundaryTests(unittest.IsolatedAsyncioTestCase):
         runtime.clients.mongo_probe.assert_awaited_once()
         runtime.clients.objects.probe.assert_awaited_once()
         runtime.close.assert_awaited_once()
-        self.assertEqual(client.head_bucket.call_count, 2)
+        self.assertEqual(client.list_objects_v2.call_count, 2)
+        self.assertTrue(
+            all(
+                call.kwargs == {"Bucket": "shipsense-development", "MaxKeys": 0}
+                for call in client.list_objects_v2.call_args_list
+            )
+        )
         self.assertEqual(client.close.call_count, 2)
         self.assertEqual(
             [call.kwargs["unsigned"] for call in factory.call_args_list], [True, False]
         )
-        self.assertEqual({call[0] for call in client.method_calls}, {"head_bucket", "close"})
+        self.assertEqual({call[0] for call in client.method_calls}, {"list_objects_v2", "close"})
 
     async def test_transport_failure_cannot_count_as_anonymous_denial_or_skip_close(self):
         smoke = self.smoke_module()
@@ -317,7 +340,7 @@ class HostedIntegrationBoundaryTests(unittest.IsolatedAsyncioTestCase):
         runtime.clients.objects.probe = AsyncMock(return_value=True)
         runtime.close = AsyncMock()
         client = Mock()
-        client.head_bucket.side_effect = OSError("private-provider-error")
+        client.list_objects_v2.side_effect = OSError("private-provider-error")
         with (
             patch.object(smoke.HostedReadiness, "from_environment", return_value=runtime),
             patch.object(smoke, "private_s3", return_value=client),
@@ -326,3 +349,63 @@ class HostedIntegrationBoundaryTests(unittest.IsolatedAsyncioTestCase):
                 await smoke.verify_hosted_access(environment())
         runtime.close.assert_awaited_once()
         client.close.assert_called_once()
+
+    async def test_r2_authentication_errors_are_distinct_from_arbitrary_http_failures(self):
+        smoke = self.smoke_module()
+        for status, code, message, accepted in (
+            (400, "InvalidArgument", "Authorization", True),
+            (400, "InvalidArgument", "Invalid bucket", False),
+            (403, "Unknown", "Unknown", False),
+            (503, "ServiceUnavailable", "Unavailable", False),
+            (401, "Unauthorized", "Unauthorized", True),
+        ):
+            with self.subTest(status=status, code=code, accepted=accepted):
+                runtime = Mock()
+                runtime.clients.mongo_probe = AsyncMock(side_effect=[False, True])
+                runtime.clients.objects.probe = AsyncMock(return_value=True)
+                runtime.close = AsyncMock()
+                client = Mock()
+                client.list_objects_v2.side_effect = [
+                    ClientError(
+                        {
+                            "Error": {"Code": code, "Message": message},
+                            "ResponseMetadata": {"HTTPStatusCode": status},
+                        },
+                        "ListObjectsV2",
+                    ),
+                    ClientError(
+                        {
+                            "Error": {"Code": "Unauthorized"},
+                            "ResponseMetadata": {"HTTPStatusCode": 401},
+                        },
+                        "ListObjectsV2",
+                    ),
+                ]
+                with (
+                    patch.object(smoke.HostedReadiness, "from_environment", return_value=runtime),
+                    patch.object(smoke, "private_s3", return_value=client),
+                    patch.object(smoke.asyncio, "sleep", new_callable=AsyncMock),
+                ):
+                    if accepted:
+                        await smoke.verify_hosted_access(environment())
+                    else:
+                        with self.assertRaisesRegex(LocalFailure, "^HOSTED_R2_DENIAL_NOT_PROVED$"):
+                            await smoke.verify_hosted_access(environment())
+                runtime.close.assert_awaited_once()
+                self.assertEqual(client.close.call_count, 2 if accepted else 1)
+
+    async def test_persistent_mongo_failure_is_bounded_and_closes_without_r2_reads(self):
+        smoke = self.smoke_module()
+        runtime = Mock()
+        runtime.clients.mongo_probe = AsyncMock(return_value=False)
+        runtime.clients.objects.probe = AsyncMock()
+        runtime.close = AsyncMock()
+        with (
+            patch.object(smoke.HostedReadiness, "from_environment", return_value=runtime),
+            patch.object(smoke.asyncio, "sleep", new_callable=AsyncMock),
+        ):
+            with self.assertRaisesRegex(LocalFailure, "^HOSTED_MONGODB_READ_FAILED$"):
+                await smoke.verify_hosted_access(environment())
+        self.assertEqual(runtime.clients.mongo_probe.await_count, 3)
+        runtime.clients.objects.probe.assert_not_awaited()
+        runtime.close.assert_awaited_once()

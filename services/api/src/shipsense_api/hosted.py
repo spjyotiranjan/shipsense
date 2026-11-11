@@ -5,7 +5,7 @@ No provisioning, seed, migrations, credential discovery or local fallback.
 
 import re
 from collections.abc import Mapping
-from typing import Any
+from typing import Any, Literal
 from urllib.parse import parse_qsl, unquote, urlsplit
 
 from pydantic import BaseModel, ConfigDict, SecretStr, ValidationError, field_validator
@@ -21,6 +21,7 @@ class HostedSettings(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, strict=True, hide_input_in_errors=True)
     mongodb_uri: SecretStr
     mongodb_database: str
+    profile: Literal["local"] = "local"
     r2_endpoint: str
     r2_bucket: str
     r2_access_key_id: SecretStr
@@ -90,6 +91,13 @@ class HostedSettings(BaseModel):
             raise ValueError("INVALID_HOSTED_CONFIG")
         return value
 
+    @property
+    def effective_database(self) -> str:
+        name = f"{self.mongodb_database}-{self.profile}"
+        if len(name.encode("utf-8")) > 63:
+            raise LocalFailure("HOSTED_CONFIG_INVALID")
+        return name
+
     @field_validator("r2_endpoint")
     @classmethod
     def r2_transport(cls, value: str) -> str:
@@ -122,12 +130,17 @@ class HostedSettings(BaseModel):
     @classmethod
     def from_environment(cls, environment: Mapping[str, str]) -> "HostedSettings":
         try:
-            return cls.model_validate(
+            settings = cls.model_validate(
                 {
-                    field: environment.get("SHIPSENSE_" + field.upper(), "")
+                    field: environment.get(
+                        "SHIPSENSE_" + field.upper(), "local" if field == "profile" else ""
+                    )
                     for field in cls.model_fields
                 }
             )
+            # Validate the final target before constructing any clients.
+            settings.effective_database
+            return settings
         except ValidationError, ValueError:
             raise LocalFailure("HOSTED_CONFIG_INVALID") from None
 
@@ -136,6 +149,7 @@ class HostedClients:
     """Lazy pooled Mongo and private R2 clients; readiness performs only reads."""
 
     def __init__(self, settings: HostedSettings) -> None:
+        database = settings.effective_database
         self.mongo: AsyncMongoClient[dict[str, Any]] = AsyncMongoClient(
             settings.mongodb_uri.get_secret_value(),
             tls=True,
@@ -152,7 +166,7 @@ class HostedClients:
             minPoolSize=0,
             maxConnecting=2,
         )
-        self.database = self.mongo[settings.mongodb_database]
+        self.database = self.mongo[database]
         self.objects: BoundedObjects
 
     async def mongo_probe(self) -> bool:
