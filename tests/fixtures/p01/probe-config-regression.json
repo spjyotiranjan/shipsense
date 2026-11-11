@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "p01-fixture-v1",
+  "fixtureId": "probe-config-regression",
+  "tenantId": "synthetic-tenant",
+  "projectId": "synthetic-astronomy",
+  "serviceId": "product-catalog",
+  "environment": "local",
+  "provider": "synthetic",
+  "providerObjectId": "synthetic-probe-config-regression",
+  "providerVersion": "v1",
+  "eventTime": "2026-11-01T00:00:00Z",
+  "observedAt": "2026-11-01T00:01:00Z",
+  "expiresAt": "2027-11-01T00:00:00Z",
+  "freshness": "fresh",
+  "classification": "synthetic",
+  "correlationId": "fixture-probe-config-regression-v1",
+  "sourceRef": "payloads/probe-config-regression.json",
+  "payloadSha256": "a450b439e4be6a1b66cfdfa4bd74f3ccee897268ca6b730fb633e49726606ef9",
+  "expectedOutcome": "Report configuration mismatch; independent liveness is not dependency health.",
+  "referenceRepository": "https://github.com/open-telemetry/opentelemetry-demo",
+  "referenceTag": "3.1.0",
+  "referenceRevision": "dedc0178918e260823323b8d95005a8cb924b007"
+}

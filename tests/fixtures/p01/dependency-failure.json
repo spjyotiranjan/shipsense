@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "p01-fixture-v1",
+  "fixtureId": "dependency-failure",
+  "tenantId": "synthetic-tenant",
+  "projectId": "synthetic-astronomy",
+  "serviceId": "product-catalog",
+  "environment": "local",
+  "provider": "synthetic",
+  "providerObjectId": "synthetic-dependency-failure",
+  "providerVersion": "v1",
+  "eventTime": "2026-11-01T00:00:00Z",
+  "observedAt": "2026-11-01T00:01:00Z",
+  "expiresAt": "2027-11-01T00:00:00Z",
+  "freshness": "fresh",
+  "classification": "synthetic",
+  "correlationId": "fixture-dependency-failure-v1",
+  "sourceRef": "payloads/dependency-failure.json",
+  "payloadSha256": "43e96be28bdff22a6591289ecb62f0c35eea8a055994458c462bc7ef80c83b38",
+  "expectedOutcome": "Report catalog dependency failure despite gRPC SERVING; require a real query for recovery.",
+  "referenceRepository": "https://github.com/open-telemetry/opentelemetry-demo",
+  "referenceTag": "3.1.0",
+  "referenceRevision": "dedc0178918e260823323b8d95005a8cb924b007"
+}

@@ -1,0 +1,7 @@
+{
+  "signal": "dependency",
+  "catalogQuery": "unavailable",
+  "grpcHealth": "SERVING",
+  "postgres": "unavailable",
+  "effects": false
+}

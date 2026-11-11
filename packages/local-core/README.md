@@ -1,0 +1,5 @@
+# Local adapter boundary
+
+`shipsense-local` is a shared Python workspace package for the API and worker's synthetic local infrastructure. It contains strict external-state validation, an owned Compose lifecycle, native async MongoDB, bounded off-loop private S3, object-first conflict-preserving fixture persistence and an in-process no-effect queue. It introduces no public API or user authorization decision. P02 owns authenticated tenant authority; synthetic scope is fixture metadata only.
+
+Follow the [local service runbook](../../infra/local/README.md) for frozen installation, external credentials, boot, seed, teardown/reset, failure proof and parity limits. Run `npm run test:local` for independent safety tests and `npm run test:local:integration` with `SHIPSENSE_TEST_STATE` for actual owned dependencies. The latter deliberately stops and restores dependencies. Close all clients with their async context manager; production profiles reject these adapters. `uv build --package shipsense-local` builds this package under the root lock.

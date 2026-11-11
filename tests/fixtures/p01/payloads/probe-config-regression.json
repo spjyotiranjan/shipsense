@@ -1,0 +1,8 @@
+{
+  "signal": "probe",
+  "configuredPort": 9999,
+  "expectedPort": 3550,
+  "liveness": "alive",
+  "dependencyHealth": "unknown",
+  "effects": false
+}

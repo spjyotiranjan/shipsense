@@ -1,0 +1,8 @@
+{
+  "signal": "pipeline",
+  "run": "synthetic-run-01",
+  "attempt": 1,
+  "conclusion": "failure",
+  "step": "unit-tests",
+  "effects": false
+}

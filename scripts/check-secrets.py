@@ -1,18 +1,50 @@
 """Offline secret gate: findings and scanner errors fail, values never print."""
 
+import hashlib
+import json
 import logging
 import os
 import re
 import subprocess
 from pathlib import Path
+from typing import get_args
 
 from detect_secrets.core.log import log
 from detect_secrets.core.scan import scan_file
 from detect_secrets.settings import default_settings
+from shipsense_local.fixtures import Manifest
 
 
 class ScannerError(RuntimeError):
     pass
+
+
+def verified_fixture_digest(root: Path, filename: str, line: str, finding_type: str) -> bool:
+    """Only verified public fixture checksums/provenance are entropy exceptions."""
+    match = re.fullmatch(
+        r"tests/fixtures/p01/(pipeline-failure|probe-config-regression|missing-telemetry|"
+        r"dependency-failure|injected-runbook|deployment-regression)\.json",
+        filename,
+    )
+    field = re.fullmatch(r'\s*"(payloadSha256|referenceRevision)": "([a-f0-9]+)",?\s*', line)
+    if finding_type != "Hex High Entropy String" or match is None or field is None:
+        return False
+    try:
+        manifest = json.loads((root / filename).read_text(encoding="utf-8"))
+        source = f"payloads/{match[1]}.json"
+        payload_path = root / "tests/fixtures/p01" / source
+        if manifest["sourceRef"] != source or payload_path.is_symlink():
+            return False
+        with payload_path.open("rb") as stream:
+            payload = stream.read(32769)
+        expected = (
+            hashlib.sha256(payload).hexdigest()
+            if field[1] == "payloadSha256"
+            else get_args(Manifest.model_fields["referenceRevision"].annotation)[0]
+        )
+        return len(payload) <= 32768 and manifest[field[1]] == field[2] == expected
+    except Exception:
+        return False
 
 
 class FailClosedHandler(logging.Handler):
@@ -72,6 +104,10 @@ def main() -> int:
                     raise ScannerError("binary source input")
                 lines = content.decode("utf-8-sig").splitlines()
                 for secret in scan_file(filename):
+                    if verified_fixture_digest(
+                        root, filename, lines[secret.line_number - 1], secret.type
+                    ):
+                        continue
                     # npm integrity digests are public package checksums, not
                     # credentials. Exempt only an entire integrity field with
                     # the expected algorithm/length, and only entropy findings.

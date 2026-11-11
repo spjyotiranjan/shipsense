@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "p01-fixture-v1",
+  "fixtureId": "missing-telemetry",
+  "tenantId": "synthetic-tenant",
+  "projectId": "synthetic-astronomy",
+  "serviceId": "product-catalog",
+  "environment": "local",
+  "provider": "synthetic",
+  "providerObjectId": "synthetic-missing-telemetry",
+  "providerVersion": "v1",
+  "eventTime": "2026-11-01T00:00:00Z",
+  "observedAt": "2026-11-01T00:01:00Z",
+  "expiresAt": "2027-11-01T00:00:00Z",
+  "freshness": "missing",
+  "classification": "synthetic",
+  "correlationId": "fixture-missing-telemetry-v1",
+  "sourceRef": "payloads/missing-telemetry.json",
+  "payloadSha256": "0905c09bd70fcf575d30f09703ab3fb29328de6be86d2df0246327b993975f7a",
+  "expectedOutcome": "Abstain from a health claim because decisive telemetry is missing.",
+  "referenceRepository": "https://github.com/open-telemetry/opentelemetry-demo",
+  "referenceTag": "3.1.0",
+  "referenceRevision": "dedc0178918e260823323b8d95005a8cb924b007"
+}
