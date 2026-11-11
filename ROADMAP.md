@@ -59,7 +59,7 @@ Detailed plans, expected results, and acceptance criteria for every phase and su
 
 Accepted proof: [P01.1](https://github.com/spjyotiranjan/shipsense/pull/4) / [PR #4](https://github.com/spjyotiranjan/shipsense/pull/4), [P01.2](https://github.com/spjyotiranjan/shipsense/pull/5) / [PR #5](https://github.com/spjyotiranjan/shipsense/pull/5). Credential-free P01.4 contract/web implementation depends on tested P01.1/P01.2; P01.3 core is accepted at `c441de1` with PR #7 merge pending. Separate P01.4 real-adapter readiness at `9427964` passed exact-revision review and acceptance ([proof](https://github.com/spjyotiranjan/shipsense/pull/8)), with PR #8 merge pending; issuer/reference runtime, P01.5 and full P01 exit remain unverified. P01.5 integrates both.
 
-- [ ] P01.3 Configure hosted MongoDB/private R2 and bounded queue behavior; preserve historical synthetic fixture proof. Live hosted validation remains open.
+- [ ] P01.3 Configure hosted MongoDB/private R2 and bounded queue behavior; preserve historical synthetic fixture proof. Retain existing integration tests and disclose unsupported coverage; separate hosted verification is not an acceptance gate.
 - [x] P01.4 Build Next.js shell and FastAPI health/version endpoints; document Swagger/OpenAPI contracts.
 - [ ] P01.5 Create CI that builds both apps and runs contract, unit, and smoke checks.
 

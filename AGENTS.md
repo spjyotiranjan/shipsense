@@ -31,5 +31,5 @@ Use Next.js/TypeScript for the web and its web-facing backend layer, FastAPI/Pyt
 
 ## Current state
 
-P00 planning is complete; P01 is in progress. P01.1/P01.2 and the credential-free P01.4 diagnostic slice are merged. Historical synthetic P01.3/P01.4 proof is accepted; their later PRs remain unmerged. P01.5 uses hosted MongoDB/private R2 settings and read-only integration with no container fixtures. Credential-free PR checks and protected manual hosted CI have separate proof. Live hosted operation and full phase exit remain unverified; consult PROJECT_STATUS.md.
+P00 planning is complete; P01 is in progress. P01.1/P01.2 and the credential-free P01.4 diagnostic slice are merged. Historical synthetic P01.3/P01.4 proof is accepted; their later PRs remain unmerged. Hosted MongoDB/private R2 configuration and existing integration tests are retained without container fixtures. Integration CI is credential-free; no separate hosted-verification result/approval is an acceptance gate. Current-revision review, acceptance and full phase exit remain pending; consult PROJECT_STATUS.md.
 

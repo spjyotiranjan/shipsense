@@ -4,7 +4,7 @@
 **Status:** Accepted starting choices for the local P01 core; runtime compatibility and delivery acceptance remain required.
 **Decision owner:** ShipSense CTO, within the accepted architecture baseline.
 
-**Supersession:** The [hosted profile amendment](#hosted-profile-and-single-integration-workflow--11-november-2026) governs current database naming and the single Integration workflow. The [hosted-only integration amendment](#hosted-only-integration-supersession--11-november-2026) supersedes all self-hosted/container application, development and integration paths below, including the earlier synthetic-fixture permission. Historical sections preserve context and do not govern the active path.
+**Supersession:** The [integration-test acceptance amendment](#integration-tests-without-a-hosted-verification-gate--11-november-2026) removes the separate hosted-verification workflow, local/remote hosted-result and environment approval gates. The [hosted profile amendment](#hosted-profile-and-single-integration-workflow--11-november-2026) governs database naming. The [hosted-only amendment](#hosted-only-integration-supersession--11-november-2026) retires all self-hosted/container application, development and integration paths. Earlier conflicting requirements below are historical and superseded.
 
 ## Local core
 
@@ -145,3 +145,15 @@ Use one workflow named Integration. Its pull-request/push diagnostics remain cre
 Keep supplied ignored local configuration private. Commit only placeholder values in `.env.example`; the example is never a credential source. Update existing phase criteria, plans and runbooks consistently.
 
 Source: authenticated owner comment `c506f5bd-9608-4721-ba0c-5f83a23c57f8`; dated canonical transcription delegated in Patrick handoff `2ef95baf-af1a-47ff-8d16-b0dc9f87ef3d`.
+
+## Integration tests without a hosted-verification gate — 11 November 2026
+
+**Status:** Accepted project-owner direction. Supersedes this record's mandatory local/protected remote hosted-verification outcomes, protected hosted-run approval gate and manual hosted workflow requirement. Other hosted application configuration and safety constraints remain.
+
+Retain meaningful integration tests and credential-free build/contract/unit/API/web/browser failure-recovery checks. Where existing integration tests support real MongoDB and private R2 connections, use privately supplied hosted environment settings in those integration tests only. Otherwise leave unsupported coverage explicit; do not build a new hosted-verification system or reintroduce Docker/self-hosted fixtures. A separate hosted-verification run, protected remote hosted result or environment approval is not required for P01.3/P01.5 acceptance. Remove the obsolete manual hosted-verification job and related release-gate instructions. Preserve actual historical local hosted results as evidence without claiming an unperformed remote result or converting skipped tests into passes.
+
+Keep the application's server-only hosted MongoDB/R2 configuration, validated `{base}-{profile}` database naming, placeholder-only example and safe unconfigured readiness. Test-only connection settings must remain private and isolated from credential-free/untrusted PR execution. Retain TLS verification, configured database/bucket scope, redaction, deadlines, cancellation and client shutdown. No provider writes, provisioning, production effects, service disruption or spending authority is granted. Apply the revised test/acceptance boundary consistently in P01 criteria, existing plans, runbooks, workflow and status; all other required local checks, independent exact-current-SHA review and acceptance remain.
+
+Rationale: the owner requests integration tests without a separate hosted-verification release process.
+
+Source: authenticated PAT-104 user comment `af027d52-c4e4-44dc-af9a-3a11ebaddf0f`, 11 November 2026.

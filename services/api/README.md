@@ -21,4 +21,4 @@ The foundation uses `SHIPSENSE_PROFILE=local` (the local API process, with hoste
 
 ## Verification
 
-Run `npm run test:foundation`, `npm run test:unit`, `npm run build` and the [documented smoke/integration commands](../../docs/developer-setup.md#clean-integration-commands). Hosted integration performs only a scoped read and bucket metadata checks. Missing credentials fail the hosted command; credential-free smoke remains separately named and does not claim hosted readiness. Live permissions, private-object policy and production parity require separate evidence.
+Run `npm run test:foundation`, `npm run test:unit`, `npm run build` and the [documented smoke/integration commands](../../docs/developer-setup.md#clean-integration-commands). Hosted integration performs only a scoped read and bucket metadata checks. Missing credentials fail the hosted command; credential-free smoke remains separately named and does not claim hosted readiness. Unexercised live permissions, private-object policy and production parity remain explicit coverage limitations. A separate hosted-verification result or environment approval is not a P01.3/P01.5 acceptance gate.
