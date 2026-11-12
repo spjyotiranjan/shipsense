@@ -80,6 +80,82 @@ export interface components {
         ApiError: {
             error: components["schemas"]["ErrorDetail"];
         };
+        /** Environment */
+        Environment: {
+            /**
+             * Classification
+             * @enum {string}
+             */
+            classification: "nonproduction" | "production";
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /**
+             * Createdbyprincipalid
+             * Format: uuid
+             */
+            createdByPrincipalId: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /**
+             * Projectid
+             * Format: uuid
+             */
+            projectId: string;
+            /** Revision */
+            revision: number;
+            /**
+             * Schemaversion
+             * @default 1
+             * @constant
+             */
+            schemaVersion: 1;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "suspended" | "archived";
+            /**
+             * Tenantid
+             * Format: uuid
+             */
+            tenantId: string;
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
+        };
+        /** EnvironmentScope */
+        EnvironmentScope: {
+            /**
+             * Environmentid
+             * Format: uuid
+             */
+            environmentId: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "environment";
+            /**
+             * Projectid
+             * Format: uuid
+             */
+            projectId: string;
+            /**
+             * Tenantid
+             * Format: uuid
+             */
+            tenantId: string;
+        };
         /** ErrorDetail */
         ErrorDetail: {
             /**
@@ -109,6 +185,82 @@ export interface components {
              */
             service: "shipsense-api";
         };
+        /** HumanPrincipal */
+        HumanPrincipal: {
+            /**
+             * Accountid
+             * Format: uuid
+             */
+            accountId: string;
+            /** Authzrevision */
+            authzRevision: number;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /**
+             * Createdbyprincipalid
+             * Format: uuid
+             */
+            createdByPrincipalId: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "human";
+            /** Revision */
+            revision: number;
+            /**
+             * Schemaversion
+             * @default 1
+             * @constant
+             */
+            schemaVersion: 1;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "suspended" | "archived";
+            /**
+             * Tenantid
+             * Format: uuid
+             */
+            tenantId: string;
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
+        };
+        /**
+         * IdentityContract
+         * @description Schema-only aggregate; not a directory response or implemented endpoint.
+         */
+        IdentityContract: {
+            /** Environments */
+            environments: components["schemas"]["Environment"][];
+            organization: components["schemas"]["Organization"];
+            /** Principals */
+            principals: (components["schemas"]["HumanPrincipal"] | components["schemas"]["ServiceAccount"])[];
+            /** Projects */
+            projects: components["schemas"]["Project"][];
+            /** Rolegrants */
+            roleGrants: components["schemas"]["RoleGrant"][];
+            /** Serviceenvironments */
+            serviceEnvironments: components["schemas"]["ServiceEnvironment"][];
+            /** Services */
+            services: components["schemas"]["Service"][];
+            /** Teammemberships */
+            teamMemberships: components["schemas"]["TeamMembership"][];
+            /** Teams */
+            teams: components["schemas"]["Team"][];
+        };
         /** LivenessResponse */
         LivenessResponse: {
             /**
@@ -118,6 +270,143 @@ export interface components {
              */
             status: "alive";
         };
+        /** Organization */
+        Organization: {
+            /** Authzrevision */
+            authzRevision: number;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /**
+             * Createdbyprincipalid
+             * Format: uuid
+             */
+            createdByPrincipalId: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Revision */
+            revision: number;
+            /**
+             * Schemaversion
+             * @default 1
+             * @constant
+             */
+            schemaVersion: 1;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "suspended" | "archived";
+            /**
+             * Tenantid
+             * Format: uuid
+             */
+            tenantId: string;
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
+        };
+        /** OrganizationScope */
+        OrganizationScope: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "organization";
+            /**
+             * Tenantid
+             * Format: uuid
+             */
+            tenantId: string;
+        };
+        /** PrincipalSubject */
+        PrincipalSubject: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "principal";
+            /**
+             * Principalid
+             * Format: uuid
+             */
+            principalId: string;
+        };
+        /** Project */
+        Project: {
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /**
+             * Createdbyprincipalid
+             * Format: uuid
+             */
+            createdByPrincipalId: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /**
+             * Ownerteamid
+             * Format: uuid
+             */
+            ownerTeamId: string;
+            /** Revision */
+            revision: number;
+            /**
+             * Schemaversion
+             * @default 1
+             * @constant
+             */
+            schemaVersion: 1;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "suspended" | "archived";
+            /**
+             * Tenantid
+             * Format: uuid
+             */
+            tenantId: string;
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
+        };
+        /** ProjectScope */
+        ProjectScope: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "project";
+            /**
+             * Projectid
+             * Format: uuid
+             */
+            projectId: string;
+            /**
+             * Tenantid
+             * Format: uuid
+             */
+            tenantId: string;
+        };
         /** ReadinessResponse */
         ReadinessResponse: {
             /**
@@ -126,6 +415,420 @@ export interface components {
              * @constant
              */
             status: "ready";
+        };
+        /** RoleGrant */
+        RoleGrant: {
+            /**
+             * Actionallowlist
+             * @default []
+             */
+            actionAllowlist: ("metadata.read" | "evidence.read" | "proposal.create" | "investigation.create" | "security.read" | "audit.read" | "identity.manage" | "approval.decide" | "operation.request")[];
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /**
+             * Createdbyprincipalid
+             * Format: uuid
+             */
+            createdByPrincipalId: string;
+            /**
+             * Expiresat
+             * Format: date-time
+             */
+            expiresAt: string;
+            /**
+             * Grantedbyprincipalid
+             * Format: uuid
+             */
+            grantedByPrincipalId: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Revision */
+            revision: number;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "reader" | "developer" | "operator" | "securityReviewer" | "approver" | "tenantAdministrator" | "auditReader" | "serviceAccount";
+            /**
+             * Roleversion
+             * @default p02-exact-v1
+             * @constant
+             */
+            roleVersion: "p02-exact-v1";
+            /**
+             * Schemaversion
+             * @default 1
+             * @constant
+             */
+            schemaVersion: 1;
+            /** Scope */
+            scope: components["schemas"]["OrganizationScope"] | components["schemas"]["ProjectScope"] | components["schemas"]["ServiceScope"] | components["schemas"]["EnvironmentScope"] | components["schemas"]["ServiceEnvironmentScope"];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "suspended" | "archived";
+            /** Subject */
+            subject: components["schemas"]["PrincipalSubject"] | components["schemas"]["TeamSubject"];
+            /**
+             * Tenantid
+             * Format: uuid
+             */
+            tenantId: string;
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
+        };
+        /** Service */
+        Service: {
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /**
+             * Createdbyprincipalid
+             * Format: uuid
+             */
+            createdByPrincipalId: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /**
+             * Ownerteamid
+             * Format: uuid
+             */
+            ownerTeamId: string;
+            /**
+             * Projectid
+             * Format: uuid
+             */
+            projectId: string;
+            /** Revision */
+            revision: number;
+            /**
+             * Schemaversion
+             * @default 1
+             * @constant
+             */
+            schemaVersion: 1;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "suspended" | "archived";
+            /**
+             * Tenantid
+             * Format: uuid
+             */
+            tenantId: string;
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
+        };
+        /** ServiceAccount */
+        ServiceAccount: {
+            /** Audience */
+            audience: string;
+            /** Authzrevision */
+            authzRevision: number;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /**
+             * Createdbyprincipalid
+             * Format: uuid
+             */
+            createdByPrincipalId: string;
+            /**
+             * Credentialreferenceid
+             * Format: uuid
+             */
+            credentialReferenceId: string;
+            /**
+             * Expiresat
+             * Format: date-time
+             */
+            expiresAt: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Issuer */
+            issuer: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "serviceAccount";
+            /**
+             * Ownerteamid
+             * Format: uuid
+             */
+            ownerTeamId: string;
+            /** Purpose */
+            purpose: string;
+            /** Revision */
+            revision: number;
+            /**
+             * Schemaversion
+             * @default 1
+             * @constant
+             */
+            schemaVersion: 1;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "suspended" | "archived";
+            /** Subject */
+            subject: string;
+            /**
+             * Tenantid
+             * Format: uuid
+             */
+            tenantId: string;
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
+        };
+        /** ServiceEnvironment */
+        ServiceEnvironment: {
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /**
+             * Createdbyprincipalid
+             * Format: uuid
+             */
+            createdByPrincipalId: string;
+            /**
+             * Environmentid
+             * Format: uuid
+             */
+            environmentId: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Projectid
+             * Format: uuid
+             */
+            projectId: string;
+            /** Revision */
+            revision: number;
+            /**
+             * Schemaversion
+             * @default 1
+             * @constant
+             */
+            schemaVersion: 1;
+            /**
+             * Serviceid
+             * Format: uuid
+             */
+            serviceId: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "suspended" | "archived";
+            /**
+             * Tenantid
+             * Format: uuid
+             */
+            tenantId: string;
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
+        };
+        /** ServiceEnvironmentScope */
+        ServiceEnvironmentScope: {
+            /**
+             * Environmentid
+             * Format: uuid
+             */
+            environmentId: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "serviceEnvironment";
+            /**
+             * Projectid
+             * Format: uuid
+             */
+            projectId: string;
+            /**
+             * Serviceid
+             * Format: uuid
+             */
+            serviceId: string;
+            /**
+             * Tenantid
+             * Format: uuid
+             */
+            tenantId: string;
+        };
+        /** ServiceScope */
+        ServiceScope: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "service";
+            /**
+             * Projectid
+             * Format: uuid
+             */
+            projectId: string;
+            /**
+             * Serviceid
+             * Format: uuid
+             */
+            serviceId: string;
+            /**
+             * Tenantid
+             * Format: uuid
+             */
+            tenantId: string;
+        };
+        /** Team */
+        Team: {
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /**
+             * Createdbyprincipalid
+             * Format: uuid
+             */
+            createdByPrincipalId: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /**
+             * Ownerprincipalid
+             * Format: uuid
+             */
+            ownerPrincipalId: string;
+            /** Revision */
+            revision: number;
+            /**
+             * Schemaversion
+             * @default 1
+             * @constant
+             */
+            schemaVersion: 1;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "suspended" | "archived";
+            /**
+             * Tenantid
+             * Format: uuid
+             */
+            tenantId: string;
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
+        };
+        /** TeamMembership */
+        TeamMembership: {
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /**
+             * Createdbyprincipalid
+             * Format: uuid
+             */
+            createdByPrincipalId: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Principalid
+             * Format: uuid
+             */
+            principalId: string;
+            /** Revision */
+            revision: number;
+            /**
+             * Schemaversion
+             * @default 1
+             * @constant
+             */
+            schemaVersion: 1;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "suspended" | "archived";
+            /**
+             * Teamid
+             * Format: uuid
+             */
+            teamId: string;
+            /**
+             * Tenantid
+             * Format: uuid
+             */
+            tenantId: string;
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
+        };
+        /** TeamSubject */
+        TeamSubject: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "team";
+            /**
+             * Teamid
+             * Format: uuid
+             */
+            teamId: string;
         };
         /** VersionResponse */
         VersionResponse: {

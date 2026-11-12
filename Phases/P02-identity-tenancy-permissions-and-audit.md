@@ -1,6 +1,6 @@
 # P02 — Identity, tenancy, permissions, and audit
 
-**Current status:** Not started. Update `../PROJECT_STATUS.md` with evidence when it changes.
+**Current status:** In progress. Update `../PROJECT_STATUS.md` with evidence when it changes.
 **Prerequisites:** P01.
 **Phase outcome:** denied access never exposes another tenant; all material decisions have correlated audit records.
 
@@ -22,7 +22,7 @@ Enforce identity and authorization consistently across the web, API, workers, co
 
 ### P02.1 — Define organizations, projects, teams, services, environments, users, roles, and service accounts
 
-**Status:** Not started.
+**Status:** In progress. Schema/role foundation is implemented in [`packages/domain`](../packages/domain/README.md), with canonical OpenAPI/TypeScript schemas and [targeted negatives](../packages/domain/tests/test_identity.py). No administration routes, persistent mutations or authenticated UI are delivered; verification and acceptance remain pending. See the checkpoint record in `../PROJECT_STATUS.md`.
 **Expected result:** Define organizations, projects, teams, services, environments, users, roles, and service accounts.
 
 **Acceptance criteria**

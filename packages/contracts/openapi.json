@@ -14,6 +14,122 @@
         "title": "ApiError",
         "type": "object"
       },
+      "Environment": {
+        "additionalProperties": false,
+        "properties": {
+          "classification": {
+            "enum": [
+              "nonproduction",
+              "production"
+            ],
+            "title": "Classification",
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "createdByPrincipalId": {
+            "format": "uuid",
+            "title": "Createdbyprincipalid",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "projectId": {
+            "format": "uuid",
+            "title": "Projectid",
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 1,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "schemaVersion": {
+            "const": 1,
+            "default": 1,
+            "title": "Schemaversion",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "suspended",
+              "archived"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tenantId": {
+            "format": "uuid",
+            "title": "Tenantid",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "revision",
+          "createdAt",
+          "updatedAt",
+          "createdByPrincipalId",
+          "status",
+          "tenantId",
+          "projectId",
+          "name",
+          "classification"
+        ],
+        "title": "Environment",
+        "type": "object"
+      },
+      "EnvironmentScope": {
+        "additionalProperties": false,
+        "properties": {
+          "environmentId": {
+            "format": "uuid",
+            "title": "Environmentid",
+            "type": "string"
+          },
+          "kind": {
+            "const": "environment",
+            "default": "environment",
+            "title": "Kind",
+            "type": "string"
+          },
+          "projectId": {
+            "format": "uuid",
+            "title": "Projectid",
+            "type": "string"
+          },
+          "tenantId": {
+            "format": "uuid",
+            "title": "Tenantid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tenantId",
+          "projectId",
+          "environmentId"
+        ],
+        "title": "EnvironmentScope",
+        "type": "object"
+      },
       "ErrorDetail": {
         "additionalProperties": false,
         "properties": {
@@ -75,6 +191,177 @@
         "title": "FoundationResponse",
         "type": "object"
       },
+      "HumanPrincipal": {
+        "additionalProperties": false,
+        "properties": {
+          "accountId": {
+            "format": "uuid",
+            "title": "Accountid",
+            "type": "string"
+          },
+          "authzRevision": {
+            "minimum": 1,
+            "title": "Authzrevision",
+            "type": "integer"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "createdByPrincipalId": {
+            "format": "uuid",
+            "title": "Createdbyprincipalid",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "const": "human",
+            "default": "human",
+            "title": "Kind",
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 1,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "schemaVersion": {
+            "const": 1,
+            "default": 1,
+            "title": "Schemaversion",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "suspended",
+              "archived"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tenantId": {
+            "format": "uuid",
+            "title": "Tenantid",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "revision",
+          "createdAt",
+          "updatedAt",
+          "createdByPrincipalId",
+          "status",
+          "tenantId",
+          "accountId",
+          "authzRevision"
+        ],
+        "title": "HumanPrincipal",
+        "type": "object"
+      },
+      "IdentityContract": {
+        "additionalProperties": false,
+        "description": "Schema-only aggregate; not a directory response or implemented endpoint.",
+        "properties": {
+          "environments": {
+            "items": {
+              "$ref": "#/components/schemas/Environment"
+            },
+            "title": "Environments",
+            "type": "array"
+          },
+          "organization": {
+            "$ref": "#/components/schemas/Organization"
+          },
+          "principals": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "human": "#/components/schemas/HumanPrincipal",
+                  "serviceAccount": "#/components/schemas/ServiceAccount"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/HumanPrincipal"
+                },
+                {
+                  "$ref": "#/components/schemas/ServiceAccount"
+                }
+              ]
+            },
+            "title": "Principals",
+            "type": "array"
+          },
+          "projects": {
+            "items": {
+              "$ref": "#/components/schemas/Project"
+            },
+            "title": "Projects",
+            "type": "array"
+          },
+          "roleGrants": {
+            "items": {
+              "$ref": "#/components/schemas/RoleGrant"
+            },
+            "title": "Rolegrants",
+            "type": "array"
+          },
+          "serviceEnvironments": {
+            "items": {
+              "$ref": "#/components/schemas/ServiceEnvironment"
+            },
+            "title": "Serviceenvironments",
+            "type": "array"
+          },
+          "services": {
+            "items": {
+              "$ref": "#/components/schemas/Service"
+            },
+            "title": "Services",
+            "type": "array"
+          },
+          "teamMemberships": {
+            "items": {
+              "$ref": "#/components/schemas/TeamMembership"
+            },
+            "title": "Teammemberships",
+            "type": "array"
+          },
+          "teams": {
+            "items": {
+              "$ref": "#/components/schemas/Team"
+            },
+            "title": "Teams",
+            "type": "array"
+          }
+        },
+        "required": [
+          "organization",
+          "teams",
+          "projects",
+          "services",
+          "environments",
+          "serviceEnvironments",
+          "principals",
+          "teamMemberships",
+          "roleGrants"
+        ],
+        "title": "IdentityContract",
+        "type": "object"
+      },
       "LivenessResponse": {
         "additionalProperties": false,
         "properties": {
@@ -88,6 +375,223 @@
         "title": "LivenessResponse",
         "type": "object"
       },
+      "Organization": {
+        "additionalProperties": false,
+        "properties": {
+          "authzRevision": {
+            "minimum": 1,
+            "title": "Authzrevision",
+            "type": "integer"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "createdByPrincipalId": {
+            "format": "uuid",
+            "title": "Createdbyprincipalid",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 1,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "schemaVersion": {
+            "const": 1,
+            "default": 1,
+            "title": "Schemaversion",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "suspended",
+              "archived"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tenantId": {
+            "format": "uuid",
+            "title": "Tenantid",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "revision",
+          "createdAt",
+          "updatedAt",
+          "createdByPrincipalId",
+          "status",
+          "tenantId",
+          "name",
+          "authzRevision"
+        ],
+        "title": "Organization",
+        "type": "object"
+      },
+      "OrganizationScope": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "const": "organization",
+            "default": "organization",
+            "title": "Kind",
+            "type": "string"
+          },
+          "tenantId": {
+            "format": "uuid",
+            "title": "Tenantid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tenantId"
+        ],
+        "title": "OrganizationScope",
+        "type": "object"
+      },
+      "PrincipalSubject": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "const": "principal",
+            "default": "principal",
+            "title": "Kind",
+            "type": "string"
+          },
+          "principalId": {
+            "format": "uuid",
+            "title": "Principalid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "principalId"
+        ],
+        "title": "PrincipalSubject",
+        "type": "object"
+      },
+      "Project": {
+        "additionalProperties": false,
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "createdByPrincipalId": {
+            "format": "uuid",
+            "title": "Createdbyprincipalid",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "ownerTeamId": {
+            "format": "uuid",
+            "title": "Ownerteamid",
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 1,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "schemaVersion": {
+            "const": 1,
+            "default": 1,
+            "title": "Schemaversion",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "suspended",
+              "archived"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tenantId": {
+            "format": "uuid",
+            "title": "Tenantid",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "revision",
+          "createdAt",
+          "updatedAt",
+          "createdByPrincipalId",
+          "status",
+          "tenantId",
+          "name",
+          "ownerTeamId"
+        ],
+        "title": "Project",
+        "type": "object"
+      },
+      "ProjectScope": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "const": "project",
+            "default": "project",
+            "title": "Kind",
+            "type": "string"
+          },
+          "projectId": {
+            "format": "uuid",
+            "title": "Projectid",
+            "type": "string"
+          },
+          "tenantId": {
+            "format": "uuid",
+            "title": "Tenantid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tenantId",
+          "projectId"
+        ],
+        "title": "ProjectScope",
+        "type": "object"
+      },
       "ReadinessResponse": {
         "additionalProperties": false,
         "properties": {
@@ -99,6 +603,687 @@
           }
         },
         "title": "ReadinessResponse",
+        "type": "object"
+      },
+      "RoleGrant": {
+        "additionalProperties": false,
+        "properties": {
+          "actionAllowlist": {
+            "default": [],
+            "items": {
+              "enum": [
+                "metadata.read",
+                "evidence.read",
+                "proposal.create",
+                "investigation.create",
+                "security.read",
+                "audit.read",
+                "identity.manage",
+                "approval.decide",
+                "operation.request"
+              ],
+              "type": "string"
+            },
+            "title": "Actionallowlist",
+            "type": "array"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "createdByPrincipalId": {
+            "format": "uuid",
+            "title": "Createdbyprincipalid",
+            "type": "string"
+          },
+          "expiresAt": {
+            "format": "date-time",
+            "title": "Expiresat",
+            "type": "string"
+          },
+          "grantedByPrincipalId": {
+            "format": "uuid",
+            "title": "Grantedbyprincipalid",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 1,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "role": {
+            "enum": [
+              "reader",
+              "developer",
+              "operator",
+              "securityReviewer",
+              "approver",
+              "tenantAdministrator",
+              "auditReader",
+              "serviceAccount"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "roleVersion": {
+            "const": "p02-exact-v1",
+            "default": "p02-exact-v1",
+            "title": "Roleversion",
+            "type": "string"
+          },
+          "schemaVersion": {
+            "const": 1,
+            "default": 1,
+            "title": "Schemaversion",
+            "type": "integer"
+          },
+          "scope": {
+            "discriminator": {
+              "mapping": {
+                "environment": "#/components/schemas/EnvironmentScope",
+                "organization": "#/components/schemas/OrganizationScope",
+                "project": "#/components/schemas/ProjectScope",
+                "service": "#/components/schemas/ServiceScope",
+                "serviceEnvironment": "#/components/schemas/ServiceEnvironmentScope"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/OrganizationScope"
+              },
+              {
+                "$ref": "#/components/schemas/ProjectScope"
+              },
+              {
+                "$ref": "#/components/schemas/ServiceScope"
+              },
+              {
+                "$ref": "#/components/schemas/EnvironmentScope"
+              },
+              {
+                "$ref": "#/components/schemas/ServiceEnvironmentScope"
+              }
+            ],
+            "title": "Scope"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "suspended",
+              "archived"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "subject": {
+            "discriminator": {
+              "mapping": {
+                "principal": "#/components/schemas/PrincipalSubject",
+                "team": "#/components/schemas/TeamSubject"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/PrincipalSubject"
+              },
+              {
+                "$ref": "#/components/schemas/TeamSubject"
+              }
+            ],
+            "title": "Subject"
+          },
+          "tenantId": {
+            "format": "uuid",
+            "title": "Tenantid",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "revision",
+          "createdAt",
+          "updatedAt",
+          "createdByPrincipalId",
+          "status",
+          "tenantId",
+          "subject",
+          "role",
+          "scope",
+          "expiresAt",
+          "grantedByPrincipalId"
+        ],
+        "title": "RoleGrant",
+        "type": "object"
+      },
+      "Service": {
+        "additionalProperties": false,
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "createdByPrincipalId": {
+            "format": "uuid",
+            "title": "Createdbyprincipalid",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "ownerTeamId": {
+            "format": "uuid",
+            "title": "Ownerteamid",
+            "type": "string"
+          },
+          "projectId": {
+            "format": "uuid",
+            "title": "Projectid",
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 1,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "schemaVersion": {
+            "const": 1,
+            "default": 1,
+            "title": "Schemaversion",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "suspended",
+              "archived"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tenantId": {
+            "format": "uuid",
+            "title": "Tenantid",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "revision",
+          "createdAt",
+          "updatedAt",
+          "createdByPrincipalId",
+          "status",
+          "tenantId",
+          "projectId",
+          "name",
+          "ownerTeamId"
+        ],
+        "title": "Service",
+        "type": "object"
+      },
+      "ServiceAccount": {
+        "additionalProperties": false,
+        "properties": {
+          "audience": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Audience",
+            "type": "string"
+          },
+          "authzRevision": {
+            "minimum": 1,
+            "title": "Authzrevision",
+            "type": "integer"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "createdByPrincipalId": {
+            "format": "uuid",
+            "title": "Createdbyprincipalid",
+            "type": "string"
+          },
+          "credentialReferenceId": {
+            "format": "uuid",
+            "title": "Credentialreferenceid",
+            "type": "string"
+          },
+          "expiresAt": {
+            "format": "date-time",
+            "title": "Expiresat",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "issuer": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Issuer",
+            "type": "string"
+          },
+          "kind": {
+            "const": "serviceAccount",
+            "default": "serviceAccount",
+            "title": "Kind",
+            "type": "string"
+          },
+          "ownerTeamId": {
+            "format": "uuid",
+            "title": "Ownerteamid",
+            "type": "string"
+          },
+          "purpose": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Purpose",
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 1,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "schemaVersion": {
+            "const": 1,
+            "default": 1,
+            "title": "Schemaversion",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "suspended",
+              "archived"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "subject": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Subject",
+            "type": "string"
+          },
+          "tenantId": {
+            "format": "uuid",
+            "title": "Tenantid",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "revision",
+          "createdAt",
+          "updatedAt",
+          "createdByPrincipalId",
+          "status",
+          "tenantId",
+          "ownerTeamId",
+          "purpose",
+          "issuer",
+          "subject",
+          "audience",
+          "credentialReferenceId",
+          "expiresAt",
+          "authzRevision"
+        ],
+        "title": "ServiceAccount",
+        "type": "object"
+      },
+      "ServiceEnvironment": {
+        "additionalProperties": false,
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "createdByPrincipalId": {
+            "format": "uuid",
+            "title": "Createdbyprincipalid",
+            "type": "string"
+          },
+          "environmentId": {
+            "format": "uuid",
+            "title": "Environmentid",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "projectId": {
+            "format": "uuid",
+            "title": "Projectid",
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 1,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "schemaVersion": {
+            "const": 1,
+            "default": 1,
+            "title": "Schemaversion",
+            "type": "integer"
+          },
+          "serviceId": {
+            "format": "uuid",
+            "title": "Serviceid",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "suspended",
+              "archived"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tenantId": {
+            "format": "uuid",
+            "title": "Tenantid",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "revision",
+          "createdAt",
+          "updatedAt",
+          "createdByPrincipalId",
+          "status",
+          "tenantId",
+          "projectId",
+          "serviceId",
+          "environmentId"
+        ],
+        "title": "ServiceEnvironment",
+        "type": "object"
+      },
+      "ServiceEnvironmentScope": {
+        "additionalProperties": false,
+        "properties": {
+          "environmentId": {
+            "format": "uuid",
+            "title": "Environmentid",
+            "type": "string"
+          },
+          "kind": {
+            "const": "serviceEnvironment",
+            "default": "serviceEnvironment",
+            "title": "Kind",
+            "type": "string"
+          },
+          "projectId": {
+            "format": "uuid",
+            "title": "Projectid",
+            "type": "string"
+          },
+          "serviceId": {
+            "format": "uuid",
+            "title": "Serviceid",
+            "type": "string"
+          },
+          "tenantId": {
+            "format": "uuid",
+            "title": "Tenantid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tenantId",
+          "projectId",
+          "serviceId",
+          "environmentId"
+        ],
+        "title": "ServiceEnvironmentScope",
+        "type": "object"
+      },
+      "ServiceScope": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "const": "service",
+            "default": "service",
+            "title": "Kind",
+            "type": "string"
+          },
+          "projectId": {
+            "format": "uuid",
+            "title": "Projectid",
+            "type": "string"
+          },
+          "serviceId": {
+            "format": "uuid",
+            "title": "Serviceid",
+            "type": "string"
+          },
+          "tenantId": {
+            "format": "uuid",
+            "title": "Tenantid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tenantId",
+          "projectId",
+          "serviceId"
+        ],
+        "title": "ServiceScope",
+        "type": "object"
+      },
+      "Team": {
+        "additionalProperties": false,
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "createdByPrincipalId": {
+            "format": "uuid",
+            "title": "Createdbyprincipalid",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "ownerPrincipalId": {
+            "format": "uuid",
+            "title": "Ownerprincipalid",
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 1,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "schemaVersion": {
+            "const": 1,
+            "default": 1,
+            "title": "Schemaversion",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "suspended",
+              "archived"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tenantId": {
+            "format": "uuid",
+            "title": "Tenantid",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "revision",
+          "createdAt",
+          "updatedAt",
+          "createdByPrincipalId",
+          "status",
+          "tenantId",
+          "name",
+          "ownerPrincipalId"
+        ],
+        "title": "Team",
+        "type": "object"
+      },
+      "TeamMembership": {
+        "additionalProperties": false,
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "createdByPrincipalId": {
+            "format": "uuid",
+            "title": "Createdbyprincipalid",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "principalId": {
+            "format": "uuid",
+            "title": "Principalid",
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 1,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "schemaVersion": {
+            "const": 1,
+            "default": 1,
+            "title": "Schemaversion",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "suspended",
+              "archived"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "teamId": {
+            "format": "uuid",
+            "title": "Teamid",
+            "type": "string"
+          },
+          "tenantId": {
+            "format": "uuid",
+            "title": "Tenantid",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "title": "Updatedat",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "revision",
+          "createdAt",
+          "updatedAt",
+          "createdByPrincipalId",
+          "status",
+          "tenantId",
+          "teamId",
+          "principalId"
+        ],
+        "title": "TeamMembership",
+        "type": "object"
+      },
+      "TeamSubject": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "const": "team",
+            "default": "team",
+            "title": "Kind",
+            "type": "string"
+          },
+          "teamId": {
+            "format": "uuid",
+            "title": "Teamid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "teamId"
+        ],
+        "title": "TeamSubject",
         "type": "object"
       },
       "VersionResponse": {
