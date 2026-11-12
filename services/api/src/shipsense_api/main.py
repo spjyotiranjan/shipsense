@@ -25,6 +25,8 @@ from shipsense_api.diagnostics import (
     VersionResponse,
 )
 from shipsense_api.hosted import HostedReadiness
+from shipsense_api.service_credentials import ServiceKey
+from shipsense_api.session_bridge import SessionAuthority, session_router
 
 LOGGER = logging.getLogger("shipsense.diagnostics")
 LOGGER.setLevel(logging.INFO)
@@ -80,7 +82,12 @@ class FoundationResponse(BaseModel):
     mode: Literal["local-foundation"] = "local-foundation"
 
 
-def create_app(readiness: ReadinessGate | None = None) -> FastAPI:
+def create_app(
+    readiness: ReadinessGate | None = None,
+    *,
+    session_authority: SessionAuthority | None = None,
+    service_keys: dict[str, ServiceKey] | None = None,
+) -> FastAPI:
     # This package has no production configuration or adapters yet.
     if os.environ.get("SHIPSENSE_PROFILE", "local") != "local":
         raise RuntimeError("SHIPSENSE_PROFILE must be local for the foundation.")
@@ -194,6 +201,8 @@ def create_app(readiness: ReadinessGate | None = None) -> FastAPI:
     def foundation() -> FoundationResponse:
         # Explicit public local diagnostic: no customer data or dependencies.
         return FoundationResponse()
+
+    app.include_router(session_router(session_authority, service_keys))
 
     # Publish shared schema contracts without exposing an unauthenticated domain
     # route or suggesting that sessions/administration have been implemented.

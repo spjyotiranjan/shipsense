@@ -35,7 +35,7 @@ Enforce identity and authorization consistently across the web, API, workers, co
 
 ### P02.2 — Implement login/session and token validation across web, API, workers, and provider callbacks
 
-**Status:** Not started.
+**Status:** In progress. The disabled-by-default [session bridge](../docs/session-bridge.md) implements cookie-only NextAuth handling, bounded expiry, BFF service credentials and canonical authority ports under [Decision 0010](../docs/decisions/0010-p02-session-bridge.md). [Web](../apps/web/tests/session-bridge.test.ts) and [API](../services/api/tests/test_session_bridge.py) tests cover synthetic authority, actual credential interoperability and failure boundaries. Real providers, persistent authority, worker/callback isolation and external revocation proof remain pending; this is not checkpoint completion.
 **Expected result:** Implement login/session and token validation across web, API, workers, and provider callbacks.
 
 **Acceptance criteria**

@@ -17,6 +17,8 @@ class IdentityContractTests(unittest.TestCase):
                 "/health/ready",
                 "/api/v1/version",
                 "/foundation",
+                "/internal/v1/auth/session/resolve",
+                "/internal/v1/auth/session/revoke",
             },
         )
         definitions = schema["components"]["schemas"]
