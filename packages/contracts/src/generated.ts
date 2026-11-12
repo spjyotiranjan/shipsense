@@ -72,6 +72,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/internal/v1/auth/session/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resolve */
+        post: operations["resolve_internal_v1_auth_session_resolve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/internal/v1/auth/session/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revoke */
+        post: operations["revoke_internal_v1_auth_session_revoke_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -79,6 +113,16 @@ export interface components {
         /** ApiError */
         ApiError: {
             error: components["schemas"]["ErrorDetail"];
+        };
+        /** BridgeFailure */
+        BridgeFailure: {
+            /** Requestid */
+            requestId: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "denied" | "unavailable";
         };
         /** Environment */
         Environment: {
@@ -416,6 +460,15 @@ export interface components {
              */
             status: "ready";
         };
+        /** RevokedResponse */
+        RevokedResponse: {
+            /**
+             * State
+             * @default revoked
+             * @constant
+             */
+            state: "revoked";
+        };
         /** RoleGrant */
         RoleGrant: {
             /**
@@ -717,6 +770,28 @@ export interface components {
              * Format: uuid
              */
             tenantId: string;
+        };
+        /** SessionRequest */
+        SessionRequest: {
+            /** Handle */
+            handle: string;
+        };
+        /**
+         * SessionSnapshot
+         * @description Internal only: authority adapter must also check account state/epoch/revocation.
+         *
+         *     This is not a principal context or authorization grant. Domain operations must
+         *     resolve canonical state and permissions again, under their unit of work.
+         */
+        SessionSnapshot: {
+            /** Absoluteexpiresat */
+            absoluteExpiresAt: number;
+            /** Createdat */
+            createdAt: number;
+            /** Idleexpiresat */
+            idleExpiresAt: number;
+            /** Lastactivityat */
+            lastActivityAt: number;
         };
         /** Team */
         Team: {
@@ -1128,6 +1203,166 @@ export interface operations {
                      *     }
                      */
                     "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    resolve_internal_v1_auth_session_resolve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SessionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionSnapshot"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BridgeFailure"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INVALID_REQUEST",
+                     *         "message": "The request is invalid.",
+                     *         "requestId": "req-local-001",
+                     *         "retryable": false
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INTERNAL_ERROR",
+                     *         "message": "The request could not be completed.",
+                     *         "requestId": "req-local-001",
+                     *         "retryable": true
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BridgeFailure"];
+                };
+            };
+        };
+    };
+    revoke_internal_v1_auth_session_revoke_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SessionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevokedResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BridgeFailure"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INVALID_REQUEST",
+                     *         "message": "The request is invalid.",
+                     *         "requestId": "req-local-001",
+                     *         "retryable": false
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "error": {
+                     *         "code": "INTERNAL_ERROR",
+                     *         "message": "The request could not be completed.",
+                     *         "requestId": "req-local-001",
+                     *         "retryable": true
+                     *       }
+                     *     }
+                     */
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BridgeFailure"];
                 };
             };
         };

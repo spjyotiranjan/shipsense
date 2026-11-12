@@ -36,6 +36,9 @@ export default function FoundationPage() {
         </p>
 
         <FoundationStatus />
+        <p>
+          <a href="/sign-in">Sign in</a>
+        </p>
 
         <section className="boundaries" aria-labelledby="boundaries-heading">
           <h2 id="boundaries-heading">Application boundaries</h2>

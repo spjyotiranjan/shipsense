@@ -189,6 +189,9 @@ dd {
   margin-block: 1.25rem;
   font-weight: 600;
 }
+.sign-in > * + * {
+  margin-top: 1.5rem;
+}
 .request-reference {
   margin-block: 1rem;
 }

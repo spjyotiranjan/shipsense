@@ -14,6 +14,28 @@
         "title": "ApiError",
         "type": "object"
       },
+      "BridgeFailure": {
+        "properties": {
+          "requestId": {
+            "title": "Requestid",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "denied",
+              "unavailable"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "state",
+          "requestId"
+        ],
+        "title": "BridgeFailure",
+        "type": "object"
+      },
       "Environment": {
         "additionalProperties": false,
         "properties": {
@@ -605,6 +627,18 @@
         "title": "ReadinessResponse",
         "type": "object"
       },
+      "RevokedResponse": {
+        "properties": {
+          "state": {
+            "const": "revoked",
+            "default": "revoked",
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "title": "RevokedResponse",
+        "type": "object"
+      },
       "RoleGrant": {
         "additionalProperties": false,
         "properties": {
@@ -1118,6 +1152,55 @@
         "title": "ServiceScope",
         "type": "object"
       },
+      "SessionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "handle": {
+            "pattern": "^[A-Za-z0-9_-]{43}$",
+            "title": "Handle",
+            "type": "string"
+          }
+        },
+        "required": [
+          "handle"
+        ],
+        "title": "SessionRequest",
+        "type": "object"
+      },
+      "SessionSnapshot": {
+        "additionalProperties": false,
+        "description": "Internal only: authority adapter must also check account state/epoch/revocation.\n\nThis is not a principal context or authorization grant. Domain operations must\nresolve canonical state and permissions again, under their unit of work.",
+        "properties": {
+          "absoluteExpiresAt": {
+            "minimum": 0.0,
+            "title": "Absoluteexpiresat",
+            "type": "integer"
+          },
+          "createdAt": {
+            "minimum": 0.0,
+            "title": "Createdat",
+            "type": "integer"
+          },
+          "idleExpiresAt": {
+            "minimum": 0.0,
+            "title": "Idleexpiresat",
+            "type": "integer"
+          },
+          "lastActivityAt": {
+            "minimum": 0.0,
+            "title": "Lastactivityat",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "createdAt",
+          "lastActivityAt",
+          "absoluteExpiresAt",
+          "idleExpiresAt"
+        ],
+        "title": "SessionSnapshot",
+        "type": "object"
+      },
       "Team": {
         "additionalProperties": false,
         "properties": {
@@ -1320,6 +1403,13 @@
         ],
         "title": "VersionResponse",
         "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "BffServiceCredential": {
+        "description": "Fixed RS256 BFF auth-only credential; never browser or worker authority.",
+        "scheme": "bearer",
+        "type": "http"
       }
     }
   },
@@ -1594,6 +1684,190 @@
           }
         },
         "summary": "Ready"
+      }
+    },
+    "/internal/v1/auth/session/resolve": {
+      "post": {
+        "operationId": "resolve_internal_v1_auth_session_resolve_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionSnapshot"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BridgeFailure"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "INVALID_REQUEST",
+                    "message": "The request is invalid.",
+                    "requestId": "req-local-001",
+                    "retryable": false
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": "The request could not be completed.",
+                    "requestId": "req-local-001",
+                    "retryable": true
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BridgeFailure"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "BffServiceCredential": []
+          }
+        ],
+        "summary": "Resolve",
+        "tags": [
+          "Session bridge"
+        ]
+      }
+    },
+    "/internal/v1/auth/session/revoke": {
+      "post": {
+        "operationId": "revoke_internal_v1_auth_session_revoke_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevokedResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BridgeFailure"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "INVALID_REQUEST",
+                    "message": "The request is invalid.",
+                    "requestId": "req-local-001",
+                    "retryable": false
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": "The request could not be completed.",
+                    "requestId": "req-local-001",
+                    "retryable": true
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BridgeFailure"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "BffServiceCredential": []
+          }
+        ],
+        "summary": "Revoke",
+        "tags": [
+          "Session bridge"
+        ]
       }
     }
   }
