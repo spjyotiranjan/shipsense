@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer
 from pydantic import BaseModel, ConfigDict, Field, StrictInt
+from shipsense_domain.sessions import SessionDenied as SessionDenied
 
 from shipsense_api.service_credentials import (
     InvalidServiceCredential,
@@ -19,10 +20,6 @@ from shipsense_api.service_credentials import (
 
 
 class AuthorityUnavailable(Exception):
-    pass
-
-
-class SessionDenied(Exception):
     pass
 
 

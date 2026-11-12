@@ -42,6 +42,7 @@ def units() -> None:
         ("services/api/tests", "test_hosted.py"),
         ("services/api/tests", "test_identity_contract.py"),
         ("services/api/tests", "test_session_bridge.py"),
+        ("services/api/tests", "test_canonical_sessions.py"),
         ("packages/local-core/tests", "test_unit.py"),
         ("packages/domain/tests", "test_identity.py"),
         ("scripts/tests", "test_integration_smoke.py"),
