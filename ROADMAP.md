@@ -63,7 +63,7 @@ Accepted proof: [P01.1](https://github.com/spjyotiranjan/shipsense/pull/4), [P01
 - [x] P01.4 Build Next.js shell and FastAPI health/version endpoints; document Swagger/OpenAPI contracts.
 - [x] P01.5 Create CI that builds both apps and runs contract, unit, and smoke checks.
 
-### P02 — Identity, tenancy, permissions, and audit · Not started
+### P02 — Identity, tenancy, permissions, and audit · In progress
 **Prerequisite:** P01. **Exit:** denied access never exposes another tenant; all material decisions have correlated audit records.
 
 - [ ] P02.1 Define organizations, projects, teams, services, environments, users, roles, and service accounts.

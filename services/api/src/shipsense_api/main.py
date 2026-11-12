@@ -13,6 +13,7 @@ from fastapi import FastAPI, Header, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict
+from shipsense_domain.models import IdentityContract
 from starlette.exceptions import HTTPException
 
 from shipsense_api.diagnostics import (
@@ -194,4 +195,13 @@ def create_app(readiness: ReadinessGate | None = None) -> FastAPI:
         # Explicit public local diagnostic: no customer data or dependencies.
         return FoundationResponse()
 
+    # Publish shared schema contracts without exposing an unauthenticated domain
+    # route or suggesting that sessions/administration have been implemented.
+    schema = app.openapi()
+    identity_schema = IdentityContract.model_json_schema(
+        ref_template="#/components/schemas/{model}"
+    )
+    definitions = identity_schema.pop("$defs", {})
+    schema["components"]["schemas"].update(definitions)
+    schema["components"]["schemas"]["IdentityContract"] = identity_schema
     return app

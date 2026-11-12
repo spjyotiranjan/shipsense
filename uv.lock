@@ -5,6 +5,7 @@ requires-python = "==3.14.7"
 [manifest]
 members = [
     "shipsense-api",
+    "shipsense-domain",
     "shipsense-local",
     "shipsense-worker",
     "shipsense-workspace",
@@ -589,6 +590,7 @@ source = { editable = "services/api" }
 dependencies = [
     { name = "fastapi" },
     { name = "pydantic" },
+    { name = "shipsense-domain" },
     { name = "shipsense-local" },
     { name = "uvicorn" },
 ]
@@ -602,12 +604,24 @@ dev = [
 requires-dist = [
     { name = "fastapi", specifier = "==0.162.2" },
     { name = "pydantic", specifier = "==2.14.3" },
+    { name = "shipsense-domain", editable = "packages/domain" },
     { name = "shipsense-local", editable = "packages/local-core" },
     { name = "uvicorn", specifier = "==0.54.0" },
 ]
 
 [package.metadata.requires-dev]
 dev = [{ name = "httpx", specifier = "==0.28.1" }]
+
+[[package]]
+name = "shipsense-domain"
+version = "0.1.0"
+source = { editable = "packages/domain" }
+dependencies = [
+    { name = "pydantic" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "pydantic", specifier = "==2.14.3" }]
 
 [[package]]
 name = "shipsense-local"
@@ -633,11 +647,15 @@ name = "shipsense-worker"
 version = "0.1.0"
 source = { editable = "services/worker" }
 dependencies = [
+    { name = "shipsense-domain" },
     { name = "shipsense-local" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "shipsense-local", editable = "packages/local-core" }]
+requires-dist = [
+    { name = "shipsense-domain", editable = "packages/domain" },
+    { name = "shipsense-local", editable = "packages/local-core" },
+]
 
 [[package]]
 name = "shipsense-workspace"

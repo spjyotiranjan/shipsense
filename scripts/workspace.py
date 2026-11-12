@@ -40,7 +40,9 @@ def units() -> None:
         ("services/api/tests", "test_diagnostics.py"),
         ("services/api/tests", "test_hosted_lifespan.py"),
         ("services/api/tests", "test_hosted.py"),
+        ("services/api/tests", "test_identity_contract.py"),
         ("packages/local-core/tests", "test_unit.py"),
+        ("packages/domain/tests", "test_identity.py"),
         ("scripts/tests", "test_integration_smoke.py"),
     ):
         run(
@@ -67,7 +69,7 @@ def units() -> None:
 def build() -> None:
     run(NPM, "run", "build:web")
     with tempfile.TemporaryDirectory(prefix="shipsense-distributions-") as directory:
-        for package in ("shipsense-local", "shipsense-api", "shipsense-worker"):
+        for package in ("shipsense-local", "shipsense-domain", "shipsense-api", "shipsense-worker"):
             run("uv", "build", "--package", package, "--out-dir", directory)
 
 
