@@ -1,6 +1,6 @@
 # ShipSense project roadmap
 
-**Planning baseline:** 23 October 2026. **Project state (11 November 2026):** P00 and P01 complete; P01.1–P01.5 accepted. The completion record is included in [PR #9](https://github.com/spjyotiranjan/shipsense/pull/9) before merging the reviewed #7 → #8 → #9 stack. See [evidence and limitations](PROJECT_STATUS.md). P02 is next; identity/reference-runtime and pre-provisioning validation remain explicit follow-on gates. Phase numbers express dependencies, not calendar promises.
+**Planning baseline:** 23 October 2026. **Project state (13 November 2026):** P00 and P01 complete; P01.1–P01.5 accepted. The completion record was included in [PR #9](https://github.com/spjyotiranjan/shipsense/pull/9) before the merge of the reviewed #7 → #8 → #9 stack. See [evidence and limitations](PROJECT_STATUS.md). P02 is in progress; identity/reference-runtime and pre-provisioning validation remain explicit follow-on gates. Phase numbers express dependencies, not calendar promises.
 
 ## Product outcome
 

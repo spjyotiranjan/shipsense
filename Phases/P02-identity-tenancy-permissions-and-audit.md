@@ -35,7 +35,7 @@ Enforce identity and authorization consistently across the web, API, workers, co
 
 ### P02.2 — Implement login/session and token validation across web, API, workers, and provider callbacks
 
-**Status:** In progress. The disabled-by-default [session bridge](../docs/session-bridge.md) implements cookie-only NextAuth handling, bounded expiry, BFF service credentials and canonical authority ports under [Decision 0010](../docs/decisions/0010-p02-session-bridge.md). [Web](../apps/web/tests/session-bridge.test.ts) and [API](../services/api/tests/test_session_bridge.py) tests cover synthetic authority, actual credential interoperability and failure boundaries. Real providers, persistent authority, worker/callback isolation and external revocation proof remain pending; this is not checkpoint completion.
+**Status:** In progress. The disabled-by-default [session bridge](../docs/session-bridge.md) implements cookie-only NextAuth handling, bounded expiry, BFF service credentials and canonical authority ports under [Decision 0010](../docs/decisions/0010-p02-session-bridge.md). [Web](../apps/web/tests/session-bridge.test.ts) and [API](../services/api/tests/test_session_bridge.py) tests cover synthetic authority, actual credential interoperability and failure boundaries. The canonical lifecycle/atomic audit contract slice was also accepted and merged in [PR #12](https://github.com/spjyotiranjan/shipsense/pull/12), with [exact-head clearance](https://github.com/spjyotiranjan/shipsense/pull/12#issuecomment-6820359498). Runtime authority stays unavailable. Real providers, persistent authority, worker/callback isolation and external revocation proof remain pending; this is not checkpoint completion.
 **Expected result:** Implement login/session and token validation across web, API, workers, and provider callbacks.
 
 **Acceptance criteria**
@@ -74,7 +74,7 @@ Enforce identity and authorization consistently across the web, API, workers, co
 
 ### P02.5 — Record immutable-at-application-level audit events; plan tamper evidence and export
 
-**Status:** In progress. The [canonical session transaction contract](../docs/session-bridge.md#verification-and-remaining-gates) requires redacted correlated audit before releasing resolve/revoke success, with [synthetic rollback/race tests](../services/api/tests/test_canonical_sessions.py). No durable adapter, tenant reconstruction, database concurrency/restart proof or archive is claimed.
+**Status:** In progress. The [canonical session transaction contract](../docs/session-bridge.md#verification-and-remaining-gates) requires redacted correlated audit before releasing resolve/revoke success, with [synthetic rollback/race tests](../services/api/tests/test_canonical_sessions.py). This bounded contract slice was accepted and merged through [PR #12](https://github.com/spjyotiranjan/shipsense/pull/12); its merge does not complete P02.5. No durable adapter, tenant reconstruction, database concurrency/restart proof or archive is claimed.
 **Expected result:** Record immutable-at-application-level audit events; plan tamper evidence and export.
 
 **Acceptance criteria**
