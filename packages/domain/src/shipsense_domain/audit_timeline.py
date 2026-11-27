@@ -66,7 +66,10 @@ class TimelineReader:
         records = self._journal.correlation(
             scope, target_correlation_id, MAX_CORRELATION_EVENTS + 1
         )
-        if (
+        # Never classify an expired request by the contents of the fetched stream.
+        if not decision.live_at(self._clock()):
+            raise HiddenResource()
+        invalid = (
             len(records) > MAX_CORRELATION_EVENTS
             or any(
                 event.scope != scope or event.correlation_id != target_correlation_id
@@ -74,7 +77,10 @@ class TimelineReader:
             )
             or len({event.sequence for event in records}) != len(records)
             or len({event.event_id for event in records}) != len(records)
-        ):
+        )
+        if invalid:
+            if not decision.live_at(self._clock()):
+                raise HiddenResource()
             raise InvalidTimeline()
         ordered = tuple(sorted(records, key=lambda event: event.sequence))
         if not decision.live_at(self._clock()):

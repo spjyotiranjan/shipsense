@@ -67,6 +67,33 @@ class AuditTimelineTests(unittest.TestCase):
             self.reader.read(self.context, self.scope, self.correlation, self.request)
         self.assertEqual(self.journal.calls, [])
 
+    def test_expiry_during_journal_call_does_not_expose_oversize(self):
+        now = NOW
+
+        class SlowJournal(Journal):
+            def correlation(inner, scope, correlation_id, limit):
+                nonlocal now
+                now = self.context.expires_at
+                return super().correlation(scope, correlation_id, limit)
+
+        row = AuditRecord(
+            event_id=uuid4(),
+            scope=self.scope,
+            correlation_id=self.correlation,
+            sequence=1,
+            recorded_at=NOW,
+            actor_id=HUMAN,
+            kind="sensitive_read",
+            reference_id=uuid4(),
+        )
+        for rows in ((), (row,), (row,) * 101):
+            now = NOW
+            reader = TimelineReader(
+                AuthorizationService(self.authority, self.audit), SlowJournal(rows), lambda: now
+            )
+            with self.subTest(length=len(rows)), self.assertRaises(HiddenResource):
+                reader.read(self.context, self.scope, self.correlation, self.request)
+
     def test_bad_adapter_cannot_leak_mismatched_or_ambiguous_stream(self):
         item = AuditRecord(
             event_id=uuid4(),
