@@ -36,9 +36,11 @@ class SyntheticTransactions:
         self.identity = account
         self.events = []
         self.lock = asyncio.Lock()
-        self.failure = None
+        self.failure: str | None = None
         self.pause = None
         self.entered = asyncio.Event()
+        self.commit_ack: asyncio.Event | None = None
+        self.applied = asyncio.Event()
         self.lookups = []
 
     @asynccontextmanager
@@ -77,10 +79,16 @@ class SyntheticTransactions:
                     events.append(event)
 
             yield Transaction()
-            if self.failure == "commit":
+            failure = self.failure
+            if failure == "commit":
                 raise RuntimeError("private commit details")
             self.record = pending
             self.events.extend(events)
+            self.applied.set()
+            if self.commit_ack is not None:
+                await self.commit_ack.wait()
+            if failure == "commit-ack-lost":
+                raise RuntimeError("unconfirmed commit")
 
 
 class CanonicalSessionTests(unittest.IsolatedAsyncioTestCase):
@@ -169,6 +177,40 @@ class CanonicalSessionTests(unittest.IsolatedAsyncioTestCase):
             self.assertNotIn(forbidden, wire + first.model_dump_json())
         self.assertEqual([e.correlation_id for e in self.store.events], ["resolve-1", "resolve-2"])
         self.assertEqual(len({e.event_id for e in self.store.events}), 2)
+
+    async def test_resolve_withholds_snapshot_if_deadline_passes_during_commit(self):
+        absolute_first = self.record_with(
+            last_activity_at=self.now + 1, idle_expires_at=self.record.absolute_expires_at + 1
+        )
+        for record in [self.record, absolute_first]:
+            deadline = min(record.idle_expires_at, record.absolute_expires_at)
+            with self.subTest(deadline=deadline):
+                observation = record.last_activity_at
+                store = SyntheticTransactions(record, self.account)
+                authority = CanonicalSessionAuthority(
+                    store, lambda: deadline if store.applied.is_set() else observation
+                )
+                with self.assertRaises(SessionDenied):
+                    await authority.resolve(HANDLE, "expired-at-release")
+                # The receipt describes the fenced observation, not release to a caller.
+                (receipt,) = store.events
+                self.assertEqual((receipt.recorded_at, receipt.outcome), (observation, "allowed"))
+
+    async def test_resolve_withholds_snapshot_without_commit_ack_even_if_receipt_exists(self):
+        self.store.failure = "commit-ack-lost"
+        with self.assertRaises(AuthorityUnavailable):
+            await self.authority.resolve(HANDLE, "lost-ack")
+        self.assertEqual(self.store.lookups, [handle_digest(HANDLE)])
+        self.assertEqual([e.correlation_id for e in self.store.events], ["lost-ack"])
+
+    async def test_cancellation_during_commit_ack_never_releases_snapshot(self):
+        self.store.commit_ack = asyncio.Event()
+        task = asyncio.create_task(self.authority.resolve(HANDLE, "cancel-at-ack"))
+        await asyncio.wait_for(self.store.applied.wait(), timeout=2)
+        task.cancel()
+        with self.assertRaises(asyncio.CancelledError):
+            await task
+        self.assertEqual([e.correlation_id for e in self.store.events], ["cancel-at-ack"])
 
     async def test_idempotent_revoke_and_unknown_handle(self):
         await self.authority.revoke(HANDLE, "logout")

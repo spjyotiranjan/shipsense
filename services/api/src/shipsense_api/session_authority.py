@@ -57,6 +57,13 @@ class CanonicalSessionAuthority:
             raise AuthorityUnavailable() from None
         if snapshot is None:
             raise SessionDenied()
+        # A confirmed receipt records the fenced observation, not delivery of
+        # a snapshot. A slow commit must not extend an authority deadline.
+        try:
+            release_at = self.clock()
+        except Exception:
+            raise AuthorityUnavailable() from None
+        snapshot.check(release_at)
         return snapshot
 
     async def revoke(self, handle: str, correlation_id: str) -> None:

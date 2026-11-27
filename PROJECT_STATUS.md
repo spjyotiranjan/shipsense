@@ -50,3 +50,9 @@ The bounded P02.2/P02.5 slice accepted and merged in [PR #12](https://github.com
 Local proof for the canonical contract slice: `npm run quality` (including canonical OpenAPI/TypeScript drift), `npm run test:unit` (81 Python and 15 web tests, including 11 new lifecycle tests), `npm run build` (web and four Python distributions), and actual credential-free API/built-web/browser `npm run test:smoke` passed. Queue diagnostics reported zero effects. Dependencies and public contracts are unchanged. The existing development minimatch advisory and Starlette/httpx deprecation remain disclosed.
 
 Maintained `scripts/verify-quality-gates.py` and `scripts/verify-integration-gates.py` also passed: independent quality/contract rejection and restoration, stopped-upstream rejection, and fresh built-browser recovery. These credential-free results do not prove hosted authentication or persistence.
+
+### P02.2 / P02.5 bounded follow-on — 27 November 2026
+
+The [canonical authority](services/api/src/shipsense_api/session_authority.py) rechecks expiry after confirmed commit, including for direct callers. The [synthetic transaction cases](services/api/tests/test_canonical_sessions.py) cover idle and absolute expiry at release, lost commit acknowledgement and cancellation with a receipt already present. They do not establish database atomicity, process isolation, restart durability or cancellation deadlines. Runtime authority remains disabled. The [adapter and activation sequence](docs/session-bridge.md#durable-adapter-and-activation-sequence) records the pinned driver's implicit retry gate and remaining provider/account-matching and operator approvals. Both checkpoints are still in progress; independent review and acceptance of this slice are pending.
+
+Local proof: `npm run quality` (including OpenAPI/TypeScript drift), `npm run test:unit` (84 Python and 15 web tests; queue reported zero effects), `npm run build`, and credential-free `npm run test:smoke` passed.
