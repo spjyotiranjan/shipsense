@@ -7,7 +7,12 @@ from uuid import UUID
 
 from pydantic import Field, TypeAdapter, ValidationError
 
-from shipsense_domain.authorization import AuthorizationService, HiddenResource, PrincipalContext
+from shipsense_domain.authorization import (
+    AuthorizationService,
+    HiddenResource,
+    PrincipalContext,
+    before_deadline,
+)
 from shipsense_domain.models import Contract, ResourceScope
 
 
@@ -38,7 +43,8 @@ class MetadataGateway:
         result = self._authorization.evaluate(
             context, "metadata.read", scope, self._clock(), correlation_id
         )
-        if not result.allowed:
+        # Do not start retrieval if authority lookup or audit crossed the deadline.
+        if not result.allowed or not before_deadline(self._clock(), context.expires_at):
             raise HiddenResource()
 
     def count(self, context: PrincipalContext, scope: ResourceScope, correlation_id: UUID) -> int:

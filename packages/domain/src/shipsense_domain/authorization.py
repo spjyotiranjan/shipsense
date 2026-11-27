@@ -6,7 +6,7 @@ Only trusted callers may construct PrincipalContext after credential validation.
 
 from collections.abc import Mapping
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from types import MappingProxyType
 from typing import Literal, Protocol
 from uuid import UUID, uuid4
@@ -99,6 +99,14 @@ class HiddenResource(Exception):
     """Same public outcome for denied and nonexistent resources."""
 
 
+def before_deadline(now: datetime, deadline: datetime) -> bool:
+    return (
+        now.utcoffset() is not None
+        and deadline.utcoffset() is not None
+        and now.astimezone(UTC) < deadline.astimezone(UTC)
+    )
+
+
 def scope_exists(state: IdentityContract, scope: ResourceScope) -> bool:
     if scope.tenant_id != state.organization.id or state.organization.status != "active":
         return False
@@ -187,12 +195,7 @@ class AuthorizationService:
     ) -> Decision:
         allowed = False
         # Reject untrusted/mismatched scope before touching any tenant store.
-        if (
-            now.tzinfo is not None
-            and context.expires_at.tzinfo is not None
-            and context.expires_at > now
-            and context.tenant_id == scope.tenant_id
-        ):
+        if before_deadline(now, context.expires_at) and context.tenant_id == scope.tenant_id:
             state = self._authority.current(context)
             if state is not None and scope_exists(state, scope):
                 principal = next(

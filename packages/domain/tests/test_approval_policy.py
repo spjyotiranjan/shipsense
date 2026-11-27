@@ -1,6 +1,6 @@
 import unittest
 from dataclasses import replace
-from datetime import timedelta
+from datetime import datetime, timedelta, tzinfo
 from uuid import UUID, uuid4
 
 from shipsense_domain.approval_policy import (
@@ -112,6 +112,25 @@ class ApprovalPolicyTests(unittest.TestCase):
         self.assertIsNone(result.candidate_digest)
         self.assertIsNone(result.scope)
         self.assertEqual(self.events[-1], result)
+
+    def test_step_up_uses_elapsed_time_across_a_repeated_hour(self):
+        class RepeatedHour(tzinfo):
+            def utcoffset(self, dt):
+                return timedelta(hours=-5 if dt is not None and dt.fold else -4)
+
+        zone = RepeatedHour()
+        proof_at = datetime(2026, 11, 1, 1, 14, tzinfo=zone)
+        now = datetime(2026, 11, 1, 1, 15, tzinfo=zone, fold=1)
+        facts = replace(
+            self.facts,
+            decision=replace(self.decision, evaluated_at=now),
+            step_up=replace(self.step_up, at=proof_at),
+        )
+        result = assess_approval(
+            self.candidate, self.candidate.digest(), facts, now, self.events.append
+        )
+        self.assertEqual(result.reason, "step_up_required")
+        self.assertIsNone(result.expires_at)
 
     def test_audit_failure_prevents_releasing_eligibility(self):
         def unavailable(_event):

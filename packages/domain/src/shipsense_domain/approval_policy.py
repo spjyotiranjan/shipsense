@@ -4,7 +4,7 @@ import hashlib
 import json
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Annotated, Literal
 from uuid import UUID
 
@@ -105,8 +105,9 @@ def _reason(
         or decision.action != "approval.decide"
         or decision.scope != candidate.scope
         or decision.tenant_id != candidate.scope.tenant_id
-        or decision.evaluated_at != now
         or now.utcoffset() is None
+        or decision.evaluated_at.utcoffset() is None
+        or decision.evaluated_at.astimezone(UTC) != now.astimezone(UTC)
     ):
         return "not_found"
     if (
@@ -130,8 +131,10 @@ def _reason(
         or step_up.session_id != facts.session_id
         or step_up.principal_id != decision.principal_id
         or step_up.candidate_digest != digest
-        or not timedelta(0) <= now - step_up.at < STEP_UP_WINDOW
     ):
+        return "step_up_required"
+    age = now.astimezone(UTC) - step_up.at.astimezone(UTC)
+    if not timedelta(0) <= age < STEP_UP_WINDOW:
         return "step_up_required"
     return "eligible"
 
@@ -157,7 +160,7 @@ def assess_approval(
         now,
         reason,
         digest if reason != "not_found" else None,
-        min(candidate.expires_at, step_up.at + STEP_UP_WINDOW)
+        min(candidate.expires_at, step_up.at.astimezone(UTC) + STEP_UP_WINDOW)
         if reason == "eligible" and step_up is not None
         else None,
         POLICY_VERSION,
