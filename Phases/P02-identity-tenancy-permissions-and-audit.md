@@ -48,7 +48,7 @@ Enforce identity and authorization consistently across the web, API, workers, co
 
 ### P02.3 — Enforce tenant/resource/environment permissions at every API and tool call; test negative cases
 
-**Status:** Not started.
+**Status:** In progress. The [credential-free scoped gateway](../packages/domain/src/shipsense_domain/scoped_queries.py) exercises deny-before-query for counts/suggestions and rejects untrusted scope and action arguments. Full runtime integration and acceptance remain pending; see the [checkpoint evidence](../PROJECT_STATUS.md#p021p025-credential-free-continuation--28-november-2026).
 **Expected result:** Enforce tenant/resource/environment permissions at every API and tool call; test negative cases.
 
 **Acceptance criteria**
@@ -61,7 +61,7 @@ Enforce identity and authorization consistently across the web, API, workers, co
 
 ### P02.4 — Add policy decisions, separation of duties, expiring approvals, and step-up for sensitive actions
 
-**Status:** Not started.
+**Status:** In progress. A [deterministic non-production assessment](../packages/domain/src/shipsense_domain/approval_policy.py) binds exact candidate material and trusted assurance inputs, with [synthetic denial tests](../packages/domain/tests/test_approval_policy.py). A supported step-up verifier, durable approval/consumption and runtime/UI proof remain pending.
 **Expected result:** Add policy decisions, separation of duties, expiring approvals, and step-up for sensitive actions.
 
 **Acceptance criteria**

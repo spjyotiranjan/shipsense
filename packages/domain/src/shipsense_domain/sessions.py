@@ -104,9 +104,13 @@ def revoke_session(record: SessionRecord, now: int) -> SessionRecord:
 
 
 class SessionTransaction(Protocol):
-    async def session(self, digest: str) -> SessionRecord | None: ...
+    async def session(self, digest: str) -> SessionRecord | None:
+        """Read the record under its authoritative write fence."""
+        ...
 
-    async def account(self, account_id: UUID) -> SessionAccount | None: ...
+    async def account(self, account_id: UUID) -> SessionAccount | None:
+        """Acquire the account fence after its session fence, including for revoke."""
+        ...
 
     async def replace(self, expected: SessionRecord, replacement: SessionRecord) -> None:
         """CAS revision; preserve identity/epoch/times, change only revoke/revision."""

@@ -42,6 +42,7 @@ class SyntheticTransactions:
         self.commit_ack: asyncio.Event | None = None
         self.applied = asyncio.Event()
         self.lookups = []
+        self.calls = []
 
     @asynccontextmanager
     async def begin(self):
@@ -52,6 +53,7 @@ class SyntheticTransactions:
 
             class Transaction:
                 async def session(self, digest):
+                    store.calls.append(("session", digest))
                     store.lookups.append(digest)
                     if store.failure == "read":
                         raise RuntimeError("private database details")
@@ -63,10 +65,12 @@ class SyntheticTransactions:
                     )
 
                 async def account(self, account_id):
+                    store.calls.append(("account", account_id))
                     return store.identity
 
                 async def replace(self, expected, replacement):
                     nonlocal pending
+                    store.calls.append(("replace", expected.handle_digest))
                     if pending != expected or replacement != revoke_session(
                         expected, replacement.revoked_at
                     ):
@@ -74,6 +78,7 @@ class SyntheticTransactions:
                     pending = replacement
 
                 async def append(self, event):
+                    store.calls.append(("append", event.correlation_id))
                     if store.failure == "audit":
                         raise RuntimeError("private audit details")
                     events.append(event)
@@ -217,10 +222,32 @@ class CanonicalSessionTests(unittest.IsolatedAsyncioTestCase):
         revoked = self.store.record
         await self.authority.revoke(HANDLE, "logout-retry")
         await self.authority.revoke("x" * 43, "unknown")
+        self.assertEqual(
+            self.store.calls,
+            [
+                ("session", self.record.handle_digest),
+                ("account", self.record.account_id),
+                ("replace", self.record.handle_digest),
+                ("append", "logout"),
+                ("session", self.record.handle_digest),
+                ("account", self.record.account_id),
+                ("append", "logout-retry"),
+                ("session", handle_digest("x" * 43)),
+                ("append", "unknown"),
+            ],
+        )
         self.assertIs(self.store.record, revoked)
         with self.assertRaises(SessionDenied):
             await self.authority.resolve(HANDLE, "after-logout")
         self.assertEqual([e.outcome for e in self.store.events], ["revoked"] * 3 + ["denied"])
+
+    async def test_revoke_withholds_mutation_on_missing_or_wrong_account_fence(self):
+        for invalid in (None, self.account_with(account_id=uuid4())):
+            self.store.identity = invalid
+            with self.assertRaises(AuthorityUnavailable):
+                await self.authority.revoke(HANDLE, "bad-fence")
+            self.assertEqual(self.store.record, self.record)
+            self.assertEqual(self.store.events, [])
 
     async def test_all_denials_have_same_audit_shape(self):
         cases = [

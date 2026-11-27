@@ -36,15 +36,9 @@ def bootstrap() -> None:
 
 def units() -> None:
     for directory, pattern in (
-        ("services/api/tests", "test_foundation.py"),
-        ("services/api/tests", "test_diagnostics.py"),
-        ("services/api/tests", "test_hosted_lifespan.py"),
-        ("services/api/tests", "test_hosted.py"),
-        ("services/api/tests", "test_identity_contract.py"),
-        ("services/api/tests", "test_session_bridge.py"),
-        ("services/api/tests", "test_canonical_sessions.py"),
+        ("services/api/tests", "test_*.py"),
         ("packages/local-core/tests", "test_unit.py"),
-        ("packages/domain/tests", "test_identity.py"),
+        ("packages/domain/tests", "test_*.py"),
         ("scripts/tests", "test_integration_smoke.py"),
     ):
         run(

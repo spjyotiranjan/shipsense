@@ -71,10 +71,14 @@ class CanonicalSessionAuthority:
         try:
             async with self.transactions.begin() as tx:
                 record = await tx.session(digest)
-                now = self.clock()
                 if record is not None:
                     if record.handle_digest != digest:
                         raise SessionDenied()
+                    account = await tx.account(record.account_id)
+                    if account is None or account.account_id != record.account_id:
+                        raise AuthorityUnavailable()
+                now = self.clock()
+                if record is not None:
                     replacement = revoke_session(record, now)
                     if replacement is not record:
                         await tx.replace(record, replacement)

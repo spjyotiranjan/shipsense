@@ -66,7 +66,7 @@ class Decision:
     tenant_id: UUID
     principal_id: UUID
     action: Action
-    scope: ResourceScope
+    scope: ResourceScope | None
     evaluated_at: datetime
     correlation_id: UUID
     role_version: str = ROLE_VERSION
@@ -216,7 +216,7 @@ class AuthorizationService:
             context.tenant_id,
             context.principal_id,
             action,
-            scope,
+            scope if allowed else None,
             now,
             correlation_id,
         )
