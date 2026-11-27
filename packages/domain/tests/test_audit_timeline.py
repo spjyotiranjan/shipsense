@@ -86,3 +86,19 @@ class AuditTimelineTests(unittest.TestCase):
             self.journal.rows = rows
             with self.assertRaisesRegex(InvalidTimeline, "^Audit timeline unavailable[.]$"):
                 self.reader.read(self.context, self.scope, self.correlation, self.request)
+
+    def test_expiry_during_audit_prevents_querying_the_journal(self):
+        now = NOW
+
+        class SlowAudit(Audit):
+            def append_decision(inner, decision):
+                nonlocal now
+                super().append_decision(decision)
+                now = self.context.expires_at
+
+        reader = TimelineReader(
+            AuthorizationService(self.authority, SlowAudit()), self.journal, lambda: now
+        )
+        with self.assertRaises(HiddenResource):
+            reader.read(self.context, self.scope, self.correlation, self.request)
+        self.assertEqual(self.journal.calls, [])

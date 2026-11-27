@@ -9,9 +9,9 @@ from pydantic import Field, TypeAdapter, ValidationError
 
 from shipsense_domain.authorization import (
     AuthorizationService,
+    Decision,
     HiddenResource,
     PrincipalContext,
-    before_deadline,
 )
 from shipsense_domain.models import Contract, ResourceScope
 
@@ -39,25 +39,32 @@ class MetadataGateway:
 
     def _require_read(
         self, context: PrincipalContext, scope: ResourceScope, correlation_id: UUID
-    ) -> None:
+    ) -> Decision:
         result = self._authorization.evaluate(
             context, "metadata.read", scope, self._clock(), correlation_id
         )
         # Do not start retrieval if authority lookup or audit crossed the deadline.
-        if not result.allowed or not before_deadline(self._clock(), context.expires_at):
+        if not result.live_at(self._clock()):
             raise HiddenResource()
+        return result
 
     def count(self, context: PrincipalContext, scope: ResourceScope, correlation_id: UUID) -> int:
-        self._require_read(context, scope, correlation_id)
-        return self._index.count(scope)
+        decision = self._require_read(context, scope, correlation_id)
+        count = self._index.count(scope)
+        if not decision.live_at(self._clock()):
+            raise HiddenResource()
+        return count
 
     def suggestions(
         self, context: PrincipalContext, scope: ResourceScope, prefix: str, correlation_id: UUID
     ) -> tuple[str, ...]:
-        self._require_read(context, scope, correlation_id)
+        decision = self._require_read(context, scope, correlation_id)
         if not 1 <= len(prefix) <= 120 or not prefix.isprintable():
             raise ValueError("Invalid suggestion prefix.")
-        return self._index.suggestions(scope, prefix)
+        suggestions = self._index.suggestions(scope, prefix)
+        if not decision.live_at(self._clock()):
+            raise HiddenResource()
+        return suggestions
 
 
 class CountArguments(Contract):

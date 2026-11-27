@@ -8,12 +8,57 @@ from uuid import UUID
 from shipsense_domain.authorization import AuthorizationService, HiddenResource, PrincipalContext
 from shipsense_domain.models import ResourceScope
 from shipsense_domain.scoped_queries import MetadataGateway
-from test_identity import HUMAN, NOW, PROD, TENANT, Audit, Authority, fixture, scope
+from test_identity import HUMAN, NOW, PROD, TENANT, Audit, Authority, fixture, grant, scope
 
 JOB, DELEGATION, WORKER, CORRELATION = (UUID(int=i) for i in range(101, 105))
 
 
 class WorkerDelegationTests(unittest.TestCase):
+    def test_grant_expiring_during_audit_prevents_retrieval(self):
+        from shipsense_domain.worker_delegation import (
+            DelegatedCount,
+            Delegation,
+            VerifiedWorker,
+            WorkerCountHarness,
+        )
+
+        now = NOW
+        expiry = NOW + timedelta(seconds=5)
+        later = NOW + timedelta(minutes=1)
+
+        class SlowAudit(Audit):
+            def append_decision(self, decision):
+                nonlocal now
+                super().append_decision(decision)
+                now = expiry
+
+        class Index:
+            def count(self, scope: ResourceScope) -> int:
+                raise AssertionError("Expired grant allowed retrieval")
+
+            def suggestions(self, scope: ResourceScope, prefix: str) -> tuple[str, ...]:
+                raise AssertionError("This harness only permits counts.")
+
+        store = Authority(fixture(roleGrants=[grant(expiresAt=expiry)]))
+        gateway = MetadataGateway(AuthorizationService(store, SlowAudit()), Index(), lambda: now)
+        worker = VerifiedWorker(WORKER, TENANT, "shipsense-worker", later)
+        delegation = Delegation(
+            JOB,
+            DELEGATION,
+            WORKER,
+            scope(),
+            later,
+            True,
+            PrincipalContext(HUMAN, TENANT, 1, 1, later),
+        )
+        harness = WorkerCountHarness(lambda _: worker, lambda *_: delegation, gateway, lambda: now)
+        with self.assertRaises(HiddenResource):
+            harness.count(
+                "test credential",
+                DelegatedCount(job_id=JOB, delegation_id=DELEGATION, scope=scope()),
+                CORRELATION,
+            )
+
     def test_only_current_bound_delegation_reaches_the_audited_scoped_count(self):
         from shipsense_domain.worker_delegation import (
             DelegatedCount,

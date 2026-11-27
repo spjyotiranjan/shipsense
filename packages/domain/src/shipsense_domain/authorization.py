@@ -70,6 +70,12 @@ class Decision:
     evaluated_at: datetime
     correlation_id: UUID
     role_version: str = ROLE_VERSION
+    expires_at: datetime | None = None
+
+    def live_at(self, now: datetime) -> bool:
+        return (
+            self.allowed and self.expires_at is not None and before_deadline(now, self.expires_at)
+        )
 
 
 class AuthorityStore(Protocol):
@@ -145,7 +151,7 @@ def grant_applies(
         grant.tenant_id != context.tenant_id
         or grant.scope != scope
         or grant.status != "active"
-        or grant.expires_at <= now
+        or not before_deadline(now, grant.expires_at)
         or grant.role_version != ROLE_VERSION
     ):
         return False
@@ -171,7 +177,7 @@ def grant_applies(
             matches
             and grant.role == "serviceAccount"
             and action in grant.action_allowlist
-            and principal.expires_at > now
+            and before_deadline(now, principal.expires_at)
         )
     return (
         matches
@@ -193,7 +199,7 @@ class AuthorizationService:
         now: datetime,
         correlation_id: UUID,
     ) -> Decision:
-        allowed = False
+        expiration = None
         # Reject untrusted/mismatched scope before touching any tenant store.
         if before_deadline(now, context.expires_at) and context.tenant_id == scope.tenant_id:
             state = self._authority.current(context)
@@ -201,17 +207,26 @@ class AuthorizationService:
                 principal = next(
                     (p for p in state.principals if p.id == context.principal_id), None
                 )
-                allowed = (
+                if (
                     principal is not None
                     and principal.status == "active"
                     and principal.tenant_id == context.tenant_id
                     and principal.authz_revision == context.authz_revision
                     and state.organization.authz_revision == context.tenant_authz_revision
-                    and any(
-                        grant_applies(state, context, grant, scope, action, now)
-                        for grant in state.role_grants
+                ):
+                    latest_grant = max(
+                        (
+                            grant.expires_at.astimezone(UTC)
+                            for grant in state.role_grants
+                            if grant_applies(state, context, grant, scope, action, now)
+                        ),
+                        default=None,
                     )
-                )
+                    if latest_grant is not None:
+                        expiration = min(context.expires_at.astimezone(UTC), latest_grant)
+                        if isinstance(principal, ServiceAccount):
+                            expiration = min(expiration, principal.expires_at.astimezone(UTC))
+        allowed = expiration is not None
         decision = Decision(
             uuid4(),
             allowed,
@@ -222,6 +237,7 @@ class AuthorizationService:
             scope if allowed else None,
             now,
             correlation_id,
+            expires_at=expiration,
         )
         # No result (even a denial receipt) is presented as durably audited if this fails.
         self._audit.append_decision(decision)

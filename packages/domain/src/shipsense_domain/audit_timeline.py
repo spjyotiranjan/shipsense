@@ -60,7 +60,7 @@ class TimelineReader:
         decision = self._auth.evaluate(
             context, "audit.read", scope, self._clock(), request_correlation_id
         )
-        if not decision.allowed:
+        if not decision.live_at(self._clock()):
             raise HiddenResource()
         # Request one extra to detect oversize rather than quietly return a truncated trace.
         records = self._journal.correlation(
@@ -76,4 +76,7 @@ class TimelineReader:
             or len({event.event_id for event in records}) != len(records)
         ):
             raise InvalidTimeline()
-        return tuple(sorted(records, key=lambda event: event.sequence))
+        ordered = tuple(sorted(records, key=lambda event: event.sequence))
+        if not decision.live_at(self._clock()):
+            raise HiddenResource()
+        return ordered
