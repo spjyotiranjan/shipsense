@@ -30,7 +30,7 @@ class StorageCommitNotConfirmed(StorageBodyFailed):
 
 
 class MongoSessionPolicy(Protocol):
-    """Trusted composition only; there is intentionally no implementation.
+    """Trusted composition only. There is no default runtime policy.
 
     Budget parameters use the running loop's monotonic clock and seconds.
     A future reviewed policy must enforce these budgets at the driver boundary.

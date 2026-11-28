@@ -4,12 +4,15 @@ import asyncio
 import struct
 import unittest
 from contextlib import suppress
+from uuid import UUID
 
 from bson import BSON
 from pymongo import AsyncMongoClient
 from pymongo.errors import ConnectionFailure
 from pymongo.read_concern import ReadConcern
 from pymongo.write_concern import WriteConcern
+from shipsense_api.session_driver_policy import PinnedSessionDriverPolicy
+from shipsense_api.session_storage_transactions import CommitOutcome
 
 _HEADER = struct.Struct("<iiii")
 
@@ -24,8 +27,18 @@ class TransactionWireTests(unittest.IsolatedAsyncioTestCase):
     async def test_without_client_side_timeout_two_lost_acks_stop_without_confirmation(self):
         await self.check_commit_sends(unacknowledged=2, timeout_ms=None, confirmed=False)
 
+    async def test_candidate_commit_deadline_withholds_stalled_driver_response(self):
+        await self.check_commit_sends(
+            unacknowledged=1, timeout_ms=None, confirmed=False, stall_commit=True
+        )
+
     async def check_commit_sends(
-        self, *, unacknowledged: int, timeout_ms: int | None, confirmed: bool = True
+        self,
+        *,
+        unacknowledged: int,
+        timeout_ms: int | None,
+        confirmed: bool = True,
+        stall_commit: bool = False,
     ) -> None:
         commits = []
         inserts = []
@@ -72,6 +85,8 @@ class TransactionWireTests(unittest.IsolatedAsyncioTestCase):
                     elif command == "committransaction":
                         commits.append((document["lsid"], document["txnNumber"]))
                         if len(commits) <= unacknowledged:
+                            if stall_commit:
+                                await reader.read()
                             return  # No acknowledgement; outcome is deliberately unknown.
                         reply = dict(ok=1.0)
                     elif command == "endsessions":
@@ -107,7 +122,9 @@ class TransactionWireTests(unittest.IsolatedAsyncioTestCase):
                 asyncio.timeout(12),
                 AsyncMongoClient(
                     f"mongodb://{address}/?replicaSet=synthetic",
+                    retryReads=False,
                     retryWrites=False,
+                    max_adaptive_retries=0,
                     serverSelectionTimeoutMS=5000,
                     timeoutMS=timeout_ms,
                 ) as client,
@@ -119,7 +136,14 @@ class TransactionWireTests(unittest.IsolatedAsyncioTestCase):
                     await client.synthetic_db.owned_fixture.insert_one(
                         {"owned": True}, session=session
                     )
-                    if confirmed:
+                    if stall_commit:
+                        loop = asyncio.get_running_loop()
+                        started = loop.time()
+                        policy = PinnedSessionDriverPolicy(client.synthetic_db, UUID(int=1))
+                        outcome = await policy.commit(session, deadline=started + 2, send_limit=0.5)
+                        self.assertIs(outcome, CommitOutcome.UNKNOWN)
+                        self.assertLess(loop.time() - started, 1.25)
+                    elif confirmed:
                         await session.commit_transaction()
                     else:
                         with self.assertRaises(ConnectionFailure) as error:

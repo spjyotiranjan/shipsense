@@ -112,3 +112,17 @@ The [scope evaluator](packages/domain/src/shipsense_domain/authorization.py) req
 The [approval evaluator](packages/domain/src/shipsense_domain/approval_policy.py) requires a live authorization decision and caps eligibility by its deadline as well as the candidate and step-up deadlines. [The regression](packages/domain/tests/test_approval_policy.py) verifies that missing or expired authorization discloses neither candidate digest nor scope. This change precedes persistent approval consumption and real step-up.
 
 Local verification for these updates passed: `npm run verify` (150 Python and 19 web tests, canonical contract drift, builds, no-effect queue and browser smoke), plus the maintained independent quality and integration rejection-and-recovery probes.
+
+### P02.2 Azure email provider - 28 November 2026
+
+[Decision 0017](docs/decisions/0017-p02-azure-email.md) selects Azure Communication Services Email. The environment example contains blank Azure settings. Adapter implementation and live delivery verification remain pending.
+
+### P02.2 / P02.5 Azure mail and application-level session storage proof — 28 November 2026
+
+The [Azure Email adapter](services/api/src/shipsense_api/azure_email.py) submits one signed plain-text request per attempt with tracking disabled. [Mock-transport tests](services/api/tests/test_azure_email.py) exercise acceptance, 429 throttling, provider rejection, redirection and an uncertain timeout. No real mail was sent. The durable mail outbox and browser-bound registration and recovery remain pending.
+
+The [driver candidate](services/api/src/shipsense_api/session_driver_policy.py) and [UUID-bound append](services/api/src/shipsense_api/session_audit_append.py) passed focused tests. A disposable MongoDB 8.0.34 replica set with synthetic fixtures and separate setup, application and verification identities also passed application-level checks through the signed FastAPI session endpoints. Wrong scope returned 401, a mismatched audit collection UUID rolled back both fences and session state, valid resolve and revoke returned 200, and the revoked session returned 401. A read-only verifier found exactly three expected redacted authentication receipts and one revocation.
+
+The proof used injected application composition. Default runtime authority and provider sign-in remain disabled. A separate process denied the revoked session after a MongoDB restart and a read-only verifier found the original receipt. The [pinned-driver wire regression](services/api/tests/test_pymongo_commit_wire.py) withheld authority after a stalled acknowledgement without an outer retry. Cleanup under real faults, reconciliation of an uncertain database commit, session issuance and tenant administration remain open.
+
+Local verification passed with 161 Python and 19 web tests, canonical contract drift checks, builds and credential-free API/web/browser smoke. The new Azure adapter accepted the format of the configured local settings without making a provider request.
