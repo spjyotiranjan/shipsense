@@ -84,3 +84,31 @@ The same PR adds [P02.2 pinned provider observations](apps/web/tests/provider-co
 ### P02.1 inert tenant project view — 28 November 2026
 
 [PR #14](https://github.com/spjyotiranjan/shipsense/pull/14) adds the [project ownership and lifecycle view](apps/web/src/components/tenant-projects.ts), following the accepted [web plan](docs/web-implementation/p02-identity-tenancy-permissions-and-audit.md). [Synthetic rendering tests](apps/web/tests/tenant-administration.test.ts) distinguish unavailable access from an authorized empty list and verify labeled markup, escaped display names, and no internal project IDs or mutation controls in rendered output. The component has no route and performs no fetches. An authenticated, tenant-filtered server read, persistent bootstrap and administration mutations, and end-to-end denial proof are still required.
+
+### P02.1 explicit initial tenant state — 28 November 2026
+
+The [bootstrap builder](packages/domain/src/shipsense_domain/bootstrap.py) resolves the operator-selected provider subject to the expected active canonical account and creates a revision-one tenant with one exact organization administrator grant. [Domain tests](packages/domain/tests/test_bootstrap.py) cover valid setup and reject missing, inactive, reassigned and wrong-provider bindings, duplicate IDs, and expired grants. Persistence still must check tenant absence and fence the account binding in the same transaction that commits tenant state and its audit receipt.
+
+### P02.2 / P02.5 disposable MongoDB server proof — 28 November 2026
+
+An operator-authorized, network-isolated MongoDB 8.0.34 replica set accepted the repository's [collection validators](services/api/src/shipsense_api/session_storage_validators.py). A separate application principal had session/account read and update privileges and audit insert privilege. The server denied audit reads and deletes, session inserts, and writes from the read-only verifier. A malformed audit receipt rolled back both fences and the session change. A valid receipt committed with the revocation under majority write concern, and a new verifier connection found both after container restart.
+
+This probe drove MongoDB through its shell. Application-driver integration, contention and cancellation timing, unknown-commit reconciliation, and safe audit collection identity across DDL remain open. Runtime authority and all checkpoint acceptance states are unchanged.
+
+A second isolated probe used MongoDB's UUID-bound `bulkWrite` with an insert-only audit role. A valid append committed, and a missing or replaced audit collection returned `CollectionUUIDMismatch` with zero writes. The [pinned-driver loopback regression](services/api/tests/test_pymongo_commit_wire.py) also observed three commit sends after two dropped acknowledgements when client-side timeout was enabled. [Proposed Decision 0015](docs/decisions/0015-p02-audit-collection-and-commit-budget.md) records the viable audit-command candidate and the remaining retry and deadline investigation.
+
+### P02.2 provider configuration and mailbox evidence — 28 November 2026
+
+The [.env.example](.env.example) contains blank server-only NextAuth, Google, GitHub, and Twilio SendGrid settings. The [mailbox evidence checks](packages/domain/src/shipsense_domain/provider_mailbox.py) preserve the provider subject and delivery address. [Domain cases](packages/domain/tests/test_provider_mailbox.py) cover authoritative Google mail, private verified GitHub primary mail, and rejected third-party, malformed, ambiguous, and GitHub noreply evidence. The live exchange, full GitHub pagination, canonical account linking, mail challenge, session issuance, and provider verification remain pending.
+
+The [Google ID-token verifier](services/api/src/shipsense_api/google_identity.py) passes signature, audience, issuer, nonce and mailbox checks with locally signed fixtures. The [GitHub evidence adapter](services/api/src/shipsense_api/github_identity.py) uses fixed endpoints, bounded pagination and strict failure handling. [Google](services/api/tests/test_google_identity.py) and [GitHub](services/api/tests/test_github_identity.py) tests cover wrong authority, incomplete evidence, redirects and expired or malformed data. [Proposed Decision 0016](docs/decisions/0016-p02-provider-evidence.md) records the remaining live exchange and key-resolution gates.
+
+### P02.3 tenant ancestry verification — 28 November 2026
+
+The [scope evaluator](packages/domain/src/shipsense_domain/authorization.py) requires each matching project, service, environment, and service-environment binding to belong to the requested tenant, including when an adapter returns a malformed snapshot. The [negative test](packages/domain/tests/test_identity.py) confirms equal, redacted denial before protected retrieval. Persistent scope filters and live API, worker, callback and tool wiring remain pending.
+
+### P02.4 approval authority deadline — 28 November 2026
+
+The [approval evaluator](packages/domain/src/shipsense_domain/approval_policy.py) requires a live authorization decision and caps eligibility by its deadline as well as the candidate and step-up deadlines. [The regression](packages/domain/tests/test_approval_policy.py) verifies that missing or expired authorization discloses neither candidate digest nor scope. This change precedes persistent approval consumption and real step-up.
+
+Local verification for these updates passed: `npm run verify` (150 Python and 19 web tests, canonical contract drift, builds, no-effect queue and browser smoke), plus the maintained independent quality and integration rejection-and-recovery probes.

@@ -101,7 +101,7 @@ def _reason(
 ) -> Outcome:
     decision = facts.decision
     if (
-        not decision.allowed
+        not decision.live_at(now)
         or decision.action != "approval.decide"
         or decision.scope != candidate.scope
         or decision.tenant_id != candidate.scope.tenant_id
@@ -160,8 +160,12 @@ def assess_approval(
         now,
         reason,
         digest if reason != "not_found" else None,
-        min(candidate.expires_at, step_up.at.astimezone(UTC) + STEP_UP_WINDOW)
-        if reason == "eligible" and step_up is not None
+        min(
+            candidate.expires_at,
+            step_up.at.astimezone(UTC) + STEP_UP_WINDOW,
+            decision.expires_at.astimezone(UTC),
+        )
+        if reason == "eligible" and step_up is not None and decision.expires_at is not None
         else None,
         POLICY_VERSION,
         ROLE_VERSION,

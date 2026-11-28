@@ -7,6 +7,7 @@ from contextlib import suppress
 
 from bson import BSON
 from pymongo import AsyncMongoClient
+from pymongo.errors import ConnectionFailure
 from pymongo.read_concern import ReadConcern
 from pymongo.write_concern import WriteConcern
 
@@ -15,6 +16,17 @@ _HEADER = struct.Struct("<iiii")
 
 class TransactionWireTests(unittest.IsolatedAsyncioTestCase):
     async def test_pinned_driver_can_send_two_commits_despite_retry_writes_false(self):
+        await self.check_commit_sends(unacknowledged=1, timeout_ms=None)
+
+    async def test_client_side_operation_timeout_can_send_more_than_two_commits(self):
+        await self.check_commit_sends(unacknowledged=2, timeout_ms=7000)
+
+    async def test_without_client_side_timeout_two_lost_acks_stop_without_confirmation(self):
+        await self.check_commit_sends(unacknowledged=2, timeout_ms=None, confirmed=False)
+
+    async def check_commit_sends(
+        self, *, unacknowledged: int, timeout_ms: int | None, confirmed: bool = True
+    ) -> None:
         commits = []
         inserts = []
         sockets = set()
@@ -59,7 +71,7 @@ class TransactionWireTests(unittest.IsolatedAsyncioTestCase):
                         reply = dict(ok=1.0, n=1)
                     elif command == "committransaction":
                         commits.append((document["lsid"], document["txnNumber"]))
-                        if len(commits) == 1:
+                        if len(commits) <= unacknowledged:
                             return  # No acknowledgement; outcome is deliberately unknown.
                         reply = dict(ok=1.0)
                     elif command == "endsessions":
@@ -97,7 +109,7 @@ class TransactionWireTests(unittest.IsolatedAsyncioTestCase):
                     f"mongodb://{address}/?replicaSet=synthetic",
                     retryWrites=False,
                     serverSelectionTimeoutMS=5000,
-                    timeoutMS=7000,
+                    timeoutMS=timeout_ms,
                 ) as client,
             ):
                 async with client.start_session() as session:
@@ -107,7 +119,14 @@ class TransactionWireTests(unittest.IsolatedAsyncioTestCase):
                     await client.synthetic_db.owned_fixture.insert_one(
                         {"owned": True}, session=session
                     )
-                    await session.commit_transaction()
+                    if confirmed:
+                        await session.commit_transaction()
+                    else:
+                        with self.assertRaises(ConnectionFailure) as error:
+                            await session.commit_transaction()
+                        self.assertTrue(
+                            error.exception.has_error_label("UnknownTransactionCommitResult")
+                        )
         finally:
             server.close()
             for writer in tuple(sockets):
@@ -116,4 +135,4 @@ class TransactionWireTests(unittest.IsolatedAsyncioTestCase):
             await asyncio.gather(*tuple(handlers))
         self.assertEqual(failures, [])
         self.assertEqual(len(inserts), 1)
-        self.assertEqual(commits, inserts * 2)
+        self.assertEqual(commits, inserts * (unacknowledged + int(confirmed)))

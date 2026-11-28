@@ -706,6 +706,7 @@ source = { editable = "services/api" }
 dependencies = [
     { name = "cryptography" },
     { name = "fastapi" },
+    { name = "httpx" },
     { name = "pydantic" },
     { name = "pyjwt" },
     { name = "shipsense-domain" },
@@ -713,24 +714,17 @@ dependencies = [
     { name = "uvicorn" },
 ]
 
-[package.dev-dependencies]
-dev = [
-    { name = "httpx" },
-]
-
 [package.metadata]
 requires-dist = [
     { name = "cryptography", specifier = "==50.0.2" },
     { name = "fastapi", specifier = "==0.162.2" },
+    { name = "httpx", specifier = "==0.28.1" },
     { name = "pydantic", specifier = "==2.14.3" },
     { name = "pyjwt", specifier = "==2.15.1" },
     { name = "shipsense-domain", editable = "packages/domain" },
     { name = "shipsense-local", editable = "packages/local-core" },
     { name = "uvicorn", specifier = "==0.54.0" },
 ]
-
-[package.metadata.requires-dev]
-dev = [{ name = "httpx", specifier = "==0.28.1" }]
 
 [[package]]
 name = "shipsense-domain"

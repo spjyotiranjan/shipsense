@@ -308,6 +308,20 @@ class AuthorizationTests(unittest.TestCase):
         self.assertEqual(self.audit.events[0].tenant_id, TENANT)
         self.assertIsNone(self.audit.events[0].scope)
 
+    def test_foreign_rows_cannot_satisfy_local_scope_ancestry(self):
+        state = self.authority.state
+        for field in ("projects", "services", "environments", "service_environments"):
+            with self.subTest(field=field):
+                foreign = tuple(
+                    row.model_copy(update={"tenant_id": uuid4()}) for row in getattr(state, field)
+                )
+                self.authority.state = state.model_copy(update={field: foreign})
+                with self.assertRaises(HiddenResource):
+                    self.read()
+                self.assertEqual(self.audit.events[-1].reason, "not_found")
+                self.assertIsNone(self.audit.events[-1].scope)
+        self.assertEqual(self.reader.calls, [])
+
     def test_environment_project_ancestry_and_nonexistent_share_denial(self):
         for requested in (
             scope(PROD),

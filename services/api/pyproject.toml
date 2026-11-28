@@ -10,14 +10,12 @@ dependencies = [
     "shipsense-domain",
     "pyjwt==2.15.1",
     "cryptography==50.0.2",
+    "httpx==0.28.1",
 ]
 
 [tool.uv.sources]
 shipsense-local = { workspace = true }
 shipsense-domain = { workspace = true }
-
-[dependency-groups]
-dev = ["httpx==0.28.1"]
 
 [build-system]
 requires = ["hatchling==1.33.0"]

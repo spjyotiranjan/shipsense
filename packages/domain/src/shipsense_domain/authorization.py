@@ -118,20 +118,30 @@ def scope_exists(state: IdentityContract, scope: ResourceScope) -> bool:
         return False
     if scope.kind == "organization":
         return True
-    if not any(p.id == scope.project_id and p.status == "active" for p in state.projects):
+    if not any(
+        p.id == scope.project_id and p.tenant_id == scope.tenant_id and p.status == "active"
+        for p in state.projects
+    ):
         return False
     if scope.kind in ("service", "serviceEnvironment") and not any(
-        s.id == scope.service_id and s.project_id == scope.project_id and s.status == "active"
+        s.id == scope.service_id
+        and s.tenant_id == scope.tenant_id
+        and s.project_id == scope.project_id
+        and s.status == "active"
         for s in state.services
     ):
         return False
     if scope.kind in ("environment", "serviceEnvironment") and not any(
-        e.id == scope.environment_id and e.project_id == scope.project_id and e.status == "active"
+        e.id == scope.environment_id
+        and e.tenant_id == scope.tenant_id
+        and e.project_id == scope.project_id
+        and e.status == "active"
         for e in state.environments
     ):
         return False
     return scope.kind != "serviceEnvironment" or any(
-        b.project_id == scope.project_id
+        b.tenant_id == scope.tenant_id
+        and b.project_id == scope.project_id
         and b.service_id == scope.service_id
         and b.environment_id == scope.environment_id
         and b.status == "active"
@@ -161,7 +171,10 @@ def grant_applies(
         matches = (
             isinstance(grant.subject, TeamSubject)
             and any(
-                team.id == grant.subject.team_id and team.status == "active" for team in state.teams
+                team.id == grant.subject.team_id
+                and team.tenant_id == context.tenant_id
+                and team.status == "active"
+                for team in state.teams
             )
             and any(
                 membership.tenant_id == context.tenant_id

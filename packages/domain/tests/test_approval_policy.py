@@ -1,6 +1,6 @@
 import unittest
 from dataclasses import replace
-from datetime import datetime, timedelta, tzinfo
+from datetime import UTC, datetime, timedelta, tzinfo
 from uuid import UUID, uuid4
 
 from shipsense_domain.approval_policy import (
@@ -43,6 +43,7 @@ class ApprovalPolicyTests(unittest.TestCase):
             scope(),
             NOW,
             self.correlation,
+            expires_at=NOW + timedelta(minutes=10),
         )
         self.step_up = VerifiedStepUp(uuid4(), HUMAN, self.candidate.digest(), NOW)
         self.facts = ApprovalFacts(
@@ -74,6 +75,23 @@ class ApprovalPolicyTests(unittest.TestCase):
         self.assertEqual((result.authz_revision, result.tenant_authz_revision), (2, 3))
         self.assertEqual(result.correlation_id, self.correlation)
         self.assertEqual(self.events, [result])
+
+    def test_eligibility_cannot_outlive_current_authorization(self):
+        deadline = NOW + timedelta(seconds=1)
+        decision = replace(self.decision, expires_at=deadline)
+        result = self.assess(facts=replace(self.facts, decision=decision))
+        self.assertEqual(result.reason, "eligible")
+        self.assertEqual(result.expires_at, deadline)
+
+        for expiry in (NOW, NOW - timedelta(seconds=1), None):
+            with self.subTest(expiry=expiry):
+                result = self.assess(
+                    facts=replace(self.facts, decision=replace(self.decision, expires_at=expiry))
+                )
+                self.assertEqual(result.reason, "not_found")
+                self.assertIsNone(result.scope)
+                self.assertIsNone(result.candidate_digest)
+                self.assertIsNone(result.expires_at)
 
     def test_every_material_change_invalidates_prior_review(self):
         for name in (
@@ -123,7 +141,11 @@ class ApprovalPolicyTests(unittest.TestCase):
         now = datetime(2026, 11, 1, 1, 15, tzinfo=zone, fold=1)
         facts = replace(
             self.facts,
-            decision=replace(self.decision, evaluated_at=now),
+            decision=replace(
+                self.decision,
+                evaluated_at=now,
+                expires_at=now.astimezone(UTC) + timedelta(minutes=1),
+            ),
             step_up=replace(self.step_up, at=proof_at),
         )
         result = assess_approval(
