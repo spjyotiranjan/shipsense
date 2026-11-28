@@ -14,6 +14,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict
 from shipsense_domain.models import IdentityContract
+from shipsense_domain.sessions import AUTH_CORRELATION_ID
 from starlette.exceptions import HTTPException
 
 from shipsense_api.diagnostics import (
@@ -26,7 +27,7 @@ from shipsense_api.diagnostics import (
 )
 from shipsense_api.hosted import HostedReadiness
 from shipsense_api.service_credentials import ServiceKey
-from shipsense_api.session_bridge import SessionAuthority, session_router
+from shipsense_api.session_bridge import AUTH_ROUTE_PREFIX, SessionAuthority, session_router
 
 LOGGER = logging.getLogger("shipsense.diagnostics")
 LOGGER.setLevel(logging.INFO)
@@ -128,8 +129,12 @@ def create_app(
         request: Request, call_next: Callable[[Request], Awaitable[Response]]
     ) -> Response:
         supplied = request.headers.getlist("x-request-id")
-        valid = len(supplied) == 1 and re.fullmatch(REQUEST_ID_PATTERN, supplied[0]) is not None
-        request.state.request_id = supplied[0] if valid else "req-" + uuid4().hex
+        auth = request.scope["path"].startswith(AUTH_ROUTE_PREFIX + "/")
+        pattern = AUTH_CORRELATION_ID if auth else REQUEST_ID_PATTERN
+        valid = len(supplied) == 1 and re.fullmatch(pattern, supplied[0]) is not None
+        request.state.request_id = (
+            supplied[0] if valid else (str(uuid4()) if auth else "req-" + uuid4().hex)
+        )
         if supplied and not valid:
             response: Response = safe_error(request, 422)
         else:

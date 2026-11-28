@@ -1,6 +1,7 @@
 """Inert Decision 0012 collection definitions; never applied by the application."""
 
 from bson import Int64
+from shipsense_domain.sessions import AUTH_CORRELATION_ID
 
 from shipsense_api.session_storage_codec import (
     ACCOUNT_COLLECTION,
@@ -94,7 +95,7 @@ def collection_validation_options() -> dict[str, dict[str, object]]:
                 "action": _literals("session.resolve", "session.revoke"),
                 "outcome": _literals("allowed", "denied", "revoked"),
                 "recorded_at": _long(0),
-                "correlation_id": _string(pattern=r"\A[A-Za-z0-9_-]{1,64}\z"),
+                "correlation_id": _string(pattern=rf"\A{AUTH_CORRELATION_ID}\z"),
             },
             alternatives=[
                 {

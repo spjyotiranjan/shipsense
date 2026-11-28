@@ -18,6 +18,8 @@ from shipsense_api.service_credentials import (
     verify_service_credential,
 )
 
+AUTH_ROUTE_PREFIX = "/internal/v1/auth"
+
 
 class AuthorityUnavailable(Exception):
     pass
@@ -86,7 +88,7 @@ def session_router(
     canonical = authority if authority is not None else UnavailableSessionAuthority()
     registry = dict(keys or {})
     router = APIRouter(
-        prefix="/internal/v1/auth",
+        prefix=AUTH_ROUTE_PREFIX,
         tags=["Session bridge"],
         dependencies=[
             Depends(

@@ -58,7 +58,7 @@ class StorageFixture:
             action="session.revoke",
             outcome="revoked",
             recorded_at=1200,
-            correlation_id="fixture",
+            correlation_id="00000000-0000-4000-8000-000000000003",
         )
 
 
@@ -155,14 +155,35 @@ class StorageBodyTests(StorageFixture, unittest.IsolatedAsyncioTestCase):
             await body.append(self.receipt)
         self.db.__getitem__.assert_not_called()
 
-    async def test_missing_or_unacknowledged_receipt_cannot_seal_the_body(self):
+    async def test_allowed_receipt_requires_a_valid_fenced_observation(self):
         self.sessions.find_one_and_update.return_value = None
-        self.append_receipt.return_value = False
         body = MongoSessionBody(self.db, self.tx, self.append_receipt)
         await body.session(_DIGEST)
         with self.assertRaises(StorageBodyFailed):
-            body.require_receipt()
+            await body.append(
+                self.receipt.model_copy(update={"action": "session.resolve", "outcome": "allowed"})
+            )
+        self.append_receipt.assert_not_awaited()
+
+    async def test_second_append_invalidates_a_previously_staged_receipt(self):
+        self.sessions.find_one_and_update.return_value = None
+        body = MongoSessionBody(self.db, self.tx, self.append_receipt)
+        await body.session(_DIGEST)
+        await body.append(self.receipt)
         with self.assertRaises(StorageBodyFailed):
             await body.append(self.receipt)
+        with self.assertRaises(StorageBodyFailed):
+            body.require_receipt()
+
+    async def test_missing_or_unacknowledged_receipt_cannot_seal_the_body(self):
+        self.sessions.find_one_and_update.return_value = None
+        self.append_receipt.return_value = False
+        with self.assertRaises(StorageBodyFailed):
+            MongoSessionBody(self.db, self.tx).require_receipt()
+        body = MongoSessionBody(self.db, self.tx, self.append_receipt)
+        await body.session(_DIGEST)
+        with self.assertRaises(StorageBodyFailed):
+            await body.append(self.receipt)
+        self.append_receipt.assert_awaited_once()
         with self.assertRaises(StorageBodyFailed):
             body.require_receipt()

@@ -9,7 +9,14 @@ from pymongo import ReturnDocument
 from pymongo.asynchronous.client_session import AsyncClientSession
 from pymongo.asynchronous.collection import AsyncCollection
 from pymongo.asynchronous.database import AsyncDatabase
-from shipsense_domain.sessions import SessionAccount, SessionAudit, SessionRecord, revoke_session
+from shipsense_domain.sessions import (
+    SessionAccount,
+    SessionAudit,
+    SessionDenied,
+    SessionRecord,
+    resolve_session,
+    revoke_session,
+)
 
 from shipsense_api.session_storage_codec import (
     ACCOUNT_COLLECTION,
@@ -52,13 +59,16 @@ class MongoSessionBody:
         self._session_fence: Int64 | None = None
         self._replacement: SessionRecord | None = None
         self._receipt = False
+        self._failed = False
 
     def _enter(self) -> None:
         if (
-            not self._ready
+            self._failed
+            or not self._ready
             or not self._transaction.in_transaction
             or self._transaction.client is not self._database.client
         ):
+            self._failed = True  # A caught misuse cannot become a successful commit.
             raise StorageBodyFailed()
         self._ready = False  # Leave unusable on any failure/cancellation.
 
@@ -160,6 +170,11 @@ class MongoSessionBody:
                 raise StorageBodyFailed()
         elif self._replacement is not None or event.outcome not in {"allowed", "denied"}:
             raise StorageBodyFailed()
+        elif event.outcome == "allowed":
+            try:
+                resolve_session(self._record, self._account, event.recorded_at)
+            except SessionDenied:
+                raise StorageBodyFailed() from None
         # A raw insert can implicitly create a missing collection. Require a
         # deployment policy with an acknowledged, same-transaction append instead.
         if self._append_receipt is None:
@@ -169,5 +184,6 @@ class MongoSessionBody:
         self._receipt = True  # The one-receipt body is closed to further writes.
 
     def require_receipt(self) -> None:
-        if not self._receipt or not self._transaction.in_transaction:
+        if self._failed or not self._receipt or not self._transaction.in_transaction:
+            self._failed = True
             raise StorageBodyFailed()

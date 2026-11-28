@@ -4,12 +4,17 @@ import hashlib
 import re
 from contextlib import AbstractAsyncContextManager
 from typing import Annotated, Literal, Protocol
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, StrictInt, model_validator
 
 Counter = Annotated[StrictInt, Field(ge=1)]
 Instant = Annotated[StrictInt, Field(ge=0)]
+AUTH_CORRELATION_ID = r"[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}"
+
+
+def auth_correlation_id(value: str) -> str:
+    return value if re.fullmatch(AUTH_CORRELATION_ID, value) else str(uuid4())
 
 
 class SessionDenied(Exception):
@@ -66,7 +71,7 @@ class SessionAudit(BaseModel):
     action: Literal["session.resolve", "session.revoke"]
     outcome: Literal["allowed", "denied", "revoked"]
     recorded_at: Instant
-    correlation_id: str = Field(pattern=r"^[A-Za-z0-9_-]{1,64}$")
+    correlation_id: str = Field(pattern=rf"^{AUTH_CORRELATION_ID}$")
 
 
 def handle_digest(handle: str) -> str:

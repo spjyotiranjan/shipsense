@@ -81,7 +81,7 @@ class SessionStorageCodecTests(unittest.TestCase):
             action="session.resolve",
             outcome="denied",
             recorded_at=1200,
-            correlation_id="safe-correlation",
+            correlation_id="00000000-0000-4000-8000-000000000003",
         )
         document = BSON.encode(encode_audit(event)).decode()
         self.assertEqual(
@@ -94,7 +94,7 @@ class SessionStorageCodecTests(unittest.TestCase):
                 action="session.resolve",
                 outcome="denied",
                 recorded_at=Int64(1200),
-                correlation_id="safe-correlation",
+                correlation_id="00000000-0000-4000-8000-000000000003",
             ),
         )
         self.assertIs(type(document["recorded_at"]), Int64)

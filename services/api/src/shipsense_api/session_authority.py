@@ -8,6 +8,7 @@ from shipsense_domain.sessions import (
     SessionAudit,
     SessionDenied,
     SessionTransactions,
+    auth_correlation_id,
     handle_digest,
     resolve_session,
     revoke_session,
@@ -50,7 +51,7 @@ class CanonicalSessionAuthority:
                         action="session.resolve",
                         outcome="allowed" if snapshot is not None else "denied",
                         recorded_at=now,
-                        correlation_id=correlation_id,
+                        correlation_id=auth_correlation_id(correlation_id),
                     )
                 )
         except Exception:
@@ -88,7 +89,7 @@ class CanonicalSessionAuthority:
                         action="session.revoke",
                         outcome="revoked",
                         recorded_at=now,
-                        correlation_id=correlation_id,
+                        correlation_id=auth_correlation_id(correlation_id),
                     )
                 )
         except Exception:
