@@ -5,8 +5,8 @@ These files expand the tasks in `../ROADMAP.md`. `../PROJECT_STATUS.md` is the c
 | Phase | File | Current status |
 | --- | --- | --- |
 | P00 | [Scope and technical decisions](P00-scope-and-technical-decisions.md) | Complete |
-| P01 | [Repository and developer foundation](P01-repository-and-developer-foundation.md) | Not started |
-| P02 | [Identity, tenancy, permissions, and audit](P02-identity-tenancy-permissions-and-audit.md) | Not started |
+| P01 | [Repository and developer foundation](P01-repository-and-developer-foundation.md) | Complete |
+| P02 | [Identity, tenancy, permissions, and audit](P02-identity-tenancy-permissions-and-audit.md) | In progress |
 | P03 | [Data, events, and evidence foundation](P03-data-events-and-evidence-foundation.md) | Not started |
 | P04 | [Catalog and shared web experience](P04-catalog-and-shared-web-experience.md) | Not started |
 | P05 | [GitHub, Actions, and Jira reference integration](P05-github-and-ci-reference-integration.md) | Not started |

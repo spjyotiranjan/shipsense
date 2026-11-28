@@ -305,6 +305,22 @@ class AuthorizationTests(unittest.TestCase):
             self.read(requested_scope=foreign)
         self.assertEqual(self.authority.calls, 0)
         self.assertEqual(self.reader.calls, [])
+        self.assertEqual(self.audit.events[0].tenant_id, TENANT)
+        self.assertIsNone(self.audit.events[0].scope)
+
+    def test_foreign_rows_cannot_satisfy_local_scope_ancestry(self):
+        state = self.authority.state
+        for field in ("projects", "services", "environments", "service_environments"):
+            with self.subTest(field=field):
+                foreign = tuple(
+                    row.model_copy(update={"tenant_id": uuid4()}) for row in getattr(state, field)
+                )
+                self.authority.state = state.model_copy(update={field: foreign})
+                with self.assertRaises(HiddenResource):
+                    self.read()
+                self.assertEqual(self.audit.events[-1].reason, "not_found")
+                self.assertIsNone(self.audit.events[-1].scope)
+        self.assertEqual(self.reader.calls, [])
 
     def test_environment_project_ancestry_and_nonexistent_share_denial(self):
         for requested in (
@@ -317,6 +333,66 @@ class AuthorizationTests(unittest.TestCase):
             self.assertEqual(str(error.exception), "")
         self.assertEqual(self.reader.calls, [])
         self.assertEqual({e.reason for e in self.audit.events}, {"not_found"})
+
+    def test_metadata_aggregates_are_scoped_and_denied_before_query(self):
+        from shipsense_domain.scoped_queries import MetadataGateway
+
+        class Index:
+            calls = []
+
+            def count(self, scope):
+                self.calls.append(("count", scope))
+                return 1
+
+            def suggestions(self, scope, prefix):
+                self.calls.append(("suggestions", scope, prefix))
+                return ("Checkout",)
+
+        index = Index()
+        gateway = MetadataGateway(self.service, index, lambda: NOW)
+        for target in (
+            scope(PROD),
+            scope(uuid4()),
+            scope().model_copy(update={"tenant_id": uuid4()}),
+        ):
+            with self.assertRaises(HiddenResource):
+                gateway.count(self.context, target, self.correlation)
+            with self.assertRaises(HiddenResource):
+                gateway.suggestions(self.context, target, "Check", self.correlation)
+        self.assertEqual(index.calls, [])
+        self.assertTrue(all(e.scope is None for e in self.audit.events))
+        self.assertEqual(gateway.count(self.context, scope(), self.correlation), 1)
+        self.assertEqual(
+            gateway.suggestions(self.context, scope(), "Check", self.correlation), ("Checkout",)
+        )
+        self.assertEqual(index.calls, [("count", scope()), ("suggestions", scope(), "Check")])
+        self.audit.failed = True
+        with self.assertRaisesRegex(RuntimeError, "AUDIT_UNAVAILABLE"):
+            gateway.count(self.context, scope(), self.correlation)
+        self.assertEqual(len(index.calls), 2)
+
+    def test_tool_arguments_cannot_choose_scope_or_permission(self):
+        from shipsense_domain.scoped_queries import MetadataGateway, MetadataTool
+
+        class Index:
+            def count(self, target):
+                if target != scope():
+                    raise AssertionError("An untrusted argument reached the index")
+                return 2
+
+        tool = MetadataTool(MetadataGateway(self.service, Index(), lambda: NOW))
+        for arguments in (
+            {"kind": "count", "scope": scope(PROD).model_dump()},
+            {"kind": "count", "action": "operation.request"},
+            {"kind": "suggest", "prefix": {"tenant": "foreign"}},
+            {"kind": "delete"},
+        ):
+            with self.assertRaisesRegex(ValueError, "^Invalid tool arguments[.]$"):
+                tool.invoke(self.context, scope(), self.correlation, arguments)
+        self.assertEqual(self.authority.calls, 0)
+        self.assertEqual(tool.invoke(self.context, scope(), self.correlation, {"kind": "count"}), 2)
+        with self.assertRaises(HiddenResource):
+            tool.invoke(self.context, scope(PROD), self.correlation, {"kind": "count"})
 
     def test_fresh_resolve_revocation_and_expiry_deny_later_read(self):
         self.read()

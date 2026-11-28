@@ -23,6 +23,12 @@ npm run dev --workspace apps/web
 
 See [API configuration](../services/api/README.md) for the setting contract. Empty/invalid configuration leaves readiness at 503; liveness, version, OpenAPI and web diagnostics remain available. The diagnostic UI's Connected state means API reachability.
 
+## Phase 2 provider settings
+
+The blank provider entries in [`.env.example`](../.env.example) document the names for future non-production sign-in verification. Add the entries privately to the existing ignored repository-root `.env.local`; keep OAuth credentials, `NEXTAUTH_SECRET`, and the Azure Communication Services connection string server-side. The current sign-in route is disabled, and the standard web startup above does not automatically load this file.
+
+For the eventual OAuth test, register the callback URIs `<NEXTAUTH_URL>/api/auth/callback/google` and `<NEXTAUTH_URL>/api/auth/callback/github` on the respective test apps. Use the exact browser origin in `NEXTAUTH_URL`, including its scheme and port. Secure session-cookie verification uses HTTPS. Set `AZURE_COMMUNICATION_CONNECTION_STRING` to the Communication Services connection string and `AZURE_COMMUNICATION_EMAIL_SENDER` to the linked domain MailFrom address. See [Decision 0017](decisions/0017-p02-azure-email.md) for pending adapter work. [Session bridge and activation sequence](session-bridge.md)
+
 ## Quality checks
 
 ```powershell

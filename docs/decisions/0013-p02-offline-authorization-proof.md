@@ -1,0 +1,10 @@
+# Decision 0013 — P02 offline authorization proof
+
+**Date:** 28 November 2026.
+**Status:** Bounded implementation choice for offline proof only. Live identity, workload/callback credentials, assurance and persistence remain subject to operator and independent approval.
+
+- Implement subject-first account matching as a side-effect-free rule over already verified provider evidence and canonical directory lookups. A verified email collision never authorizes a session or link. Require an exact match to the canonical account email key for a returning binding; mismatches require remediation. Account creation is a recommendation only, not a write or authority. Do not decide production mailbox normalization in this slice.
+- Use the existing exact-scope role matrix for a no-effect gateway. Reads, counts and suggestions take the same exact scope and execute only after a fresh, audited authorization decision. No grant inheritance, request-selected capability, provider effect or public route is added. Redact denied target scope from the decision receipt rather than attaching unverified target identifiers to an actor's tenant timeline.
+- Keep approval evaluation pure and limited to the synthetic non-production operation request. Distinguish policy eligibility from execution permission, and accept step-up only as an input from a future canonical verifier, never from a request or model. Bind eligibility to exact candidate material, current policy and role versions, tenant/principal authorization revisions, and expiry. Correlate decisions through a typed audit append port; no durable ledger or approval endpoint is authorized by this choice.
+
+These implementation boundaries narrow the [P02 backend plan](../backend-implementation/p02-identity-tenancy-permissions-and-audit.md) and preserve Decisions [0009](0009-p02-sign-in-methods.md), [0010](0010-p02-session-bridge.md) and [0011](0011-p02-canonical-session-lifecycle.md). Use only test-owned synthetic records. These checks are not substitutes for separate-process database, real provider, or supported assurance proof.

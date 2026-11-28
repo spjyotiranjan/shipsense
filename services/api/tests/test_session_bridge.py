@@ -213,14 +213,15 @@ process.stdout.write(serviceCredential(data.key, 'session:resolve', data.now));
         authority = FixtureAuthority(self.now)
         with TestClient(create_app(session_authority=authority, service_keys=self.keys)) as client:
             path = "/internal/v1/auth/session/"
-            headers = {"Authorization": "Bearer " + self.token(), "X-Request-ID": "bridge-test"}
+            valid_id = "00000000-0000-4000-8000-000000000001"
+            headers = {"Authorization": "Bearer " + self.token(), "X-Request-ID": valid_id}
             response = client.post(path + "resolve", json={"handle": HANDLE}, headers=headers)
             self.assertEqual(response.status_code, 200)
             self.assertEqual(
                 set(response.json()),
                 {"createdAt", "lastActivityAt", "absoluteExpiresAt", "idleExpiresAt"},
             )
-            self.assertEqual(authority.correlations, ["bridge-test"])
+            self.assertEqual(authority.correlations, [valid_id])
             authority.outage = True
             with self.assertLogs("shipsense.diagnostics", level="INFO") as logs:
                 response = client.post(path + "resolve", json={"handle": HANDLE}, headers=headers)

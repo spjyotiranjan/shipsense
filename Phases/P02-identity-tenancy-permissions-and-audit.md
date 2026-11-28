@@ -22,7 +22,7 @@ Enforce identity and authorization consistently across the web, API, workers, co
 
 ### P02.1 — Define organizations, projects, teams, services, environments, users, roles, and service accounts
 
-**Status:** In progress. Schema/role foundation is implemented in [`packages/domain`](../packages/domain/README.md), with canonical OpenAPI/TypeScript schemas and [targeted negatives](../packages/domain/tests/test_identity.py). No administration routes, persistent mutations or authenticated UI are delivered; the bounded foundation was accepted through [PR #10](https://github.com/spjyotiranjan/shipsense/pull/10), while full checkpoint exit proof remains pending. See the checkpoint record in `../PROJECT_STATUS.md`.
+**Status:** In progress. Schema/role foundation is implemented in [`packages/domain`](../packages/domain/README.md), with canonical OpenAPI/TypeScript schemas and [targeted negatives](../packages/domain/tests/test_identity.py). The [bootstrap builder](../packages/domain/src/shipsense_domain/bootstrap.py) prepares the initial tenant state for an explicitly selected active account. Persistent setup, administration routes and authenticated UI are pending. The bounded foundation was accepted through [PR #10](https://github.com/spjyotiranjan/shipsense/pull/10), while full checkpoint exit proof remains pending. See the checkpoint record in `../PROJECT_STATUS.md`.
 **Expected result:** Define organizations, projects, teams, services, environments, users, roles, and service accounts.
 
 **Acceptance criteria**
@@ -35,7 +35,7 @@ Enforce identity and authorization consistently across the web, API, workers, co
 
 ### P02.2 — Implement login/session and token validation across web, API, workers, and provider callbacks
 
-**Status:** In progress. The disabled-by-default [session bridge](../docs/session-bridge.md) implements cookie-only NextAuth handling, bounded expiry, BFF service credentials and canonical authority ports under [Decision 0010](../docs/decisions/0010-p02-session-bridge.md). [Web](../apps/web/tests/session-bridge.test.ts) and [API](../services/api/tests/test_session_bridge.py) tests cover synthetic authority, actual credential interoperability and failure boundaries. Real providers, persistent authority, worker/callback isolation and external revocation proof remain pending; this is not checkpoint completion.
+**Status:** In progress. The disabled-by-default [session bridge](../docs/session-bridge.md) implements cookie-only NextAuth handling, bounded expiry, BFF service credentials and canonical authority ports under [Decision 0010](../docs/decisions/0010-p02-session-bridge.md). [Web](../apps/web/tests/session-bridge.test.ts) and [API](../services/api/tests/test_session_bridge.py) tests cover synthetic authority, actual credential interoperability and failure boundaries. The canonical lifecycle/atomic audit contract slice was also accepted and merged in [PR #12](https://github.com/spjyotiranjan/shipsense/pull/12), with [exact-head clearance](https://github.com/spjyotiranjan/shipsense/pull/12#issuecomment-6820359498). Runtime authority stays unavailable. Real providers, persistent authority, worker/callback isolation and external revocation proof remain pending; this is not checkpoint completion.
 **Expected result:** Implement login/session and token validation across web, API, workers, and provider callbacks.
 
 **Acceptance criteria**
@@ -48,7 +48,7 @@ Enforce identity and authorization consistently across the web, API, workers, co
 
 ### P02.3 — Enforce tenant/resource/environment permissions at every API and tool call; test negative cases
 
-**Status:** Not started.
+**Status:** In progress. The [credential-free scoped gateway](../packages/domain/src/shipsense_domain/scoped_queries.py) exercises deny-before-query for counts/suggestions and rejects untrusted scope and action arguments. Full runtime integration and acceptance remain pending; see the [checkpoint evidence](../PROJECT_STATUS.md#p021p025-credential-free-continuation--28-november-2026).
 **Expected result:** Enforce tenant/resource/environment permissions at every API and tool call; test negative cases.
 
 **Acceptance criteria**
@@ -61,7 +61,7 @@ Enforce identity and authorization consistently across the web, API, workers, co
 
 ### P02.4 — Add policy decisions, separation of duties, expiring approvals, and step-up for sensitive actions
 
-**Status:** Not started.
+**Status:** In progress. A [deterministic non-production assessment](../packages/domain/src/shipsense_domain/approval_policy.py) binds exact candidate material and trusted assurance inputs, with [synthetic denial tests](../packages/domain/tests/test_approval_policy.py). A supported step-up verifier, durable approval/consumption and runtime/UI proof remain pending.
 **Expected result:** Add policy decisions, separation of duties, expiring approvals, and step-up for sensitive actions.
 
 **Acceptance criteria**
@@ -74,7 +74,7 @@ Enforce identity and authorization consistently across the web, API, workers, co
 
 ### P02.5 — Record immutable-at-application-level audit events; plan tamper evidence and export
 
-**Status:** In progress. The [canonical session transaction contract](../docs/session-bridge.md#verification-and-remaining-gates) requires redacted correlated audit before releasing resolve/revoke success, with [synthetic rollback/race tests](../services/api/tests/test_canonical_sessions.py). No durable adapter, tenant reconstruction, database concurrency/restart proof or archive is claimed.
+**Status:** In progress. The [canonical session transaction contract](../docs/session-bridge.md#verification-and-remaining-gates) requires redacted correlated audit before releasing resolve/revoke success, with [synthetic rollback/race tests](../services/api/tests/test_canonical_sessions.py). This bounded contract slice was accepted and merged through [PR #12](https://github.com/spjyotiranjan/shipsense/pull/12); its merge does not complete P02.5. A disposable MongoDB replica set verified raw transaction rollback and restart persistence for authentication receipts. The application adapter, concurrency proof, tenant reconstruction and archive remain pending. See the [database verification record](../PROJECT_STATUS.md#p022--p025-disposable-mongodb-server-proof--28-november-2026).
 **Expected result:** Record immutable-at-application-level audit events; plan tamper evidence and export.
 
 **Acceptance criteria**

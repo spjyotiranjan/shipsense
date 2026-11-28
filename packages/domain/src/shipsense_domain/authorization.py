@@ -6,7 +6,7 @@ Only trusted callers may construct PrincipalContext after credential validation.
 
 from collections.abc import Mapping
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from types import MappingProxyType
 from typing import Literal, Protocol
 from uuid import UUID, uuid4
@@ -66,10 +66,16 @@ class Decision:
     tenant_id: UUID
     principal_id: UUID
     action: Action
-    scope: ResourceScope
+    scope: ResourceScope | None
     evaluated_at: datetime
     correlation_id: UUID
     role_version: str = ROLE_VERSION
+    expires_at: datetime | None = None
+
+    def live_at(self, now: datetime) -> bool:
+        return (
+            self.allowed and self.expires_at is not None and before_deadline(now, self.expires_at)
+        )
 
 
 class AuthorityStore(Protocol):
@@ -99,25 +105,43 @@ class HiddenResource(Exception):
     """Same public outcome for denied and nonexistent resources."""
 
 
+def before_deadline(now: datetime, deadline: datetime) -> bool:
+    return (
+        now.utcoffset() is not None
+        and deadline.utcoffset() is not None
+        and now.astimezone(UTC) < deadline.astimezone(UTC)
+    )
+
+
 def scope_exists(state: IdentityContract, scope: ResourceScope) -> bool:
     if scope.tenant_id != state.organization.id or state.organization.status != "active":
         return False
     if scope.kind == "organization":
         return True
-    if not any(p.id == scope.project_id and p.status == "active" for p in state.projects):
+    if not any(
+        p.id == scope.project_id and p.tenant_id == scope.tenant_id and p.status == "active"
+        for p in state.projects
+    ):
         return False
     if scope.kind in ("service", "serviceEnvironment") and not any(
-        s.id == scope.service_id and s.project_id == scope.project_id and s.status == "active"
+        s.id == scope.service_id
+        and s.tenant_id == scope.tenant_id
+        and s.project_id == scope.project_id
+        and s.status == "active"
         for s in state.services
     ):
         return False
     if scope.kind in ("environment", "serviceEnvironment") and not any(
-        e.id == scope.environment_id and e.project_id == scope.project_id and e.status == "active"
+        e.id == scope.environment_id
+        and e.tenant_id == scope.tenant_id
+        and e.project_id == scope.project_id
+        and e.status == "active"
         for e in state.environments
     ):
         return False
     return scope.kind != "serviceEnvironment" or any(
-        b.project_id == scope.project_id
+        b.tenant_id == scope.tenant_id
+        and b.project_id == scope.project_id
         and b.service_id == scope.service_id
         and b.environment_id == scope.environment_id
         and b.status == "active"
@@ -137,7 +161,7 @@ def grant_applies(
         grant.tenant_id != context.tenant_id
         or grant.scope != scope
         or grant.status != "active"
-        or grant.expires_at <= now
+        or not before_deadline(now, grant.expires_at)
         or grant.role_version != ROLE_VERSION
     ):
         return False
@@ -147,7 +171,10 @@ def grant_applies(
         matches = (
             isinstance(grant.subject, TeamSubject)
             and any(
-                team.id == grant.subject.team_id and team.status == "active" for team in state.teams
+                team.id == grant.subject.team_id
+                and team.tenant_id == context.tenant_id
+                and team.status == "active"
+                for team in state.teams
             )
             and any(
                 membership.tenant_id == context.tenant_id
@@ -163,7 +190,7 @@ def grant_applies(
             matches
             and grant.role == "serviceAccount"
             and action in grant.action_allowlist
-            and principal.expires_at > now
+            and before_deadline(now, principal.expires_at)
         )
     return (
         matches
@@ -185,30 +212,34 @@ class AuthorizationService:
         now: datetime,
         correlation_id: UUID,
     ) -> Decision:
-        allowed = False
+        expiration = None
         # Reject untrusted/mismatched scope before touching any tenant store.
-        if (
-            now.tzinfo is not None
-            and context.expires_at.tzinfo is not None
-            and context.expires_at > now
-            and context.tenant_id == scope.tenant_id
-        ):
+        if before_deadline(now, context.expires_at) and context.tenant_id == scope.tenant_id:
             state = self._authority.current(context)
             if state is not None and scope_exists(state, scope):
                 principal = next(
                     (p for p in state.principals if p.id == context.principal_id), None
                 )
-                allowed = (
+                if (
                     principal is not None
                     and principal.status == "active"
                     and principal.tenant_id == context.tenant_id
                     and principal.authz_revision == context.authz_revision
                     and state.organization.authz_revision == context.tenant_authz_revision
-                    and any(
-                        grant_applies(state, context, grant, scope, action, now)
-                        for grant in state.role_grants
+                ):
+                    latest_grant = max(
+                        (
+                            grant.expires_at.astimezone(UTC)
+                            for grant in state.role_grants
+                            if grant_applies(state, context, grant, scope, action, now)
+                        ),
+                        default=None,
                     )
-                )
+                    if latest_grant is not None:
+                        expiration = min(context.expires_at.astimezone(UTC), latest_grant)
+                        if isinstance(principal, ServiceAccount):
+                            expiration = min(expiration, principal.expires_at.astimezone(UTC))
+        allowed = expiration is not None
         decision = Decision(
             uuid4(),
             allowed,
@@ -216,9 +247,10 @@ class AuthorizationService:
             context.tenant_id,
             context.principal_id,
             action,
-            scope,
+            scope if allowed else None,
             now,
             correlation_id,
+            expires_at=expiration,
         )
         # No result (even a denial receipt) is presented as durably audited if this fails.
         self._audit.append_decision(decision)

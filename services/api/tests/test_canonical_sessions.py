@@ -36,10 +36,13 @@ class SyntheticTransactions:
         self.identity = account
         self.events = []
         self.lock = asyncio.Lock()
-        self.failure = None
+        self.failure: str | None = None
         self.pause = None
         self.entered = asyncio.Event()
+        self.commit_ack: asyncio.Event | None = None
+        self.applied = asyncio.Event()
         self.lookups = []
+        self.calls = []
 
     @asynccontextmanager
     async def begin(self):
@@ -50,6 +53,7 @@ class SyntheticTransactions:
 
             class Transaction:
                 async def session(self, digest):
+                    store.calls.append(("session", digest))
                     store.lookups.append(digest)
                     if store.failure == "read":
                         raise RuntimeError("private database details")
@@ -61,10 +65,12 @@ class SyntheticTransactions:
                     )
 
                 async def account(self, account_id):
+                    store.calls.append(("account", account_id))
                     return store.identity
 
                 async def replace(self, expected, replacement):
                     nonlocal pending
+                    store.calls.append(("replace", expected.handle_digest))
                     if pending != expected or replacement != revoke_session(
                         expected, replacement.revoked_at
                     ):
@@ -72,15 +78,22 @@ class SyntheticTransactions:
                     pending = replacement
 
                 async def append(self, event):
+                    store.calls.append(("append", event.correlation_id))
                     if store.failure == "audit":
                         raise RuntimeError("private audit details")
                     events.append(event)
 
             yield Transaction()
-            if self.failure == "commit":
+            failure = self.failure
+            if failure == "commit":
                 raise RuntimeError("private commit details")
             self.record = pending
             self.events.extend(events)
+            self.applied.set()
+            if self.commit_ack is not None:
+                await self.commit_ack.wait()
+            if failure == "commit-ack-lost":
+                raise RuntimeError("unconfirmed commit")
 
 
 class CanonicalSessionTests(unittest.IsolatedAsyncioTestCase):
@@ -159,28 +172,94 @@ class CanonicalSessionTests(unittest.IsolatedAsyncioTestCase):
         self.assertIs(revoke_session(revoked, self.now + 1), revoked)
 
     async def test_resolve_does_not_slide_and_commits_redacted_audit(self):
-        first = await self.authority.resolve(HANDLE, "resolve-1")
+        correlation = [str(uuid4()), str(uuid4())]
+        first = await self.authority.resolve(HANDLE, correlation[0])
         self.now += 10
-        self.assertEqual(await self.authority.resolve(HANDLE, "resolve-2"), first)
+        self.assertEqual(await self.authority.resolve(HANDLE, correlation[1]), first)
         self.assertEqual(self.store.record, self.record)
         self.assertEqual(self.store.lookups, [handle_digest(HANDLE)] * 2)
         wire = json.dumps([e.model_dump(mode="json") for e in self.store.events])
         for forbidden in [HANDLE, handle_digest(HANDLE), str(self.account.account_id)]:
             self.assertNotIn(forbidden, wire + first.model_dump_json())
-        self.assertEqual([e.correlation_id for e in self.store.events], ["resolve-1", "resolve-2"])
+        self.assertEqual([e.correlation_id for e in self.store.events], correlation)
         self.assertEqual(len({e.event_id for e in self.store.events}), 2)
 
+    async def test_direct_caller_cannot_put_handle_or_digest_in_correlation(self):
+        for correlation in (HANDLE, handle_digest(HANDLE)):
+            await self.authority.resolve(HANDLE, correlation)
+            self.assertNotIn(correlation, self.store.events[-1].model_dump_json())
+
+    async def test_resolve_withholds_snapshot_if_deadline_passes_during_commit(self):
+        absolute_first = self.record_with(
+            last_activity_at=self.now + 1, idle_expires_at=self.record.absolute_expires_at + 1
+        )
+        for record in [self.record, absolute_first]:
+            deadline = min(record.idle_expires_at, record.absolute_expires_at)
+            with self.subTest(deadline=deadline):
+                observation = record.last_activity_at
+                store = SyntheticTransactions(record, self.account)
+                authority = CanonicalSessionAuthority(
+                    store, lambda: deadline if store.applied.is_set() else observation
+                )
+                with self.assertRaises(SessionDenied):
+                    await authority.resolve(HANDLE, "expired-at-release")
+                # The receipt describes the fenced observation, not release to a caller.
+                (receipt,) = store.events
+                self.assertEqual((receipt.recorded_at, receipt.outcome), (observation, "allowed"))
+
+    async def test_resolve_withholds_snapshot_without_commit_ack_even_if_receipt_exists(self):
+        correlation = str(uuid4())
+        self.store.failure = "commit-ack-lost"
+        with self.assertRaises(AuthorityUnavailable):
+            await self.authority.resolve(HANDLE, correlation)
+        self.assertEqual(self.store.lookups, [handle_digest(HANDLE)])
+        self.assertEqual([e.correlation_id for e in self.store.events], [correlation])
+
+    async def test_cancellation_during_commit_ack_never_releases_snapshot(self):
+        self.store.commit_ack = asyncio.Event()
+        correlation = str(uuid4())
+        task = asyncio.create_task(self.authority.resolve(HANDLE, correlation))
+        await asyncio.wait_for(self.store.applied.wait(), timeout=2)
+        task.cancel()
+        with self.assertRaises(asyncio.CancelledError):
+            await task
+        self.assertEqual([e.correlation_id for e in self.store.events], [correlation])
+
     async def test_idempotent_revoke_and_unknown_handle(self):
-        await self.authority.revoke(HANDLE, "logout")
+        first, repeated, unknown = (str(uuid4()) for _ in range(3))
+        await self.authority.revoke(HANDLE, first)
         revoked = self.store.record
-        await self.authority.revoke(HANDLE, "logout-retry")
-        await self.authority.revoke("x" * 43, "unknown")
+        await self.authority.revoke(HANDLE, repeated)
+        await self.authority.revoke("x" * 43, unknown)
+        self.assertEqual(
+            self.store.calls,
+            [
+                ("session", self.record.handle_digest),
+                ("account", self.record.account_id),
+                ("replace", self.record.handle_digest),
+                ("append", first),
+                ("session", self.record.handle_digest),
+                ("account", self.record.account_id),
+                ("append", repeated),
+                ("session", handle_digest("x" * 43)),
+                ("append", unknown),
+            ],
+        )
         self.assertIs(self.store.record, revoked)
         with self.assertRaises(SessionDenied):
             await self.authority.resolve(HANDLE, "after-logout")
         self.assertEqual([e.outcome for e in self.store.events], ["revoked"] * 3 + ["denied"])
 
+    async def test_revoke_withholds_mutation_on_missing_or_wrong_account_fence(self):
+        for invalid in (None, self.account_with(account_id=uuid4())):
+            self.store.identity = invalid
+            with self.assertRaises(AuthorityUnavailable):
+                await self.authority.revoke(HANDLE, "bad-fence")
+            self.assertEqual(self.store.record, self.record)
+            self.assertEqual(self.store.events, [])
+
     async def test_all_denials_have_same_audit_shape(self):
+        correlation = str(uuid4())
         cases = [
             None,
             self.record_with(revoked_at=self.now),
@@ -190,7 +269,7 @@ class CanonicalSessionTests(unittest.IsolatedAsyncioTestCase):
         for record in cases:
             self.store.record = record
             with self.assertRaises(SessionDenied):
-                await self.authority.resolve(HANDLE, "same-request")
+                await self.authority.resolve(HANDLE, correlation)
         comparable = [e.model_dump(exclude={"event_id"}) for e in self.store.events]
         self.assertTrue(all(e == comparable[0] for e in comparable))
 
@@ -213,7 +292,7 @@ class CanonicalSessionTests(unittest.IsolatedAsyncioTestCase):
                 action="session.resolve",
                 outcome="allowed",
                 recorded_at=self.now,
-                correlation_id="valid",
+                correlation_id=str(uuid4()),
                 handle=HANDLE,
             )
 
@@ -240,6 +319,26 @@ class CanonicalSessionTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(SessionDenied):
             await resolve
 
+    def test_auth_correlation_rejected_under_asgi_root_path(self):
+        prefix = "/ship"
+        path = prefix + "/internal/v1/auth/session/resolve"
+        with TestClient(create_app(), root_path=prefix) as client:
+            for correlation in (HANDLE, handle_digest(HANDLE)):
+                with self.assertLogs("shipsense.diagnostics", level="INFO") as logs:
+                    response = client.post(
+                        path, headers={"X-Request-ID": correlation}, json={"handle": HANDLE}
+                    )
+                self.assertEqual(response.status_code, 422)
+                self.assertNotIn(
+                    correlation, response.text + str(response.headers) + str(logs.output)
+                )
+            valid_id = str(uuid4())
+            response = client.post(
+                path, headers={"X-Request-ID": valid_id}, json={"handle": HANDLE}
+            )
+            self.assertEqual(response.status_code, 401)
+            self.assertEqual(response.headers["X-Request-ID"], valid_id)
+
     def test_api_composition_denial_unavailability_redaction_and_default_disabled(self):
         private = rsa.generate_private_key(public_exponent=65537, key_size=2048)
         pem = private.public_key().public_bytes(
@@ -261,12 +360,24 @@ class CanonicalSessionTests(unittest.IsolatedAsyncioTestCase):
             algorithm="RS256",
             headers={"kid": "current"},
         )
-        headers = {"Authorization": "Bearer " + token, "X-Request-ID": "canonical-api"}
+        valid_id = str(uuid4())
+        headers = {"Authorization": "Bearer " + token, "X-Request-ID": valid_id}
         path = "/internal/v1/auth/session/resolve"
         with TestClient(create_app(session_authority=self.authority, service_keys=keys)) as client:
             self.assertEqual(
                 client.post(path, json={"handle": HANDLE}, headers=headers).status_code, 200
             )
+            for correlation in (HANDLE, handle_digest(HANDLE)):
+                with self.assertLogs("shipsense.diagnostics", level="INFO") as auth_logs:
+                    response = client.post(
+                        path,
+                        json={"handle": HANDLE},
+                        headers=headers | {"X-Request-ID": correlation},
+                    )
+                self.assertEqual(response.status_code, 422)
+                self.assertNotIn(
+                    correlation, response.text + str(response.headers) + str(auth_logs.output)
+                )
             denied = []
             for record in [
                 None,
@@ -278,7 +389,7 @@ class CanonicalSessionTests(unittest.IsolatedAsyncioTestCase):
                 denied.append((r.status_code, r.json(), r.headers["cache-control"]))
             self.assertTrue(all(r == denied[0] for r in denied))
             self.assertEqual(
-                denied[0], (401, {"state": "denied", "requestId": "canonical-api"}, "no-store")
+                denied[0], (401, {"state": "denied", "requestId": valid_id}, "no-store")
             )
             self.store.record = self.record
             self.store.failure = "commit"
