@@ -319,6 +319,26 @@ class CanonicalSessionTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(SessionDenied):
             await resolve
 
+    def test_auth_correlation_rejected_under_asgi_root_path(self):
+        prefix = "/ship"
+        path = prefix + "/internal/v1/auth/session/resolve"
+        with TestClient(create_app(), root_path=prefix) as client:
+            for correlation in (HANDLE, handle_digest(HANDLE)):
+                with self.assertLogs("shipsense.diagnostics", level="INFO") as logs:
+                    response = client.post(
+                        path, headers={"X-Request-ID": correlation}, json={"handle": HANDLE}
+                    )
+                self.assertEqual(response.status_code, 422)
+                self.assertNotIn(
+                    correlation, response.text + str(response.headers) + str(logs.output)
+                )
+            valid_id = str(uuid4())
+            response = client.post(
+                path, headers={"X-Request-ID": valid_id}, json={"handle": HANDLE}
+            )
+            self.assertEqual(response.status_code, 401)
+            self.assertEqual(response.headers["X-Request-ID"], valid_id)
+
     def test_api_composition_denial_unavailability_redaction_and_default_disabled(self):
         private = rsa.generate_private_key(public_exponent=65537, key_size=2048)
         pem = private.public_key().public_bytes(

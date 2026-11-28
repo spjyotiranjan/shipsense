@@ -15,6 +15,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict
 from shipsense_domain.models import IdentityContract
 from shipsense_domain.sessions import AUTH_CORRELATION_ID
+from starlette._utils import get_route_path
 from starlette.exceptions import HTTPException
 
 from shipsense_api.diagnostics import (
@@ -129,7 +130,8 @@ def create_app(
         request: Request, call_next: Callable[[Request], Awaitable[Response]]
     ) -> Response:
         supplied = request.headers.getlist("x-request-id")
-        auth = request.scope["path"].startswith(AUTH_ROUTE_PREFIX + "/")
+        # Use the same ASGI root-path handling as the router.
+        auth = get_route_path(request.scope).startswith(AUTH_ROUTE_PREFIX + "/")
         pattern = AUTH_CORRELATION_ID if auth else REQUEST_ID_PATTERN
         valid = len(supplied) == 1 and re.fullmatch(pattern, supplied[0]) is not None
         request.state.request_id = (
